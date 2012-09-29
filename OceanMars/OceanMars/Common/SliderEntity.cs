@@ -10,12 +10,12 @@ namespace OceanMars.Common
     {
         public Vector2[] endPoints;
 
-        public SliderEntity(Vector2[] endPoints)
+        public SliderEntity(Vector2 endPoint1, Vector2 endPoint2)
             : base(Vector2.Zero)
         {
             endPoints = new Vector2[2];
-            this.endPoints[0] = endPoints[0];
-            this.endPoints[1] = endPoints[1];
+            this.endPoints[0] = endPoint1;
+            this.endPoints[1] = endPoint2;
         }
     }
 }

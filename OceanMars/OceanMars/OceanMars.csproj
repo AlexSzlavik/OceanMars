@@ -77,6 +77,7 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client\TestWallSprite.cs" />
     <Compile Include="Client\DefaultLevelSprite.cs" />
     <Compile Include="Client\GameStateManager\GameScreen.cs" />
     <Compile Include="Client\GameStateManager\InputState.cs" />
@@ -114,6 +115,7 @@
     <Compile Include="Common\SliderEntity.cs" />
     <Compile Include="Common\State.cs" />
     <Compile Include="Common\TestMan.cs" />
+    <Compile Include="Common\TestWall.cs" />
     <Compile Include="Common\World.cs" />
     <Compile Include="OceanMars.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
