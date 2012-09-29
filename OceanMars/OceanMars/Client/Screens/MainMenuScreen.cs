@@ -1,4 +1,6 @@
 using Microsoft.Xna.Framework;
+using OceanMars.Client.GameStateManager;
+using SkyCrane.Screens;
 
 
 namespace OceanMars.Client.Screens
@@ -46,6 +48,7 @@ namespace OceanMars.Client.Screens
         void NewGameMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
             //ScreenManager.AddScreen(new CharacterSelectMenuScreen(true, false));
+            ScreenManager.AddScreen(new GameplayScreen());
             return;
         }
 

@@ -16,6 +16,7 @@ namespace OceanMars.Client
 
         public Dictionary<int, Sprite> sprites = new Dictionary<int,Sprite>();
         public Dictionary<String, Texture2D> textureDict = new Dictionary<string,Texture2D>();
+        public Matrix centreTransform = Matrix.CreateTranslation(new Vector3(1280 / 2, 720 / 2, 0)); //TODO: use resolution?
 
         public View(State s, Entity avatar)
         {
@@ -23,12 +24,14 @@ namespace OceanMars.Client
             this.avatar = avatar;
         }
 
-        void draw(GameTime gameTime, SpriteBatch spriteBatch)
+        public void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             Entity root = state.root;
             foreach (Entity e in root.children)
             {
-                if (sprites.ContainsKey(e.id)) { sprites[e.id].draw(gameTime, spriteBatch); }
+                if (sprites.ContainsKey(e.id)) {
+                    sprites[e.id].draw(gameTime, spriteBatch);
+                }
             }
         }
     }
