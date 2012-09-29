@@ -27,6 +27,10 @@ namespace OceanMars.Common.NetCode
         private Thread serverThread;
         private bool go = true;
         private NetworkWorker nw;
+        private const int TIMEOUT_INITIAL_DELAY = 2000;
+        private const int TIMEOUT_PERIOD = 1000;
+
+        private Timer TimeoutTimer;
 
         private ServerStats globalStats = new ServerStats();
 
@@ -34,8 +38,7 @@ namespace OceanMars.Common.NetCode
 
         //Connection state
         Dictionary<IPEndPoint, ConnectionID> connections = new Dictionary<IPEndPoint, ConnectionID>();
-        List<Command> commandQ = new List<Command>();
-        Queue<Tuple<ConnectionID, MenuState>> mscQ = new Queue<Tuple<ConnectionID, MenuState>>();
+        Queue<Tuple<ConnectionID, GameData>> gameDataQueue = new Queue<Tuple<ConnectionID, GameData>>();
 
 
         /// <summary>
@@ -47,7 +50,7 @@ namespace OceanMars.Common.NetCode
             serverStateMachine = new NetworkStateMachine(NetworkStateMachine.NetworkState.SERVERSTART);
             initializeStateMachine();
 
-            serverThread = new Thread(newServerMainLoop);
+            serverThread = new Thread(ServerMainLoop);
             serverThread.Name = "Main Server";
             serverThread.Priority = ThreadPriority.AboveNormal;
             serverThread.IsBackground = true;
@@ -57,6 +60,25 @@ namespace OceanMars.Common.NetCode
             serverThread.Start();
 
             serverStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.SERVERSTARTED, null);
+
+            TimeoutTimer = new Timer(TimeoutTimerTicked, new AutoResetEvent(false), TIMEOUT_INITIAL_DELAY, TIMEOUT_PERIOD);
+        }
+
+        /// <summary>
+        /// The sync timer timed out, we need to send out
+        /// Syncs to all players
+        /// </summary>
+        /// <param name="eventArgs"></param>
+        private void TimeoutTimerTicked(Object eventArgs)
+        {
+            foreach (IPEndPoint ep in connections.Keys)
+            {
+                SyncPacket ps = new SyncPacket(ep);
+                this.nw.SendPacket(ps);
+                this.globalStats.sentPkts++;
+                connections[ep].changeState(NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING);
+            }
+            return;
         }
 
         /// <summary>
@@ -66,8 +88,7 @@ namespace OceanMars.Common.NetCode
         {
             serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERSTART, NetworkStateMachine.TransitionEvent.SERVERSTARTED, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, delegate { });
             serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERHANDSHAKE, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onHandshake);
-            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERCOMMAND, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onCommand);
-            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERMENUSTATECHANGE, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onMenuStateChange);
+            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERGAMEDATA, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnGameData);
             serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERPING, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onPing);
             serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onSync);
         }
@@ -85,35 +106,25 @@ namespace OceanMars.Common.NetCode
                 Debug.WriteLine("Server - Added Connection: " + connections[packet.Destination].ID);
                 HandshakePacket hs = new HandshakePacket(packet.Destination);
                 nw.SendPacket(hs);
+                this.globalStats.sentPkts++;
             }
         }
 
         /// <summary>
-        /// Server receives a Command packet
-        /// This needs to be added to the commandQ and handled
+        /// Handles reception of game data updates from the client.
         /// </summary>
-        /// <param name="packet"></param>
-        private void onCommand(NetworkPacket packet)
+        /// <param name="packet">A packet that contains game data information.</param>
+        private void OnGameData(NetworkPacket packet)
         {
-            Command cmd = new Command(packet.DataArray);
-            lock (commandQ)
-                this.commandQ.Add(cmd);
-        }
-
-        /// <summary>
-        /// Handles Menu state changes from clients
-        /// </summary>
-        /// <param name="packet"></param>
-        private void onMenuStateChange(NetworkPacket packet)
-        {
-            MenuState msc = new MenuState(packet.DataArray);
+            GameData gameData = new GameData(packet.DataArray);
             if (connections.ContainsKey(packet.Destination))
             {
-                ConnectionID cid = connections[packet.Destination];
-                Tuple<ConnectionID, MenuState> newMQ = new Tuple<ConnectionID, MenuState>(cid, msc);
-                lock (mscQ)
-                    this.mscQ.Enqueue(newMQ);
+                lock (gameDataQueue)
+                {
+                    gameDataQueue.Enqueue(new Tuple<ConnectionID, GameData>(connections[packet.Destination], gameData));
+                }
             }
+            return;
         }
 
         /// <summary>
@@ -122,7 +133,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="packet"></param>
         private void onSync(NetworkPacket packet)
         {
-            //TODO
+            connections[packet.Destination].changeState(NetworkStateMachine.TransitionEvent.SERVERSYNC);
         }
 
         /// <summary>
@@ -133,6 +144,7 @@ namespace OceanMars.Common.NetCode
         {
             PingPacket ps = new PingPacket(packet.Destination);
             nw.SendPacket(ps); //ACK the ping
+            this.globalStats.sentPkts++;
         }
         
         /// <summary>
@@ -146,7 +158,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Servers main event loop
         /// </summary>
-        private void newServerMainLoop()
+        private void ServerMainLoop()
         {
             NetworkPacket packet;
             while (this.go)
@@ -158,11 +170,6 @@ namespace OceanMars.Common.NetCode
                 //Should query all Clients to make sure they are still alive
                 if (packet == null)
                 {
-                    foreach (IPEndPoint ep in connections.Keys)
-                    {
-                        SyncPacket ps = new SyncPacket(ep);
-                        this.nw.SendPacket(ps);
-                    }
                     continue;
                 }
 
@@ -175,22 +182,20 @@ namespace OceanMars.Common.NetCode
                     case NetworkPacket.PacketType.HANDSHAKE:
                         transitionEvent = NetworkStateMachine.TransitionEvent.SERVERHANDSHAKE;
                         break;
-                    case NetworkPacket.PacketType.COMMAND:
-                        transitionEvent = NetworkStateMachine.TransitionEvent.SERVERCOMMAND;
-                        break;
                     case NetworkPacket.PacketType.SYNC:
                         transitionEvent = NetworkStateMachine.TransitionEvent.SERVERSYNC;
                         break;
                     case NetworkPacket.PacketType.PING:
                         transitionEvent = NetworkStateMachine.TransitionEvent.SERVERPING;
                         break;
-                    case NetworkPacket.PacketType.MENUSTATECHANGE:
-                        transitionEvent = NetworkStateMachine.TransitionEvent.SERVERMENUSTATECHANGE;
+                    case NetworkPacket.PacketType.GAMEDATA:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.SERVERGAMEDATA;
                         break;
                     default:
                         continue;
                 }
                 this.serverStateMachine.DoTransition(transitionEvent, packet);
+                this.globalStats.pktsProcessed++;
             }
         }
 #endregion
@@ -202,88 +207,37 @@ namespace OceanMars.Common.NetCode
             return this.globalStats;
         }
 
-        public List<Command> getCMD()
+        public void BroadCastGameData(List<GameData> gameDataList)
         {
-            List<Command> ret=new List<Command>();
-            lock (commandQ)
+            foreach (GameData gameData in gameDataList)
             {
-                foreach (Command c in this.commandQ)
-                    ret.Add(c);
-                commandQ.Clear();
-            }
-            return ret;
-        }
-
-        public List<Tuple<ConnectionID, MenuState>> getMSC()
-        {
-            List<Tuple<ConnectionID, MenuState>> ret = new List<Tuple<ConnectionID, MenuState>>();
-
-            lock (mscQ)
-            {
-                while (mscQ.Count > 0)
-                {
-                    ret.Add(mscQ.Dequeue());
-                }
-            }
-
-            return ret;
-        }
-
-        public void broadcastSC(List<StateChange> list)
-        {
-            //Console.WriteLine("Sending # of SCs: {0}", list.Count);
-            foreach (StateChange sc in list)
-            {
-                foreach (KeyValuePair<IPEndPoint, ConnectionID> d in connections)
-                {
-                    //Console.WriteLine("Server - Sent StateChange to: " + d.Value.ID);
-                    StateChangePacket p = new StateChangePacket(d.Key, sc);
-                    this.nw.SendPacket(p);
-                }
-            }
-        }
-
-        public void signalSC(List<StateChange> list, ConnectionID cid)
-        {
-            foreach (StateChange sc in list)
-            {
-                StateChangePacket p = new StateChangePacket(cid.endpt, sc);
-                nw.SendPacket(p);
-            }
-        }
-
-        public void broadcastMSC(List<MenuState> list)
-        {
-            foreach (MenuState msc in list)
-            {
-                broadcastMSC(msc);
+                BroadCastGameData(gameData);
             }
             return;
         }
 
-        public void broadcastMSC(MenuState menuState)
+        public void BroadCastGameData(GameData gameData)
         {
-            foreach (KeyValuePair<IPEndPoint, ConnectionID> d in connections)
+            foreach (ConnectionID connection in connections.Values)
             {
-                MenuStateChangePacket p = new MenuStateChangePacket(d.Key, menuState);
-                this.nw.SendPacket(p);
+                SignalGameData(gameData, connection);
             }
             return;
         }
 
-        public void signalMSC(List<MenuState> list, ConnectionID cid)
+        public void SignalGameData(List<GameData> gameDataList, ConnectionID cid)
         {
-            foreach (MenuState m in list)
+            foreach (GameData gameData in gameDataList)
             {
-                signalMSC(m, cid);
+                SignalGameData(gameData, cid);
             }
         }
 
-        public void signalMSC(MenuState menuState, ConnectionID connectionID)
+        public void SignalGameData(GameData gameData, ConnectionID connectionID)
         {
-            MenuStateChangePacket p = new MenuStateChangePacket(connectionID.endpt, menuState);
-            nw.SendPacket(p);
+            nw.SendPacket(new GameDataPacket(connectionID.endpt, gameData));
         }
+
     }
 #endregion
 
@@ -295,11 +249,56 @@ namespace OceanMars.Common.NetCode
         public short ID;
         public IPEndPoint endpt;
         public long lastSYNC = -1;
+        public int MissedSyncs
+        {
+            get;
+            private set;
+        }
+
+        private NetworkStateMachine StateMachine;
 
         public ConnectionID(IPEndPoint ep)
         {
+            StateMachine = new NetworkStateMachine(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED);
+            initStateMachine();
+            MissedSyncs = 0; 
+
             ID = ids++;
             this.endpt = ep;
+        }
+
+        private void initStateMachine()
+        {
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CONNECTIONDISCONNECT, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT, NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, delegate { });
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, onSync );
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, delegate { });
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, onSync);
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, onMissingSync);
+        }
+
+        public void changeState(NetworkStateMachine.TransitionEvent transitionEvent)
+        {
+            StateMachine.DoTransition(transitionEvent, null);
+        }
+
+        private void onSync(NetworkPacket packet)
+        {
+            this.lastSYNC = 1;
+            this.MissedSyncs = 0;
+        }
+
+        /// <summary>
+        /// Keep track of the number of Syncs we have missed
+        /// and eventually transition into the TIMEOUT state
+        /// </summary>
+        /// <param name="packet"></param>
+        private void onMissingSync(NetworkPacket packet)
+        {
+            MissedSyncs += 1;
+            Debug.WriteLine(String.Format("Missed {0} SYNCS", MissedSyncs));
+            if (MissedSyncs == 10)
+                StateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT,packet);
         }
     }
 

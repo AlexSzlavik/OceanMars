@@ -13,7 +13,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Different potential types of packets.
         /// </summary>
-        public enum PacketType { HANDSHAKE = 0, COMMAND = 1, STATECHANGE = 2, SYNC = 3, PING = 4, MENUSTATECHANGE = 5 };
+        public enum PacketType { HANDSHAKE = 0, SYNC = 1, PING = 2, GAMEDATA = 5 };
 
         /// <summary>
         /// The type of packet 
@@ -106,66 +106,6 @@ namespace OceanMars.Common.NetCode
     }
 
     /// <summary>
-    /// A packet that represents a game command.
-    /// </summary>
-    public class CommandPacket : NetworkPacket
-    {
-
-        /// <summary>
-        /// Create a new CommandPacket.
-        /// </summary>
-        /// <param name="destination">The endpoint destination for this particular packet.</param>
-        /// <param name="command">The command to send over the network.</param>
-        public CommandPacket(IPEndPoint destination, Command command) : base(PacketType.COMMAND, destination)
-        {
-            AddContent(command.GetByteArray());
-            FinalizeData();
-            return;
-        }
-
-    }
-
-    /// <summary>
-    /// A packet that represents a change in state.
-    /// </summary>
-    public class StateChangePacket : NetworkPacket
-    {
-
-        /// <summary>
-        /// Create a new StateChangePacket.
-        /// </summary>
-        /// <param name="destination">The endpoint destination for this particular packet.</param>
-        /// <param name="stateChange">The state change to send over the network.</param>
-        public StateChangePacket(IPEndPoint destination, StateChange stateChange) : base(PacketType.STATECHANGE, destination)
-        {
-            AddContent(stateChange.GetByteArray());
-            FinalizeData();
-            return;
-        }
-
-    }
-
-    /// <summary>
-    /// A packet that represents a change in state inside a menu.
-    /// </summary>
-    public class MenuStateChangePacket : NetworkPacket
-    {
-
-        /// <summary>
-        /// Create a new MenuStateChangePacket.
-        /// </summary>
-        /// <param name="destination">The endpoint destination for this particular packet.</param>
-        /// <param name="menuState">The change in state to menus that is passed over the network.</param>
-        public MenuStateChangePacket(IPEndPoint destination, MenuState menuState) : base(PacketType.MENUSTATECHANGE, destination)
-        {
-            AddContent(menuState.GetByteArray());
-            FinalizeData();
-            return;
-        }
-
-    }
-
-    /// <summary>
     /// A packet used to send ping messages.
     /// </summary>
     public class PingPacket : NetworkPacket
@@ -195,8 +135,21 @@ namespace OceanMars.Common.NetCode
         /// <param name="destination">The endpoint destination for this particular packet.</param>
         public SyncPacket(IPEndPoint destination) : base(PacketType.SYNC, destination)
         {
-            this.Type = PacketType.SYNC;
-            this.FinalizeData();
+            FinalizeData();
+            return;
+        }
+
+    }
+
+    /// <summary>
+    /// A packet used to represent in-game information (any data that is not connection-related).
+    /// </summary>
+    public class GameDataPacket : NetworkPacket
+    {
+
+        public GameDataPacket(IPEndPoint destination, GameData gameData) : base(PacketType.GAMEDATA, destination)
+        {
+            
         }
 
     }

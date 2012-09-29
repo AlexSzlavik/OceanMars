@@ -15,7 +15,7 @@ namespace OceanMars.Common
             this.addChild(w1);
 
             w1.transform =
-                Matrix.CreateTranslation(50, 0, 0) *
+                Matrix.CreateTranslation(0, 150, 0) *
                 w1.transform *
                 Matrix.CreateRotationZ((float)Math.PI / 4) *
                 Matrix.CreateScale(2, 1, 1);

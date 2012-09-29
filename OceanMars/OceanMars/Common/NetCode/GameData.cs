@@ -1,20 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.IO;
-using Microsoft.Xna.Framework;
 
 namespace OceanMars.Common.NetCode
 {
-    
-    /// <summary>
-    /// A packet representation of a state change in the CharacterSelectMenuScreen.
-    /// </summary>
-    public class MenuState : IMarshable
+    public class GameData
     {
 
-        /// <summary>
-        /// The packet type.
+         /// <summary>
+        /// The type of game data being delivered.
         /// </summary>
-        public enum Type
+        public enum GameDataType
         {
 
             /// <summary>
@@ -82,7 +80,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// The type associated with this packet.
         /// </summary>
-        public Type MenuType
+        public GameDataType Type
         {
             get;
             set;
@@ -107,32 +105,33 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Create a new MenuState packet from a byte array representation.
+        /// Create a new piece of GameData from a byte array representation.
         /// </summary>
-        /// <param name="byteArray">A byte array to create a MenuState packet from.</param>
-        public MenuState(byte[] byteArray)
+        /// <param name="byteArray">A byte array to create a GameData packet from.</param>
+        public GameData(byte[] byteArray)
         {
             using (MemoryStream memoryStream = new MemoryStream(byteArray))
             {
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream))
                 {
-                    MenuType = (Type)binaryReader.ReadByte();
+                    Type = (GameDataType)binaryReader.ReadByte();
                     PlayerId = (int)binaryReader.ReadByte();
                     EventDetail = (int)binaryReader.ReadByte();
                 }
             }
+            
             return;
         }
 
         /// <summary>
-        /// Create a new MenuState packet.
+        /// Create a new GameData packet.
         /// </summary>
-        /// <param name="menuType">The type associated with this packet.</param>
+        /// <param name="gameDataType">The type associated with this packet.</param>
         /// <param name="playerId">The id of the player that performed the action.</param>
         /// <param name="eventDetail">The extra detail associated with this event.</param>
-        public MenuState(Type menuType, int playerId = 0, int eventDetail = 0)
+        public GameData(GameDataType gameDataType, int playerId = 0, int eventDetail = 0)
         {
-            MenuType = menuType;
+            Type = gameDataType;
             PlayerId = playerId;
             EventDetail = eventDetail;
             return;
@@ -148,13 +147,13 @@ namespace OceanMars.Common.NetCode
             {
                 using (BinaryWriter binaryWriter = new BinaryWriter(memoryStream))
                 {
-                    binaryWriter.Write((byte)MenuType);
+                    binaryWriter.Write((byte)Type);
                     binaryWriter.Write((byte)PlayerId);
                     binaryWriter.Write((byte)EventDetail);
                     return memoryStream.ToArray();
                 }
             }
         }
+
     }
-        
 }

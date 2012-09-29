@@ -41,16 +41,8 @@ namespace OceanMars.Common
                 if (child is EllipseEntity)
                 {
                     EllipseEntity ellipseEntity = (EllipseEntity)child;
-                    //ellipseEntity.velocity += GRAVITY;
+                    ellipseEntity.velocity += GRAVITY;
                     ellipseEntity.testCollision(entities.Values.ToList()); // TODO: using ToList may be inefficient
-
-                    // For testing purposes, just add velocity
-                    if (ellipseEntity.velocity != Vector2.Zero)
-                    {
-                        ellipseEntity.transform =
-                            Matrix.CreateTranslation(new Vector3(ellipseEntity.velocity.X, ellipseEntity.velocity.Y, 0)) *
-                            ellipseEntity.transform;
-                    }
                 }
                 // Do not do collisions for SliderEntities
             }

@@ -54,7 +54,11 @@ namespace OceanMars.Common.NetCode
 
             SERVERACCEPTCONNECTIONS,
 
-            SERVERSYNC
+            SERVERSYNC,
+            CONNECTIONCONNECTED,
+            CONNECTIONDISCONNECTED,
+            CONNECTIONTIMEOUT,
+            CONNECTIONCONNECTED_SYNC
 
         }
 
@@ -84,28 +88,25 @@ namespace OceanMars.Common.NetCode
             CLIENTDROPPING,
 
             /// <summary>
-            /// Client received a StateChange
+            /// Client received a packet containing game data.
             /// </summary>
-            CLIENTSTATECHANGE,
+            CLIENTGAMEDATA,
 
             /// <summary>
-            /// Client received a MenuStateChange
-            /// </summary>
-            CLIENTMENUSTATECHANGE,
-
-            /// <summary>
-            /// Client received a Sync request from Server
+            /// Client received a Sync request from the server.
             /// </summary>
             CLIENTSYNC,
+
             SERVERSTARTED,
             SERVERHANDSHAKE,
             SERVERSYNC,
             SERVERPING,
-            SERVERCOMMAND,
-            SERVERMENUSTATECHANGE,
-            SERVERSTATECHANGE,
+            SERVERGAMEDATA,
             SERVERNEWCONNECTION,
-            SERVERDISCONNECTION
+            SERVERDISCONNECTION,
+            CONNECTIONDISCONNECT,
+            CONNECTIONTIMEOUT,
+            CLIENTCONNECTED_SYNCING
 
         }
 
@@ -120,11 +121,11 @@ namespace OceanMars.Common.NetCode
         public NetworkState CurrentState
         {
             get;
-            private set;
+            protected set;
         }
 
         /// A transition table used to move to new states in the state machine.
-        private Dictionary<Tuple<NetworkState, TransitionEvent>, Tuple<NetworkState, TransitionAction>> TransitionTable;
+        protected Dictionary<Tuple<NetworkState, TransitionEvent>, Tuple<NetworkState, TransitionAction>> TransitionTable;
 
         /// <summary>
         /// Create a new NetStateMachine.
@@ -157,15 +158,17 @@ namespace OceanMars.Common.NetCode
         /// <param name="packet">The packet received over the network.</param>
         public void DoTransition(TransitionEvent transEvent, NetworkPacket packet)
         {
+            Tuple<NetworkState, TransitionAction> transition = null;
             try
             {
-                Tuple<NetworkState, TransitionAction> transition = TransitionTable[new Tuple<NetworkState,TransitionEvent>(CurrentState,transEvent)];
+                transition = TransitionTable[new Tuple<NetworkState,TransitionEvent>(CurrentState,transEvent)];
                 transition.Item2(packet);
                 CurrentState = transition.Item1;
             }
             catch (Exception error)
             {
-                Debug.WriteLine("You managed to break the NetStateMachine. Congratulations, asshole: {0}", error.Message);
+                Debug.WriteLine("You managed to break the NetStateMachine. Congratulations, asshole: {0}", new Object[] {error.Message});
+                Debug.WriteLine("Violating Transition: {0} - {1} - {2}",new Object[] {CurrentState,transEvent,packet.Type});
                 throw error;
             }
             return;

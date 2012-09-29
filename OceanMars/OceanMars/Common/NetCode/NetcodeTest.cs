@@ -48,8 +48,6 @@ namespace OceanMars.Common.NetCode
 
             while (true)
             {
-                List<Command> l = new List<Command>();
-                
                 //Command cm = new Command();
                 //cm.ct = CommandType.ATTACK;
                 //cm.direction.X = 3.14159F;
