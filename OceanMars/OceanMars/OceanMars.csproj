@@ -93,6 +93,7 @@
     <Compile Include="Client\Screens\ResolutionsMenuScreen.cs" />
     <Compile Include="Client\Sprite.cs" />
     <Compile Include="Client\View.cs" />
+    <Compile Include="Common\EllipseEntity.cs" />
     <Compile Include="Common\Entity.cs" />
     <Compile Include="Common\NetCode\Client.cs" />
     <Compile Include="Common\NetCode\Command.cs" />
@@ -103,6 +104,9 @@
     <Compile Include="Common\NetCode\StateChange.cs" />
     <Compile Include="Common\NetCode\StateChangeFactory.cs" />
     <Compile Include="Common\NetCode\StateChangeListener.cs" />
+    <Compile Include="Common\SliderEntity.cs" />
+    <Compile Include="Common\State.cs" />
+    <Compile Include="Common\World.cs" />
     <Compile Include="OceanMars.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
