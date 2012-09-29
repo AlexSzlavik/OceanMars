@@ -38,8 +38,7 @@ namespace OceanMars.Common.NetCode
 
         //Connection state
         Dictionary<IPEndPoint, ConnectionID> connections = new Dictionary<IPEndPoint, ConnectionID>();
-        List<Command> commandQ = new List<Command>();
-        Queue<Tuple<ConnectionID, MenuState>> mscQ = new Queue<Tuple<ConnectionID, MenuState>>();
+        Queue<Tuple<ConnectionID, GameData>> gameDataQueue = new Queue<Tuple<ConnectionID, GameData>>();
 
 
         /// <summary>
@@ -89,8 +88,7 @@ namespace OceanMars.Common.NetCode
         {
             serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERSTART, NetworkStateMachine.TransitionEvent.SERVERSTARTED, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, delegate { });
             serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERHANDSHAKE, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onHandshake);
-            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERCOMMAND, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onCommand);
-            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERMENUSTATECHANGE, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onMenuStateChange);
+            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERGAMEDATA, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnGameData);
             serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERPING, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onPing);
             serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onSync);
         }
@@ -113,31 +111,20 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Server receives a Command packet
-        /// This needs to be added to the commandQ and handled
+        /// Handles reception of game data updates from the client.
         /// </summary>
-        /// <param name="packet"></param>
-        private void onCommand(NetworkPacket packet)
+        /// <param name="packet">A packet that contains game data information.</param>
+        private void OnGameData(NetworkPacket packet)
         {
-            Command cmd = new Command(packet.DataArray);
-            lock (commandQ)
-                this.commandQ.Add(cmd);
-        }
-
-        /// <summary>
-        /// Handles Menu state changes from clients
-        /// </summary>
-        /// <param name="packet"></param>
-        private void onMenuStateChange(NetworkPacket packet)
-        {
-            MenuState msc = new MenuState(packet.DataArray);
+            GameData gameData = new GameData(packet.DataArray);
             if (connections.ContainsKey(packet.Destination))
             {
-                ConnectionID cid = connections[packet.Destination];
-                Tuple<ConnectionID, MenuState> newMQ = new Tuple<ConnectionID, MenuState>(cid, msc);
-                lock (mscQ)
-                    this.mscQ.Enqueue(newMQ);
+                lock (gameDataQueue)
+                {
+                    gameDataQueue.Enqueue(new Tuple<ConnectionID, GameData>(connections[packet.Destination], gameData));
+                }
             }
+            return;
         }
 
         /// <summary>
@@ -196,17 +183,14 @@ namespace OceanMars.Common.NetCode
                     case NetworkPacket.PacketType.HANDSHAKE:
                         transitionEvent = NetworkStateMachine.TransitionEvent.SERVERHANDSHAKE;
                         break;
-                    case NetworkPacket.PacketType.COMMAND:
-                        transitionEvent = NetworkStateMachine.TransitionEvent.SERVERCOMMAND;
-                        break;
                     case NetworkPacket.PacketType.SYNC:
                         transitionEvent = NetworkStateMachine.TransitionEvent.SERVERSYNC;
                         break;
                     case NetworkPacket.PacketType.PING:
                         transitionEvent = NetworkStateMachine.TransitionEvent.SERVERPING;
                         break;
-                    case NetworkPacket.PacketType.MENUSTATECHANGE:
-                        transitionEvent = NetworkStateMachine.TransitionEvent.SERVERMENUSTATECHANGE;
+                    case NetworkPacket.PacketType.GAMEDATA:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.SERVERGAMEDATA;
                         break;
                     default:
                         continue;
@@ -224,88 +208,37 @@ namespace OceanMars.Common.NetCode
             return this.globalStats;
         }
 
-        public List<Command> getCMD()
+        public void BroadCastGameData(List<GameData> gameDataList)
         {
-            List<Command> ret=new List<Command>();
-            lock (commandQ)
+            foreach (GameData gameData in gameDataList)
             {
-                foreach (Command c in this.commandQ)
-                    ret.Add(c);
-                commandQ.Clear();
-            }
-            return ret;
-        }
-
-        public List<Tuple<ConnectionID, MenuState>> getMSC()
-        {
-            List<Tuple<ConnectionID, MenuState>> ret = new List<Tuple<ConnectionID, MenuState>>();
-
-            lock (mscQ)
-            {
-                while (mscQ.Count > 0)
-                {
-                    ret.Add(mscQ.Dequeue());
-                }
-            }
-
-            return ret;
-        }
-
-        public void broadcastSC(List<StateChange> list)
-        {
-            //Console.WriteLine("Sending # of SCs: {0}", list.Count);
-            foreach (StateChange sc in list)
-            {
-                foreach (KeyValuePair<IPEndPoint, ConnectionID> d in connections)
-                {
-                    //Console.WriteLine("Server - Sent StateChange to: " + d.Value.ID);
-                    StateChangePacket p = new StateChangePacket(d.Key, sc);
-                    this.nw.SendPacket(p);
-                }
-            }
-        }
-
-        public void signalSC(List<StateChange> list, ConnectionID cid)
-        {
-            foreach (StateChange sc in list)
-            {
-                StateChangePacket p = new StateChangePacket(cid.endpt, sc);
-                nw.SendPacket(p);
-            }
-        }
-
-        public void broadcastMSC(List<MenuState> list)
-        {
-            foreach (MenuState msc in list)
-            {
-                broadcastMSC(msc);
+                BroadCastGameData(gameData);
             }
             return;
         }
 
-        public void broadcastMSC(MenuState menuState)
+        public void BroadCastGameData(GameData gameData)
         {
-            foreach (KeyValuePair<IPEndPoint, ConnectionID> d in connections)
+            foreach (ConnectionID connection in connections.Values)
             {
-                MenuStateChangePacket p = new MenuStateChangePacket(d.Key, menuState);
-                this.nw.SendPacket(p);
+                SignalGameData(gameData, connection);
             }
             return;
         }
 
-        public void signalMSC(List<MenuState> list, ConnectionID cid)
+        public void SignalGameData(List<GameData> gameDataList, ConnectionID cid)
         {
-            foreach (MenuState m in list)
+            foreach (GameData gameData in gameDataList)
             {
-                signalMSC(m, cid);
+                SignalGameData(gameData, cid);
             }
         }
 
-        public void signalMSC(MenuState menuState, ConnectionID connectionID)
+        public void SignalGameData(GameData gameData, ConnectionID connectionID)
         {
-            MenuStateChangePacket p = new MenuStateChangePacket(connectionID.endpt, menuState);
-            nw.SendPacket(p);
+            nw.SendPacket(new GameDataPacket(connectionID.endpt, gameData));
         }
+
     }
 #endregion
 

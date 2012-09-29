@@ -87,26 +87,20 @@ namespace OceanMars.Common.NetCode
             CLIENTDROPPING,
 
             /// <summary>
-            /// Client received a StateChange
+            /// Client received a packet containing game data.
             /// </summary>
-            CLIENTSTATECHANGE,
+            CLIENTGAMEDATA,
 
             /// <summary>
-            /// Client received a MenuStateChange
-            /// </summary>
-            CLIENTMENUSTATECHANGE,
-
-            /// <summary>
-            /// Client received a Sync request from Server
+            /// Client received a Sync request from the server.
             /// </summary>
             CLIENTSYNC,
+
             SERVERSTARTED,
             SERVERHANDSHAKE,
             SERVERSYNC,
             SERVERPING,
-            SERVERCOMMAND,
-            SERVERMENUSTATECHANGE,
-            SERVERSTATECHANGE,
+            SERVERGAMEDATA,
             SERVERNEWCONNECTION,
             SERVERDISCONNECTION,
             CONNECTIONDISCONNECT,

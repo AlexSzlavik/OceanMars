@@ -31,8 +31,7 @@ namespace OceanMars.Common.NetCode
         private Semaphore serverReadySemaphore, clientConnectedSemaphore;
 
         // Queues used to buffer game state changes that have been received
-        private Queue<StateChange> uiStateBuffer;
-        private Queue<MenuState> menuStateBuffer;
+        private Queue<GameData> gameDataBuffer;
 
         private const int PING_INITIAL_DELAY = 1000; // Amount of time to wait before starting to ping heartbeats
         private const int PING_PERIOD = 500; // Amount of time to wait between ping heartbeats
@@ -53,8 +52,7 @@ namespace OceanMars.Common.NetCode
             // Set up locking primatives and state queues
             serverReadySemaphore = new Semaphore(0, 1);
             clientConnectedSemaphore = new Semaphore(0, 1);
-            uiStateBuffer = new Queue<StateChange>();
-            menuStateBuffer = new Queue<MenuState>();
+            gameDataBuffer = new Queue<GameData>();
 
             InitStateMachine(); // Set up the state machine
 
@@ -77,8 +75,7 @@ namespace OceanMars.Common.NetCode
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECT, NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, delegate { });
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnConnect);
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTDROPPING, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnPing);
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTSTATECHANGE, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnStateChange);
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTMENUSTATECHANGE, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnMenuStateChange);
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTGAMEDATA, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnGameData);
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTSYNC, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnSync);
             return;
         }
@@ -112,26 +109,12 @@ namespace OceanMars.Common.NetCode
         /// Transition action that should occur when the state of the game changes.
         /// </summary>
         /// <param name="packet">The packet received.</param>
-        public void OnStateChange(NetworkPacket packet)
+        public void OnGameData(NetworkPacket packet)
         {
             // Add the state change object to the buffer for the UI
-            lock (uiStateBuffer)
+            lock (gameDataBuffer)
             {
-                uiStateBuffer.Enqueue(new StateChange(packet.DataArray));
-            }
-            return;
-        }
-
-        /// <summary>
-        /// Transition action that should occur when the state of a menu has changed.
-        /// </summary>
-        /// <param name="packet">The packet received.</param>
-        public void OnMenuStateChange(NetworkPacket packet)
-        {
-            // Add the state change object to the buffer for the UI
-            lock (menuStateBuffer)
-            {
-                menuStateBuffer.Enqueue(new MenuState(packet.DataArray));
+                gameDataBuffer.Enqueue(new GameData(packet.DataArray));
             }
             return;
         }
@@ -203,15 +186,14 @@ namespace OceanMars.Common.NetCode
                     case NetworkPacket.PacketType.PING:
                         transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTDROPPING;
                         break;
-                    case NetworkPacket.PacketType.STATECHANGE:
-                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSTATECHANGE;
-                        break;
-                    case NetworkPacket.PacketType.MENUSTATECHANGE:
-                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTMENUSTATECHANGE;
+                    case NetworkPacket.PacketType.GAMEDATA:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTGAMEDATA;
                         break;
                 }
                 clientStateMachine.DoTransition(transitionEvent, receivePacket); // This is amazing
             }
+
+            return;
         }
 
         /// <summary>
@@ -265,38 +247,25 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Send a list of commands to the server.
+        /// Send a list of game data changes to the server.
         /// </summary>
-        /// <param name="commandList">A list of commands to send to the server.</param>
-        public void sendCMD(List<Command> commandList)
+        /// <param name="gameDataList">A list of game data to send to the server.</param>
+        public void SendGameData(List<GameData> gameDataList)
         {
-            foreach (Command command in commandList)
+            foreach (GameData gameData in gameDataList)
             {
-                networkWorker.SendPacket(new CommandPacket(serverEndPoint, command));
+                SendGameData(gameData);
             }
             return;
         }
 
         /// <summary>
-        /// Send a list of menu state changes to the server.
+        /// Send a game data change to the server.
         /// </summary>
-        /// <param name="menuStateList">A list of menu states to send to the server.</param>
-        public void SendMenuStateChange(List<MenuState> menuStateList)
+        /// <param name="gameData">The menu state to send to the server.</param>
+        public void SendGameData(GameData gameData)
         {
-            foreach (MenuState menuState in menuStateList)
-            {
-                SendMenuStateChange(menuState);
-            }
-            return;
-        }
-
-        /// <summary>
-        /// Send a menu state change to the server.
-        /// </summary>
-        /// <param name="menuState">The menu state to send to the server.</param>
-        public void SendMenuStateChange(MenuState menuState)
-        {
-            networkWorker.SendPacket(new MenuStateChangePacket(serverEndPoint, menuState));
+            networkWorker.SendPacket(new GameDataPacket(serverEndPoint, gameData));
             return;
         }
 
@@ -304,34 +273,17 @@ namespace OceanMars.Common.NetCode
         /// Receive an update about the game state.
         /// </summary>
         /// <returns></returns>
-        public List<StateChange> ReceiveStateUpdate()
+        public List<GameData> ReceiveGameData()
         {
-            List<StateChange> newStates = new List<StateChange>();
-            lock (uiStateBuffer)
+            List<GameData> gameDataList = new List<GameData>();
+            lock (gameDataBuffer)
             {
-                while (uiStateBuffer.Count > 0) // Iterate over the buffer of states that have been acquired from the server
+                while (gameDataBuffer.Count > 0) // Iterate over the buffer of states that have been acquired from the server
                 {
-                    newStates.Add(uiStateBuffer.Dequeue());
+                    gameDataList.Add(gameDataBuffer.Dequeue());
                 }
             }
-            return newStates;
-        }
-
-        /// <summary>
-        /// Acquire any recent updates to the menu state from the character selection.
-        /// </summary>
-        /// <returns>A list of changes to the state of the menu.</returns>
-        public List<MenuState> ReceiveMenuState()
-        {
-            List<MenuState> newStates = new List<MenuState>();
-            lock (menuStateBuffer)
-            { 
-                while (menuStateBuffer.Count > 0) // Iterate over the buffer of states that have been acquired from the server
-                {
-                    newStates.Add(menuStateBuffer.Dequeue());
-                }
-            }
-            return newStates;
+            return gameDataList;
         }
 
         /// <summary>
