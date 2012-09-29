@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 using System.Threading;
 
-namespace OceanMars.NetCode
+namespace OceanMars.Common.NetCode
 {
     public static class NetTest
     {
@@ -67,11 +66,11 @@ namespace OceanMars.NetCode
 
         public static void doPing(Object st)
         {
-            Console.WriteLine("Ping for 1: {0}", c.getPing());
-            Console.WriteLine("Ping for 2: {0}", c1.getPing());
-            Console.WriteLine("Ping for 3: {0}", c2.getPing());
-            Console.WriteLine("Ping for 4: {0}", c3.getPing());
-            Console.WriteLine("Ping for 4: {0}", s.getStats().rcvdPkts);
+            Debug.WriteLine("Ping for 1: {0}", c.getPing());
+            Debug.WriteLine("Ping for 2: {0}", c1.getPing());
+            Debug.WriteLine("Ping for 3: {0}", c2.getPing());
+            Debug.WriteLine("Ping for 4: {0}", c3.getPing());
+            Debug.WriteLine("Ping for 4: {0}", s.getStats().rcvdPkts);
         }
 
         //public void exit()

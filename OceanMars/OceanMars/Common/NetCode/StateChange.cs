@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace OceanMars.NetCode
+namespace OceanMars.Common.NetCode
 {
     public enum StateChangeType { MOVED, CREATE_PLAYER_CHARACTER, SET_PLAYER, CREATE_ENTITY, DELETE_ENTITY, CHANGE_SPRITE, CHANGE_SCALE, CHANGE_HEALTH, CREATE_HEALTH_BAR }
     public enum StateProperties { ENTITY_ID, HEALTH, POSITION_X, POSITION_Y, SPRITE_NAME, ANIMATION_NAME, DRAW_PRIORITY, FRAME_WIDTH, SCALE, FRAME_TIME, HEALTH_BAR_ID}
@@ -16,7 +16,7 @@ namespace OceanMars.NetCode
 
         public StateChange() { }
 
-        public byte[] getPacketData()
+        public byte[] GetByteArray()
         {
             MemoryStream ms = new MemoryStream();
             BinaryWriter bb = new BinaryWriter(ms);
