@@ -82,6 +82,7 @@
     <Compile Include="Client\GameStateManager\InputState.cs" />
     <Compile Include="Client\GameStateManager\ScreenManager.cs" />
     <Compile Include="Client\Screens\BackgroundScreen.cs" />
+    <Compile Include="Client\Screens\GameplayScreen.cs" />
     <Compile Include="Client\Screens\LoadingScreen.cs" />
     <Compile Include="Client\Screens\MainMenuScreen.cs" />
     <Compile Include="Client\Screens\MenuEntry.cs" />

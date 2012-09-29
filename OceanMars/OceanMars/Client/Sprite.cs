@@ -13,7 +13,7 @@ namespace OceanMars.Client
         View context;
         Entity e;
 
-        Vector2 drawSize;
+        public Vector2 drawSize;
 
         Texture2D spriteStrip;
 
@@ -35,32 +35,46 @@ namespace OceanMars.Client
             this.context = context;
             this.e = e;
             this.entityID = e.id;
+            this.drawSize = drawSize;
 
             setAnimationSpriteStrip(frameWidth, frameTime, spriteStripName);
         }
 
         internal void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
+            Matrix temp =
+                context.centreTransform *
+                context.avatar.inverseWorldTransform *
+                e.worldTransform;
+
             spriteBatch.Begin(
                 SpriteSortMode.Deferred,
-                BlendState.AlphaBlend,
+                BlendState.Opaque,
                 null,
                 DepthStencilState.Default,
                 RasterizerState.CullNone,
                 null,
-                context.avatar.inverseWorldTransform * e.worldTransform);
+                temp);
 
-            spriteBatch.Draw(
+            Rectangle destRest = new Rectangle((int)(-drawSize.X/2), (int)(-drawSize.Y/2), (int)drawSize.X, (int)drawSize.Y);
+            spriteBatch.Draw(spriteStrip, destRest, sourceRect, Color.White);
+
+            /*spriteBatch.Draw(
                 spriteStrip,
-                new Vector2(),
+                Vector2.Zero,
+                sourceRect,
+                Color.White);*/
+
+            /*spriteBatch.Draw(
+                spriteStrip,
+                - drawSize/2,
                 sourceRect,
                 Color.White,
-                0f,
-                new Vector2(), // might be very wrong
-                drawSize,
+                0.0f,
+                drawSize / 2,
+                1.0f,
                 SpriteEffects.None,
-                0); // Can be tweaked to order sprites
-
+                1);*/
 
             spriteBatch.End();
 
@@ -98,6 +112,8 @@ namespace OceanMars.Client
             this.frameTime = frametime;
             this.color = color;
             this.looping = looping;
+
+            sourceRect = new Rectangle(0 * frameWidth, 0, frameWidth, frameHeight);
         }
 
         public void nextFrame(GameTime gameTime)

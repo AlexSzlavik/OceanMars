@@ -29,10 +29,6 @@ namespace OceanMars.Client.GameStateManager
     /// </summary>
     public abstract class GameScreen
     {
-        // Our things
-        ContentManager content;
-        ServerlessState state = new ServerlessState(); // TODO: need to instantiate this from server connection in some way, and player
-        View context;
 
         /// <summary>
         /// Normally when one screen is brought up over the top of another,
@@ -145,14 +141,6 @@ namespace OceanMars.Client.GameStateManager
         /// Load graphics content for the screen.
         /// </summary>
         public virtual void LoadContent() {
-            context = new View(state, state.player);
-
-            if (content == null)
-            {
-                content = new ContentManager(ScreenManager.Game.Services, "Content");
-            }
-
-            context.textureDict.Add("defaultlevel", content.Load<Texture2D>("Sprites/scenery"));
         }
 
         /// <summary>
@@ -251,49 +239,6 @@ namespace OceanMars.Client.GameStateManager
         /// screen has taken the focus.
         /// </summary>
         public virtual void HandleInput(InputState input) {
-            if (input == null)
-                throw new ArgumentNullException("input");
-
-            KeyboardState keyboardState = input.currentKeyboardState;
-            GamePadState gamePadState = input.currentGamePadState;
-
-            // The game pauses either if the user presses the pause button, or if
-            // they unplug the active gamepad. This requires us to keep track of
-            // whether a gamepad was ever plugged in, because we don't want to pause
-            // on PC if they are playing with a keyboard and have no gamepad at all!
-            bool gamePadDisconnected = !gamePadState.IsConnected &&  input.gamePadWasConnected;
-
-            if (input.IsPauseGame() || gamePadDisconnected)
-            {
-                //pauseSoundEffect.Play();
-                ScreenManager.AddScreen(new PauseMenuScreen());
-            }
-            else
-            {
-                Vector2 movement = Vector2.Zero;
-
-                if (keyboardState.IsKeyDown(Keys.Left))
-                    movement.X--;
-
-                if (keyboardState.IsKeyDown(Keys.Right))
-                    movement.X++;
-
-                if (keyboardState.IsKeyDown(Keys.Up))
-                    movement.Y--;
-
-                if (keyboardState.IsKeyDown(Keys.Down))
-                    movement.Y++;
-
-                Vector2 thumbstick = gamePadState.ThumbSticks.Left;
-
-                movement.X += thumbstick.X;
-                movement.Y -= thumbstick.Y;
-
-                if (movement.Length() > 1)
-                    movement.Normalize();
-
-                context.avatar.velocity = movement;
-            }
         
         }
 

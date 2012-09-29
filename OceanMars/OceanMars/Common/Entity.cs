@@ -26,10 +26,11 @@ namespace OceanMars.Common
         public void addChild(Entity child)
         {
             children.Add(child);
+            child.parent = this;
         }
 
         // When changed, will invalidate world transform matrix and all children
-        private Matrix transformBack;
+        private Matrix transformBack = Matrix.Identity;
         public Matrix transform
         {
             get
@@ -53,7 +54,7 @@ namespace OceanMars.Common
         public Vector2 velocity;
 
         // Handles caching of world transform matrix to avoid redundant work
-        private Matrix worldTransformBack;
+        private Matrix worldTransformBack = Matrix.Identity;
         public Matrix worldTransform
         {
             get
@@ -73,7 +74,7 @@ namespace OceanMars.Common
         }
 
         // Handles caching of inverse world transformation as above
-        private Matrix inverseWorldTransformBack;
+        private Matrix inverseWorldTransformBack = Matrix.Identity;
         public Matrix inverseWorldTransform
         {
             get
