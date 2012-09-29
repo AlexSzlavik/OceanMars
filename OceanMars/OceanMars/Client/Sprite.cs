@@ -43,9 +43,9 @@ namespace OceanMars.Client
         internal void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             Matrix temp =
-                context.centreTransform *
                 context.avatar.inverseWorldTransform *
-                e.worldTransform;
+                e.worldTransform *
+                context.centreTransform;
 
             spriteBatch.Begin(
                 SpriteSortMode.Deferred,
@@ -57,6 +57,7 @@ namespace OceanMars.Client
                 temp);
 
             Rectangle destRest = new Rectangle((int)(-drawSize.X/2), (int)(-drawSize.Y/2), (int)drawSize.X, (int)drawSize.Y);
+            //Rectangle destRest = new Rectangle(0, 0, (int)drawSize.X, (int)drawSize.Y);
             spriteBatch.Draw(spriteStrip, destRest, sourceRect, Color.White);
 
             /*spriteBatch.Draw(

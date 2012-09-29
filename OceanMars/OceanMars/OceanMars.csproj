@@ -92,6 +92,7 @@
     <Compile Include="Client\Screens\PauseMenuScreen.cs" />
     <Compile Include="Client\Screens\PlayerInputEventArgs.cs" />
     <Compile Include="Client\Screens\ResolutionsMenuScreen.cs" />
+    <Compile Include="Client\TestManSprite.cs" />
     <Compile Include="Client\Sprite.cs" />
     <Compile Include="Client\View.cs" />
     <Compile Include="Common\DefaultLevel.cs" />
@@ -112,6 +113,7 @@
     <Compile Include="Common\ServerlessState.cs" />
     <Compile Include="Common\SliderEntity.cs" />
     <Compile Include="Common\State.cs" />
+    <Compile Include="Common\TestMan.cs" />
     <Compile Include="Common\World.cs" />
     <Compile Include="OceanMars.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
