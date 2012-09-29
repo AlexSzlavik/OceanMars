@@ -99,6 +99,8 @@
     <Compile Include="Common\DefaultLevel.cs" />
     <Compile Include="Common\EllipseEntity.cs" />
     <Compile Include="Common\Entity.cs" />
+    <Compile Include="Common\NetCode\GameClient.cs" />
+    <Compile Include="Common\NetCode\GameServer.cs" />
     <Compile Include="Common\NetCode\NetworkClient.cs" />
     <Compile Include="Common\NetCode\Command.cs" />
     <Compile Include="Common\NetCode\IMarshable.cs" />
