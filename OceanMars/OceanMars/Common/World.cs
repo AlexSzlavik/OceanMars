@@ -8,6 +8,11 @@ namespace OceanMars.Common
 {
     public class World : Entity
     {
+        public World()
+            : base(Vector2.Zero)
+        {
+        }
+
         public override Matrix getWorldTransform() { return new Matrix(); }
     }
 }
