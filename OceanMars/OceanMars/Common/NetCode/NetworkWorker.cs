@@ -6,74 +6,77 @@ using System.Threading;
 
 namespace OceanMars.Common.NetCode
 {
-    class NetworkWorker : UdpClient
+
+    /// <summary>
+    /// A worker class that represents a simple UDP client used for the game engine.
+    /// </summary>
+    public class NetworkWorker : UdpClient
     {
-        private Thread rcvThread, sendThread;
-        private bool go = true;
+        private Thread receiveThread, sendThread; // Threads used to send and receive data concurrently
+        private bool continueRunning; // Whether or not the thread has terminated
+        private Queue<NetworkPacket> sendBuffer, receiveBuffer; // Buffers used for sending and receiving packets
+        private Semaphore sendSemaphore, receiveSemaphore; // Semaphores used for queuing
 
-        private Queue<Packet> buffer = new Queue<Packet>();
-        private Queue<Packet> readBuffer = new Queue<Packet>();
+        private const int SOCKET_TIMEOUT = 5000; // Constants used for socket control
+        private const int MAX_PACKET_COUNT = 1024;
 
-        private static int id = 0;
-        private int myID;
-
-        private Semaphore sendSem = new Semaphore(0, 1000);
-        private Semaphore nextSem = new Semaphore(0, 1000);
-
-        private static int TIMEOUT = 5000;
-
-        //This is the server side
-        public NetworkWorker(int port = 0)
-            : base(port)
+        /// <summary>
+        /// Create a network worker to communicate with with other machines.
+        /// </summary>
+        /// <param name="port">The port to create the connection on.</param>
+        public NetworkWorker(int port = 0) : base(port)
         {
-            //Console.WriteLine("Started NW-Server on port: " + this.Client.LocalEndPoint);
-            this.rcvThread = new Thread(thread_do_recv);
-            this.sendThread = new Thread(thread_do_send);
-            rcvThread.Name = "Server Receive Thread ID: " + id;
-            sendThread.Name = "Sever Send Thread ID: " + id;
-            this.rcvThread.Start();
-            this.sendThread.Start();
-            this.myID = id;
-            NetworkWorker.id++;
+            continueRunning = true; // Initialize usable data structures and values
+            sendBuffer = new Queue<NetworkPacket>();
+            receiveBuffer = new Queue<NetworkPacket>();
+            sendSemaphore = new Semaphore(0, MAX_PACKET_COUNT);
+            receiveSemaphore = new Semaphore(0, MAX_PACKET_COUNT);
+            
+            receiveThread = new Thread(RunReceiveThread); // Set up runnable threads
+            receiveThread.IsBackground = true;
+            sendThread = new Thread(RunSendThread);
+            sendThread.IsBackground = true;
+
+            receiveThread.Start();
+            sendThread.Start();
+
+            return;
         }
 
-        //This init's so we only communicate with one
-        //It's the Client init (so port is any)
-        public NetworkWorker(IPEndPoint endpt)
-            : base(0)
+        /// <summary>
+        /// Terminate threads associated with the network on the next possible pass.
+        /// </summary>
+        public void TerminateNetworkWorkers()
         {
-            //Console.WriteLine("Started NW-Client on port: " + this.Client.LocalEndPoint);
-            this.rcvThread = new Thread(thread_do_recv);
-            this.sendThread = new Thread(thread_do_send);
-            rcvThread.Name = "Client Receive Thread ID: " + id;
-            sendThread.Name = "Client Send Thread ID: " + id;
-            this.rcvThread.Start();
-            this.sendThread.Start();
-            this.myID = id;
-            NetworkWorker.id++;
+            continueRunning = false;
+            return;
         }
 
-        public void commitPacket(Packet p)
+        /// <summary>
+        /// Queue a packet to be sent over the network.
+        /// </summary>
+        /// <param name="packet">The packet to be sent.</param>
+        public void SendPacket(NetworkPacket packet)
         {
-            lock (this.buffer)
+            lock (sendBuffer)
             {
-                this.buffer.Enqueue(p);
-                //Console.WriteLine("Backlog Commit: {0} "+Thread.CurrentThread.Name, buffer.Count);
+                sendBuffer.Enqueue(packet);
             }
-            this.sendSem.Release();
+            sendSemaphore.Release();
         }
 
-        public Packet getNext()
+        /// <summary>
+        /// Receive a packet from a network worker.
+        /// </summary>
+        /// <returns>The next available packet received from another machine.</returns>
+        public NetworkPacket ReceivePacket()
         {
-            if (this.nextSem.WaitOne(TIMEOUT))
+            if (receiveSemaphore.WaitOne(SOCKET_TIMEOUT)) // Wait for incoming packets
             {
-                Packet ret;
-                lock (readBuffer)
+                lock (receiveBuffer)
                 {
-                    ret = readBuffer.Dequeue();
+                    return receiveBuffer.Dequeue();
                 }
-
-                return ret;
             }
             else
             {
@@ -81,47 +84,40 @@ namespace OceanMars.Common.NetCode
             }
         }
 
-        private void thread_do_recv()
+        /// <summary>
+        /// Main thread loop for receiving packets.
+        /// </summary>
+        private void RunReceiveThread()
         {
-            Thread.CurrentThread.IsBackground = true; // Set the thread to run invisibly in the background
             IPEndPoint serverAddress = new IPEndPoint(IPAddress.Any, 0);
-            while (this.go)
+            while (continueRunning)
             {
                 using (MemoryStream incomingPacketStream = new MemoryStream(this.Receive(ref serverAddress)))
                 {   
-                    Packet receivePacket = new Packet((Packet.PacketType)incomingPacketStream.ReadByte(), serverAddress);
+                    NetworkPacket receivePacket = new NetworkPacket((NetworkPacket.PacketType)incomingPacketStream.ReadByte(), serverAddress);
                     incomingPacketStream.Read(receivePacket.DataArray, 0, (int)incomingPacketStream.Length - 1);
-                    lock (readBuffer)
+                    lock (receiveBuffer)
                     {
-                        readBuffer.Enqueue(receivePacket);
-                        //if (readBuffer.Count > 50)
-                        //{
-                        //    Console.WriteLine("ReadBuffer falling behind {0}:" + Thread.CurrentThread.Name, readBuffer.Count);
-                        //}
+                        receiveBuffer.Enqueue(receivePacket);
                     }
-                    this.nextSem.Release();
+                    receiveSemaphore.Release();
                 }
             }
             return;
         }
 
-        private void thread_do_send()
+        /// <summary>
+        /// Main thread loop for sending packets.
+        /// </summary>
+        private void RunSendThread()
         {
-            Thread.CurrentThread.IsBackground = true;
-            while (this.go)
+            while (continueRunning) // Loop until the workers should terminate
             {
-                this.sendSem.WaitOne(); //Get Semaphore
-                lock (this.buffer)
+                sendSemaphore.WaitOne(); // Grab semaphore access before continuing
+                lock (sendBuffer)
                 {
-                    //Console.WriteLine("NW-" + myID + " Send");
-                    Packet pkt = this.buffer.Dequeue();
-                    //Console.WriteLine("--> {0}", (byte)pkt.data[0]);
-                    int i = this.Send(pkt.DataArray, pkt.DataArray.Length, pkt.Destination);
-                    //Console.WriteLine(i);
-                    //if (buffer.Count > 50)
-                    //{
-                    //    Console.WriteLine("Buffer falling behind {0}:" + Thread.CurrentThread.Name, buffer.Count);
-                    //}
+                    NetworkPacket sendPacket = sendBuffer.Dequeue();
+                    Send(sendPacket.DataArray, sendPacket.DataArray.Length, sendPacket.Destination);
                 }
             }
         }

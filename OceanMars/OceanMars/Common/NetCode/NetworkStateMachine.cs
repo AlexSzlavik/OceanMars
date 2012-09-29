@@ -80,7 +80,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Delegate type used to execute actions when transitions occur.
         /// </summary>
-        public delegate void TransitionAction(Packet packet);
+        public delegate void TransitionAction(NetworkPacket packet);
 
         /// <summary>
         /// The current state of the NetStateMachine.
@@ -91,14 +91,8 @@ namespace OceanMars.Common.NetCode
             private set;
         }
 
-        /// <summary>
         /// A transition table used to move to new states in the state machine.
-        /// </summary>
-        private Dictionary<Tuple<NetworkState, TransitionEvent>, Tuple<NetworkState, TransitionAction>> TransitionTable
-        {
-            get;
-            set;
-        }
+        private Dictionary<Tuple<NetworkState, TransitionEvent>, Tuple<NetworkState, TransitionAction>> TransitionTable;
 
         /// <summary>
         /// Create a new NetStateMachine.
@@ -129,7 +123,7 @@ namespace OceanMars.Common.NetCode
         /// </summary>
         /// <param name="transEvent">An event that is occuring when a packet arrives.</param>
         /// <param name="packet">The packet received over the network.</param>
-        public void DoTransition(TransitionEvent transEvent, Packet packet)
+        public void DoTransition(TransitionEvent transEvent, NetworkPacket packet)
         {
             try
             {

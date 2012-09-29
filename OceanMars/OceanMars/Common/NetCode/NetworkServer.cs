@@ -22,7 +22,7 @@ namespace OceanMars.Common.NetCode
 {
 
 
-    public class RawServer
+    public class NetworkServer
     {
         private Thread serverThread;
         private bool go = true;
@@ -35,7 +35,7 @@ namespace OceanMars.Common.NetCode
         List<Command> commandQ = new List<Command>();
         Queue<Tuple<ConnectionID, MenuState>> mscQ = new Queue<Tuple<ConnectionID, MenuState>>();
 
-        public RawServer(int port)
+        public NetworkServer(int port)
         {
             serverThread = new Thread(runThis);
             serverThread.Name = "Main Server";
@@ -54,16 +54,16 @@ namespace OceanMars.Common.NetCode
 
         private void runThis()
         {
-            Packet p;
+            NetworkPacket p;
             while (this.go)
             {
-                p = nw.getNext();
+                p = nw.ReceivePacket();
                 if (p == null)
                 {
                     foreach (IPEndPoint ep in connections.Keys)
                     {
                         SyncPacket ps = new SyncPacket(ep);
-                        this.nw.commitPacket(ps);
+                        this.nw.SendPacket(ps);
                     }
                     continue;
                 }
@@ -71,23 +71,23 @@ namespace OceanMars.Common.NetCode
 
                 switch (p.Type)
                 {
-                    case Packet.PacketType.HANDSHAKE:
+                    case NetworkPacket.PacketType.HANDSHAKE:
                         if (!connections.ContainsKey(p.Destination))
                         {
                             Debug.WriteLine("Server - New connection from: " + p.Destination);
                             connections[p.Destination] = new ConnectionID(p.Destination);
                             Debug.WriteLine("Server - Added Connection: " + connections[p.Destination].ID);
                             HandshakePacket hs = new HandshakePacket(p.Destination);
-                            nw.commitPacket(hs);
+                            nw.SendPacket(hs);
                         }
                         break;
 
-                    case Packet.PacketType.STATECHANGE:
+                    case NetworkPacket.PacketType.STATECHANGE:
                         //Console.WriteLine("Server - Receivd State Change from client... who do they think they are?");
                         Environment.Exit(1);
                         break;
 
-                    case Packet.PacketType.SYNC:
+                    case NetworkPacket.PacketType.SYNC:
                         if (connections.ContainsKey(p.Destination))
                         {
                             //Console.WriteLine("Server - SYNC Reply from: " + connections[p.Dest].ID);
@@ -98,12 +98,12 @@ namespace OceanMars.Common.NetCode
                         }
                         break;
 
-                    case Packet.PacketType.PING:
+                    case NetworkPacket.PacketType.PING:
                         if (connections.ContainsKey(p.Destination))
                         {
                             //Console.WriteLine("Server - Ping from connection: " + connections[p.Dest].ID);
                             PingPacket ps = new PingPacket(p.Destination);
-                            nw.commitPacket(ps); //ACK the ping
+                            nw.SendPacket(ps); //ACK the ping
                         }
                         else
                         {
@@ -111,14 +111,14 @@ namespace OceanMars.Common.NetCode
                         }
                         break;
 
-                    case Packet.PacketType.COMMAND:
+                    case NetworkPacket.PacketType.COMMAND:
                         //Actually handle this
                         //Console.WriteLine("Server - Got CMD from: " + connections[p.Dest].ID);
                         Command cmd = new Command(p.DataArray);
                         lock (commandQ)
                             this.commandQ.Add(cmd);
                         break;
-                    case Packet.PacketType.MENUSTATECHANGE:
+                    case NetworkPacket.PacketType.MENUSTATECHANGE:
                         //Actually handle this
                         //Console.WriteLine("Server - Got MSC from: " + connections[p.Dest].ID);
                         MenuState msc = new MenuState(p.DataArray);
@@ -176,7 +176,7 @@ namespace OceanMars.Common.NetCode
                 {
                     //Console.WriteLine("Server - Sent StateChange to: " + d.Value.ID);
                     StateChangePacket p = new StateChangePacket(d.Key, sc);
-                    this.nw.commitPacket(p);
+                    this.nw.SendPacket(p);
                 }
             }
         }
@@ -186,7 +186,7 @@ namespace OceanMars.Common.NetCode
             foreach (StateChange sc in list)
             {
                 StateChangePacket p = new StateChangePacket(cid.endpt, sc);
-                nw.commitPacket(p);
+                nw.SendPacket(p);
             }
         }
 
@@ -204,7 +204,7 @@ namespace OceanMars.Common.NetCode
             foreach (KeyValuePair<IPEndPoint, ConnectionID> d in connections)
             {
                 MenuStateChangePacket p = new MenuStateChangePacket(d.Key, menuState);
-                this.nw.commitPacket(p);
+                this.nw.SendPacket(p);
             }
             return;
         }
@@ -220,7 +220,7 @@ namespace OceanMars.Common.NetCode
         public void signalMSC(MenuState menuState, ConnectionID connectionID)
         {
             MenuStateChangePacket p = new MenuStateChangePacket(connectionID.endpt, menuState);
-            nw.commitPacket(p);
+            nw.SendPacket(p);
         }
     }
 

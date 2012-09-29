@@ -10,7 +10,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// Class representing a UPD packet-based client.
     /// </summary>
-    public class RawClient
+    public class NetworkClient
     {
 
         private Thread clientThread;
@@ -39,7 +39,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Create a new raw client.
         /// </summary>
-        public RawClient()
+        public NetworkClient()
         {
             Debug.WriteLine("Client Started");
 
@@ -67,13 +67,13 @@ namespace OceanMars.Common.NetCode
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTDROPPING, NetworkStateMachine.NetworkState.CLIENTCONNECTED, onPing);
         }
 
-        public void onConnect(Packet p)
+        public void onConnect(NetworkPacket p)
         {
             connected.Release();
             this.startPing();
         }
 
-        public void onPing(Packet p)
+        public void onPing(NetworkPacket p)
         {
             lock (this)
             {
@@ -88,7 +88,7 @@ namespace OceanMars.Common.NetCode
             this.server = new IPEndPoint(IPAddress.Parse(host), port);
 
             //Spawn the client reader/writer threads
-            this.nw = new NetworkWorker(server);
+            this.nw = new NetworkWorker();
 
             // Client may now try to connect
             this.clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTCONNECT, null);
@@ -125,13 +125,13 @@ namespace OceanMars.Common.NetCode
             while (this.go)
             {
                 //Pull packet
-                Packet newPacket = nw.getNext();
+                NetworkPacket newPacket = nw.ReceivePacket();
                 switch (newPacket.Type)
                 {
-                    case Packet.PacketType.HANDSHAKE:
+                    case NetworkPacket.PacketType.HANDSHAKE:
                         transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTCONNECTED;
                         break;
-                    case Packet.PacketType.PING:
+                    case NetworkPacket.PacketType.PING:
                         transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTDROPPING;
                         break;
                 }
@@ -149,7 +149,7 @@ namespace OceanMars.Common.NetCode
             // Pull packets out of the network layer and handle them
             while (this.go)
             {
-                Packet newPacket = nw.getNext(); // This is a blocking call! 
+                NetworkPacket newPacket = nw.ReceivePacket(); // This is a blocking call! 
 
                 // Handle timeout
                 if (newPacket == null)
@@ -191,11 +191,11 @@ namespace OceanMars.Common.NetCode
                     // Handle the new packet 
                     switch (newPacket.Type)
                     {
-                        case Packet.PacketType.COMMAND:
+                        case NetworkPacket.PacketType.COMMAND:
                             Debug.WriteLine("Should not be getting CMD packets from the server...");
                             Environment.Exit(1);
                             break;
-                        case Packet.PacketType.HANDSHAKE:
+                        case NetworkPacket.PacketType.HANDSHAKE:
                             Debug.WriteLine("Handshake received from the server");
 
                             switch (curState)
@@ -216,7 +216,7 @@ namespace OceanMars.Common.NetCode
                             }
 
                             break;
-                        case Packet.PacketType.STATECHANGE:
+                        case NetworkPacket.PacketType.STATECHANGE:
                             //Console.WriteLine("STC received from the server");
 
                             switch (curState)
@@ -242,7 +242,7 @@ namespace OceanMars.Common.NetCode
                             }
 
                             break;
-                        case Packet.PacketType.MENUSTATECHANGE:
+                        case NetworkPacket.PacketType.MENUSTATECHANGE:
                             //Console.WriteLine("MSC received from the server");
 
                             switch (curState)
@@ -268,7 +268,7 @@ namespace OceanMars.Common.NetCode
                             }
 
                             break;
-                        case Packet.PacketType.SYNC:
+                        case NetworkPacket.PacketType.SYNC:
                             //Console.WriteLine("SYNC received from the server");
                             
                             switch (curState)
@@ -286,7 +286,7 @@ namespace OceanMars.Common.NetCode
                             }
 
                             break;
-                        case Packet.PacketType.PING:
+                        case NetworkPacket.PacketType.PING:
                             //Console.WriteLine("PING received from the server");
                             
                             switch (curState)
@@ -321,7 +321,7 @@ namespace OceanMars.Common.NetCode
         private void handshake()
         {
             HandshakePacket hs = new HandshakePacket(server);
-            this.nw.commitPacket(hs);
+            this.nw.SendPacket(hs);
         }
 
         private void startPing()
@@ -338,7 +338,7 @@ namespace OceanMars.Common.NetCode
                 //Console.WriteLine("Sending ping");
                 PingPacket pingPacket = new PingPacket(server);
                 pingStopwatch.Reset();
-                this.nw.commitPacket(pingPacket);
+                this.nw.SendPacket(pingPacket);
                 pingStopwatch.Start();
             }
         }
@@ -346,7 +346,7 @@ namespace OceanMars.Common.NetCode
         private void syncServer()
         {
             SyncPacket ss = new SyncPacket(server);
-            this.nw.commitPacket(ss);
+            this.nw.SendPacket(ss);
         }
 
         //OPERATORS
@@ -358,7 +358,7 @@ namespace OceanMars.Common.NetCode
                 CommandPacket newCMD = new CommandPacket(server, command);
 
                 // Add the CMD packet to the network worker's send queue
-                this.nw.commitPacket(newCMD);
+                this.nw.SendPacket(newCMD);
             }
         }
 
@@ -376,7 +376,7 @@ namespace OceanMars.Common.NetCode
             MenuStateChangePacket newMSC = new MenuStateChangePacket(server, menuState);
 
             // Add the MSC packe to the network worker's send queue
-            this.nw.commitPacket(newMSC);
+            this.nw.SendPacket(newMSC);
         }
 
         // Called by the UI to acquire the latest state from the server

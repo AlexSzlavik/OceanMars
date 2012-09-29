@@ -7,7 +7,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// Class that represents a generic UDP packet as sent and received by our applications.
     /// </summary>
-    public class Packet
+    public class NetworkPacket
     {
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace OceanMars.Common.NetCode
         /// </summary>
         /// <param name="type">The type of the packet.</param>
         /// <param name="destination">The destination for the packet.</param>
-        public Packet(PacketType type, IPEndPoint destination)
+        public NetworkPacket(PacketType type, IPEndPoint destination)
         {
             Type = type;
             Destination = destination;
@@ -90,7 +90,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// A packet that represents a handshake between servers and clients.
     /// </summary>
-    public class HandshakePacket : Packet
+    public class HandshakePacket : NetworkPacket
     {
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// A packet that represents a game command.
     /// </summary>
-    public class CommandPacket : Packet
+    public class CommandPacket : NetworkPacket
     {
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// A packet that represents a change in state.
     /// </summary>
-    public class StateChangePacket : Packet
+    public class StateChangePacket : NetworkPacket
     {
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// A packet that represents a change in state inside a menu.
     /// </summary>
-    public class MenuStateChangePacket : Packet
+    public class MenuStateChangePacket : NetworkPacket
     {
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// A packet used to send ping messages.
     /// </summary>
-    public class PingPacket : Packet
+    public class PingPacket : NetworkPacket
     {
 
         /// <summary>
@@ -186,7 +186,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// A packet used to synchronize the clients and servers.
     /// </summary>
-    public class SyncPacket : Packet
+    public class SyncPacket : NetworkPacket
     {
 
         /// <summary>
