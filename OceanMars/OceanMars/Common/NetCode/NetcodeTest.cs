@@ -49,18 +49,18 @@ namespace OceanMars.Common.NetCode
             while (true)
             {
                 List<Command> l = new List<Command>();
-                /*
-                Command cm = new Command();
-                cm.ct = CommandType.ATTACK;
-                cm.direction.X = 3.14159F;
-                cm.direction.Y = 3.14159F;
-                cm.position.X = 3.14159F;
-                cm.position.Y = 3.14159F;
-                l.Add(cm);
-                c.sendCMD(l);
+                
+                //Command cm = new Command();
+                //cm.ct = CommandType.ATTACK;
+                //cm.direction.X = 3.14159F;
+                //cm.direction.Y = 3.14159F;
+                //cm.position.X = 3.14159F;
+                //cm.position.Y = 3.14159F;
+                //l.Add(cm);
+                //c.sendCMD(l);
                 //c1.sendCMD(l);
                 //c2.sendCMD(l);
-                //c3.sendCMD(l);*/
+                //c3.sendCMD(l);
                 Thread.Sleep(10);
             }
         }
