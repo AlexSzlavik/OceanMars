@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Threading;
-using System.Diagnostics;
 
-namespace OceanMars.NetCode
+namespace OceanMars.Common.NetCode
 {
+
+    /// <summary>
+    /// Class representing a UPD packet-based client.
+    /// </summary>
     public class RawClient
     {
+
         private Thread clientThread;
         private NetworkWorker nw;
         private IPEndPoint server;
@@ -15,8 +20,8 @@ namespace OceanMars.NetCode
         public enum cState { DISCONNECTED, CONNECTED, TRYCONNECT };
         cState curState = cState.DISCONNECTED;
 
-        //Stopwatch for pinging
-        private Stopwatch sw_ping = new Stopwatch();
+        
+        private Stopwatch pingStopwatch = new Stopwatch();
         private long lastPing = -1;
         private Timer PingPacket_timeout_timer;
 
@@ -29,9 +34,12 @@ namespace OceanMars.NetCode
         // Queue of menu changes to be passed off to the menu
         private Queue<MenuState> menuBuffer = new Queue<MenuState>();
 
+        /// <summary>
+        /// Create a new raw client.
+        /// </summary>
         public RawClient()
         {
-            System.Console.WriteLine("Client Started");
+            Debug.WriteLine("Client Started");
 
             // Create the thread
             clientThread = new Thread(this.ClientstartFunc);
@@ -84,7 +92,7 @@ namespace OceanMars.NetCode
                 // Handle timeout
                 if (newPacket == null)
                 {
-                    Console.WriteLine("Timeout on receive");
+                    Debug.WriteLine("Timeout on receive");
                     switch (curState)
                     {
                         case cState.TRYCONNECT:
@@ -98,10 +106,10 @@ namespace OceanMars.NetCode
                    //TODO Should probably not silently ignore this....
                             lock (this)
                             {
-                                if (this.sw_ping.IsRunning)
+                                if (this.pingStopwatch.IsRunning)
                                 {
                                     //this.curState = cState.DISCONNECTED;
-                                    this.sw_ping.Stop();
+                                    this.pingStopwatch.Stop();
                                     this.lastPing = 501;
                                 }
                             }
@@ -119,14 +127,14 @@ namespace OceanMars.NetCode
                     //Console.WriteLine(newPacket.ptype);
 
                     // Handle the new packet 
-                    switch (newPacket.ptype)
+                    switch (newPacket.Type)
                     {
-                        case Packet.PacketType.CMD:
-                            Console.WriteLine("Should not be getting CMD packets from the server...");
+                        case Packet.PacketType.COMMAND:
+                            Debug.WriteLine("Should not be getting CMD packets from the server...");
                             Environment.Exit(1);
                             break;
                         case Packet.PacketType.HANDSHAKE:
-                            Console.WriteLine("Handshake received from the server");
+                            Debug.WriteLine("Handshake received from the server");
 
                             switch (curState)
                             {
@@ -146,7 +154,7 @@ namespace OceanMars.NetCode
                             }
 
                             break;
-                        case Packet.PacketType.STC:
+                        case Packet.PacketType.STATECHANGE:
                             //Console.WriteLine("STC received from the server");
 
                             switch (curState)
@@ -155,7 +163,7 @@ namespace OceanMars.NetCode
                                     break;
                                 case cState.CONNECTED:
                                     // Marshall the state change packet into an object
-                                    StateChange newSTC = new StateChange(newPacket.data);
+                                    StateChange newSTC = new StateChange(newPacket.DataArray);
 
                                     // Add the state change object to the buffer for the UI
                                     lock (this.buffer)
@@ -172,7 +180,7 @@ namespace OceanMars.NetCode
                             }
 
                             break;
-                        case Packet.PacketType.MSC:
+                        case Packet.PacketType.MENUSTATECHANGE:
                             //Console.WriteLine("MSC received from the server");
 
                             switch (curState)
@@ -181,7 +189,7 @@ namespace OceanMars.NetCode
                                     break;
                                 case cState.CONNECTED:
                                     // Marshall the state change packet into an object
-                                    MenuState newMSC = new MenuState(newPacket.data);
+                                    MenuState newMSC = new MenuState(newPacket.DataArray);
 
                                     // Add the state change object to the buffer for the UI
                                     lock (this.menuBuffer)
@@ -226,8 +234,8 @@ namespace OceanMars.NetCode
                                 case cState.CONNECTED:
                                     lock (this)
                                     {
-                                        sw_ping.Stop();
-                                        this.lastPing = sw_ping.ElapsedMilliseconds;
+                                        pingStopwatch.Stop();
+                                        this.lastPing = pingStopwatch.ElapsedMilliseconds;
                                     }
                                     //Console.WriteLine("Ping"+lastPing);
                                     break;
@@ -240,7 +248,7 @@ namespace OceanMars.NetCode
 
                             break;
                         default:
-                            Console.WriteLine("Unknown packet type from the server...");
+                            Debug.WriteLine("Unknown packet type from the server...");
                             Environment.Exit(1);
                             break;
                     }
@@ -250,8 +258,7 @@ namespace OceanMars.NetCode
 
         private void handshake()
         {
-            HandshakePacket hs = new HandshakePacket();
-            hs.setDest(server);
+            HandshakePacket hs = new HandshakePacket(server);
             this.nw.commitPacket(hs);
         }
 
@@ -264,32 +271,29 @@ namespace OceanMars.NetCode
         {
             lock (this)
             {
-                if (sw_ping.IsRunning)
+                if (pingStopwatch.IsRunning)
                     return;
                 //Console.WriteLine("Sending ping");
-                PingPacket pp = new PingPacket();
-                sw_ping.Reset();
-                pp.setDest(server);
-                this.nw.commitPacket(pp);
-                sw_ping.Start();
+                PingPacket pingPacket = new PingPacket(server);
+                pingStopwatch.Reset();
+                this.nw.commitPacket(pingPacket);
+                pingStopwatch.Start();
             }
         }
 
         private void syncServer()
         {
-            SYNCPacket ss = new SYNCPacket();
-            ss.setDest(server);
+            SyncPacket ss = new SyncPacket(server);
             this.nw.commitPacket(ss);
         }
 
         //OPERATORS
-        public void sendCMD(List<Command> cmds)
+        public void sendCMD(List<Command> commands)
         {
-            foreach (Command c in cmds)
+            foreach (Command command in commands)
             {
                 // Create the CMD Packet
-                CMDPacket newCMD = new CMDPacket(c);
-                newCMD.Dest = server;
+                CommandPacket newCMD = new CommandPacket(server, command);
 
                 // Add the CMD packet to the network worker's send queue
                 this.nw.commitPacket(newCMD);
@@ -304,11 +308,10 @@ namespace OceanMars.NetCode
             }
         }
 
-        public void sendMSC(MenuState m)
+        public void sendMSC(MenuState menuState)
         {
             // Create the MSC Packet
-            MSCPacket newMSC = new MSCPacket(m);
-            newMSC.Dest = server;
+            MenuStateChangePacket newMSC = new MenuStateChangePacket(server, menuState);
 
             // Add the MSC packe to the network worker's send queue
             this.nw.commitPacket(newMSC);

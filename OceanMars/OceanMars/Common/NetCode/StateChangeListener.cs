@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OceanMars.NetCode
+namespace OceanMars.Common.NetCode
 {
     public interface StateChangeListener
     {

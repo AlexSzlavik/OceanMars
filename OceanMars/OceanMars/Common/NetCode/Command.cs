@@ -2,10 +2,17 @@
 using System.IO;
 using Microsoft.Xna.Framework;
 
-namespace OceanMars.NetCode
+namespace OceanMars.Common.NetCode
 {
+
+    /// <summary>
+    /// Types of commands that are available.
+    /// </summary>
     public enum CommandType { MOVE, SHOOT, ATTACK, GOBLIN_ATTACK }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class Command : Marshable
     {
         public int entity_id;
@@ -28,7 +35,7 @@ namespace OceanMars.NetCode
             this.direction.Y = (float)br.ReadDouble();
         }
 
-        public byte[] getPacketData()
+        public byte[] GetByteArray()
         {
             MemoryStream ms = new MemoryStream();
             BinaryWriter bb = new BinaryWriter(ms);

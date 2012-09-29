@@ -100,6 +100,7 @@
     <Compile Include="Common\NetCode\MenuState.cs" />
     <Compile Include="Common\NetCode\NetcodeTest.cs" />
     <Compile Include="Common\NetCode\NetworkWorker.cs" />
+    <Compile Include="Common\NetCode\Packet.cs" />
     <Compile Include="Common\NetCode\Server.cs" />
     <Compile Include="Common\NetCode\StateChange.cs" />
     <Compile Include="Common\NetCode\StateChangeFactory.cs" />
