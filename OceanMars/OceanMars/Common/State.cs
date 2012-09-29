@@ -8,10 +8,14 @@ namespace OceanMars.Common
 {
     public class State
     {
-        private const Vector2 GRAVITY = new Vector2(0, -9.8f);
+        private static Vector2 GRAVITY = new Vector2(0, -9.8f);
 
-        public World root;
+        public World root = new World();
         Dictionary<int, Entity> entities = new Dictionary<int,Entity>();
+
+        public State()
+        {
+        }
 
         void nextFrame()
         {

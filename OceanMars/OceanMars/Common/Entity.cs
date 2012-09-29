@@ -8,13 +8,25 @@ namespace OceanMars.Common
 {
     public class Entity
     {
+        public static int next_id = 0;
+
         public int id;
         public Vector2 collisionBox;
-        public Entity parent;
-        public List<Entity> children;
+        public Entity parent = null;
+        public List<Entity> children = new List<Entity>();
 
         public bool worldTransformDirty = false;
         public bool inverseWorldTransformDirty = false;
+
+        public Entity(Vector2 collisionBox) {
+            this.collisionBox = collisionBox;
+            this.id = next_id++;
+        }
+
+        public void addChild(Entity child)
+        {
+            children.Add(child);
+        }
 
         // When changed, will invalidate world transform matrix and all children
         private Matrix transformBack;
