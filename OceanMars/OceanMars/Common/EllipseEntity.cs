@@ -10,7 +10,7 @@ namespace OceanMars.Common
     {
         public Vector2 collisionEllipse;
 
-        public EllipseEntity(Vector2 size)
+        public EllipseEntity(Vector2 size) : base(size)
         {
             collisionEllipse = size;
         }
@@ -25,6 +25,7 @@ namespace OceanMars.Common
 
         public float intersectEllipse(Vector2 sO, float sR, Vector2 rO, Vector2 rV)
         {
+            /*
             Vector2 Q = sO - rO;
             double c = length of Q;
             double v = Q * rV;
@@ -37,6 +38,8 @@ namespace OceanMars.Common
             // Return the distance to the [first] intersecting point
 
             return v - sqrt(d);
+             * */
+            return 0;
         } 
 
         public void testCollision(List<Entity> entities)
@@ -86,7 +89,7 @@ namespace OceanMars.Common
                     }
 
                     //finally, are we intersecting?
-                    t = intersectEllipse(new Vector2(0, 0), ellipseRadiusVector, lineIntersectionPoint, -velocity);
+                    t = 0;// intersectEllipse(new Vector2(0, 0), ellipseRadiusVector, lineIntersectionPoint, -velocity);
                     if (t >= 0.0f && t <= velocity.Length() &&
                         (t < distanceToNearest || !hasCollided))
                     {

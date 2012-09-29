@@ -6,13 +6,14 @@ using Microsoft.Xna.Framework;
 
 namespace OceanMars.Common
 {
-    public class World : Entity
+    class ServerlessState : State
     {
-        public World()
-            : base(Vector2.Zero)
-        {
-        }
+        public Entity player;
 
-        public override Matrix getWorldTransform() { return new Matrix(); }
+        public ServerlessState()
+        {
+            player = new Entity(new Vector2(10, 10));
+            root.addChild(player);
+        }
     }
 }

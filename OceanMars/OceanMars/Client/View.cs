@@ -11,11 +11,17 @@ namespace OceanMars.Client
 {
     public class View
     {
-        Entity avatar;
+        public Entity avatar;
         State state;
 
-        public Dictionary<int, Sprite> sprites;
-        public Dictionary<String, Texture2D> textureDict;
+        public Dictionary<int, Sprite> sprites = new Dictionary<int,Sprite>();
+        public Dictionary<String, Texture2D> textureDict = new Dictionary<string,Texture2D>();
+
+        public View(State s, Entity avatar)
+        {
+            this.state = s;
+            this.avatar = avatar;
+        }
 
         void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {

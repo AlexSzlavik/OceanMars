@@ -60,8 +60,7 @@
     <XnaCompressContent>true</XnaCompressContent>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>
-    </StartupObject>
+    <StartupObject>OceanMars.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
@@ -78,6 +77,7 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client\DefaultLevelSprite.cs" />
     <Compile Include="Client\GameStateManager\GameScreen.cs" />
     <Compile Include="Client\GameStateManager\InputState.cs" />
     <Compile Include="Client\GameStateManager\ScreenManager.cs" />
@@ -93,18 +93,21 @@
     <Compile Include="Client\Screens\ResolutionsMenuScreen.cs" />
     <Compile Include="Client\Sprite.cs" />
     <Compile Include="Client\View.cs" />
+    <Compile Include="Common\DefaultLevel.cs" />
     <Compile Include="Common\EllipseEntity.cs" />
     <Compile Include="Common\Entity.cs" />
     <Compile Include="Common\NetCode\Client.cs" />
     <Compile Include="Common\NetCode\Command.cs" />
     <Compile Include="Common\NetCode\MenuState.cs" />
     <Compile Include="Common\NetCode\NetcodeTest.cs" />
+    <Compile Include="Common\NetCode\NetStateMachine.cs" />
     <Compile Include="Common\NetCode\NetworkWorker.cs" />
     <Compile Include="Common\NetCode\Packet.cs" />
     <Compile Include="Common\NetCode\Server.cs" />
     <Compile Include="Common\NetCode\StateChange.cs" />
     <Compile Include="Common\NetCode\StateChangeFactory.cs" />
     <Compile Include="Common\NetCode\StateChangeListener.cs" />
+    <Compile Include="Common\ServerlessState.cs" />
     <Compile Include="Common\SliderEntity.cs" />
     <Compile Include="Common\State.cs" />
     <Compile Include="Common\World.cs" />

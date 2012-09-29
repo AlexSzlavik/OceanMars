@@ -6,13 +6,11 @@ using Microsoft.Xna.Framework;
 
 namespace OceanMars.Common
 {
-    public class World : Entity
+    public class DefaultLevel : Entity
     {
-        public World()
-            : base(Vector2.Zero)
+        public DefaultLevel()
+            : base(new Vector2(2400, 1000))
         {
         }
-
-        public override Matrix getWorldTransform() { return new Matrix(); }
     }
 }
