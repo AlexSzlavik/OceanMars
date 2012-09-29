@@ -9,7 +9,7 @@ namespace OceanMars.Common
 {
     class TestMan : EllipseEntity
     {
-        public TestMan() : base(new Vector2(30, 30)) {
+        public TestMan(Entity parent) : base(new Vector2(30, 30), parent) {
         }
 
         public override StateChange createStateChange()

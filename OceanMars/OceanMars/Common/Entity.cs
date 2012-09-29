@@ -19,6 +19,12 @@ namespace OceanMars.Common
         public bool worldTransformDirty = false;
         public bool inverseWorldTransformDirty = false;
 
+        public Entity(Vector2 collisionBox, Entity parent) {
+            this.collisionBox = collisionBox;
+            this.id = next_id++;
+            this.parent = parent;
+        }
+
         // When changed, will invalidate world transform matrix and all children
         private Matrix transformBack = Matrix.Identity;
         public Matrix transform
@@ -113,6 +119,5 @@ namespace OceanMars.Common
             parent.registerChild(child);
         }
 
-        public virtual Matrix getWorldTransform() { return parent.getWorldTransform() * transform; }
     }
 }

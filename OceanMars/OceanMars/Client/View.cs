@@ -26,12 +26,9 @@ namespace OceanMars.Client
 
         public void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            Entity root = state.root;
-            foreach (Entity e in root.children)
+            foreach (int id in sprites.Keys)
             {
-                if (sprites.ContainsKey(e.id)) {
-                    sprites[e.id].draw(gameTime, spriteBatch);
-                }
+                sprites[id].draw(gameTime, spriteBatch);
             }
         }
     }
