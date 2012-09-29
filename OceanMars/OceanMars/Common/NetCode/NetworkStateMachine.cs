@@ -46,7 +46,15 @@ namespace OceanMars.Common.NetCode
             /// <summary>
             /// An unhandled type of error occurred...The client is in really big trouble!
             /// </summary>
-            CLIENTPANIC
+            CLIENTPANIC,
+
+
+            SERVERSTART,
+
+
+            SERVERACCEPTCONNECTIONS,
+
+            SERVERSYNC
 
         }
 
@@ -64,7 +72,7 @@ namespace OceanMars.Common.NetCode
             /// The client is connecting.
             /// </summary>
             CLIENTCONNECT,
-             
+
             /// <summary>
             /// The client is connected.
             /// </summary>
@@ -88,7 +96,16 @@ namespace OceanMars.Common.NetCode
             /// <summary>
             /// Client received a Sync request from Server
             /// </summary>
-            CLIENTSYNC
+            CLIENTSYNC,
+            SERVERSTARTED,
+            SERVERHANDSHAKE,
+            SERVERSYNC,
+            SERVERPING,
+            SERVERCOMMAND,
+            SERVERMENUSTATECHANGE,
+            SERVERSTATECHANGE,
+            SERVERNEWCONNECTION,
+            SERVERDISCONNECTION
 
         }
 
