@@ -62,6 +62,7 @@ namespace OceanMars
             Components.Add(screenManager);
 
             screenManager.AddScreen(new BackgroundScreen());
+            screenManager.AddScreen(new MainMenuScreen());
 
             return;
         }
