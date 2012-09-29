@@ -23,23 +23,72 @@ namespace OceanMars.Common
             return -(numer / denom);
         }
 
-        public float intersectEllipse(Vector2 sO, float sR, Vector2 rO, Vector2 rV)
+        public float intersectEllipse(Vector2 ellipseOrigin, Vector2 ellipseRadius, 
+            Vector2 rayOrigin, Vector2 rayVector)
         {
-            /*
-            Vector2 Q = sO - rO;
-            double c = length of Q;
-            double v = Q * rV;
-            double d = sR*sR - (c*c – v*v);
+            float aa, bb, cc, m;
+            float t = -1;
+            float a = ellipseRadius.X;
+            float b = ellipseRadius.Y;
+            float h = ellipseOrigin.X;
+            float k = ellipseOrigin.Y;
+            //
+            if ( rayVector.X != 0 )
+            {
+                m = rayVector.Y/rayVector.X;
+                float c = rayOrigin.Y - m * rayOrigin.X;
+                //
+                aa = b*b + a*a*m*m;
+                bb = 2*a*a*c*m - 2*a*a*k*m - 2*h*b*b;
+                cc = b*b*h*h + a*a*c*c - 2*a*a*k*c + a*a*k*k - a*a*b*b;
+            }
+            else
+            {
+                //
+                // vertical line case
+                //
+                aa = a*a;
+                bb = -2.0f*k*a*a;
+                cc = -a*a*b*b + b*b*(ellipseOrigin.X-h)*(ellipseOrigin.X-h);
+            }
 
-            // If there was no intersection, return -1
+            float d = bb*bb-4*aa*cc;
+            //
+            // intersection points : (xi1,yi1) and (xi2,yi2)
+            //
+            if (d > 0.0)
+            {
+                float t1 = -1;
+                float t2 = -1;
+                if ( rayVector.X != 0 )
+                {
+                    //xi1 = rayOrigin.X + t * rayVector.X
+                    //=>
+                    //t = (xi1 - rayOrigin.X)/rayVector.X
 
-            if (d < 0.0) return -1.0;
+                    float xi1 = (-bb + (float)Math.Sqrt(d)) / (2 * aa);
+                    float xi2 = (-bb - (float)Math.Sqrt(d)) / (2 * aa);
+                    t1 = (xi1 - rayOrigin.X) / rayVector.X;
+                    t2 = (xi2 - rayOrigin.X) / rayVector.X;
+                }
+                else
+                {
+                    float yi1 = (-bb + (float)Math.Sqrt(d)) / (2 * aa);
+                    float yi2 = (-bb - (float)Math.Sqrt(d)) / (2 * aa);
+                    t1 = (yi1 - rayOrigin.X) / rayVector.X;
+                    t2 = (yi2 - rayOrigin.X) / rayVector.X;
+                }
 
-            // Return the distance to the [first] intersecting point
-
-            return v - sqrt(d);
-             * */
-            return 0;
+                if (t1 < t2)
+                {
+                    t = t1;
+                }
+                else
+                {
+                    t = t2;
+                }
+            }
+            return t;
         } 
 
         public void testCollision(List<Entity> entities)
@@ -89,7 +138,7 @@ namespace OceanMars.Common
                     }
 
                     //finally, are we intersecting?
-                    t = 0;// intersectEllipse(new Vector2(0, 0), ellipseRadiusVector, lineIntersectionPoint, -velocity);
+                    t = intersectEllipse(new Vector2(0, 0), ellipseRadiusVector, lineIntersectionPoint, -velocity);
                     if (t >= 0.0f && t <= velocity.Length() &&
                         (t < distanceToNearest || !hasCollided))
                     {
