@@ -234,9 +234,11 @@ namespace OceanMars.Common
                 }
             }
 
-            if (!hasCollided)
+            if (hasCollided)
             {
                 //TRANSLATE
+                // WARNING: For Testing Purposes
+                System.Diagnostics.Debug.WriteLine("There is a collision");
             }
         }
     }

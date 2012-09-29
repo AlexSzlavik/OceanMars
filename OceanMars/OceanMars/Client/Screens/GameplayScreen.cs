@@ -65,6 +65,7 @@ namespace SkyCrane.Screens
 
             context.textureDict.Add("defaultlevel", content.Load<Texture2D>("Sprites/scenery"));
             context.textureDict.Add("whitesquare", content.Load<Texture2D>("Sprites/30x30whitesquare"));
+            context.textureDict.Add("blacksquare", content.Load<Texture2D>("Sprites/1x1blacksquare"));
 
             // After loading content, instantiate sprites
             foreach (int id in state.entities.Keys)
@@ -78,6 +79,11 @@ namespace SkyCrane.Screens
                 else if (e is TestMan)
                 {
                     Sprite s = new TestManSprite(context, (TestMan)e);
+                    context.sprites.Add(id, s);
+                }
+                else if (e is TestWall)
+                {
+                    Sprite s = new TestWallSprite(context, (TestWall)e);
                     context.sprites.Add(id, s);
                 }
             }
