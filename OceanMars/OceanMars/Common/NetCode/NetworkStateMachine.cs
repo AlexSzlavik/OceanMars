@@ -73,7 +73,22 @@ namespace OceanMars.Common.NetCode
             /// <summary>
             /// The client is dropping.
             /// </summary>
-            CLIENTDROPPING
+            CLIENTDROPPING,
+
+            /// <summary>
+            /// Client received a StateChange
+            /// </summary>
+            CLIENTSTATECHANGE,
+
+            /// <summary>
+            /// Client received a MenuStateChange
+            /// </summary>
+            CLIENTMENUSTATECHANGE,
+
+            /// <summary>
+            /// Client received a Sync request from Server
+            /// </summary>
+            CLIENTSYNC
 
         }
 
