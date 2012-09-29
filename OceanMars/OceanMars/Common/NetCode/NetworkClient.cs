@@ -189,6 +189,9 @@ namespace OceanMars.Common.NetCode
                     case NetworkPacket.PacketType.GAMEDATA:
                         transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTGAMEDATA;
                         break;
+                    case NetworkPacket.PacketType.SYNC:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSYNC;
+                        break;
                 }
                 clientStateMachine.DoTransition(transitionEvent, receivePacket); // This is amazing
             }

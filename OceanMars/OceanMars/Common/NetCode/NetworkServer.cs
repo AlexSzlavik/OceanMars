@@ -76,7 +76,7 @@ namespace OceanMars.Common.NetCode
                 SyncPacket ps = new SyncPacket(ep);
                 this.nw.SendPacket(ps);
                 this.globalStats.sentPkts++;
-                //connections[ep].changeState(NetworkStateMachine.TransitionEvent.CONN
+                connections[ep].changeState(NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING);
             }
             return;
         }
@@ -133,7 +133,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="packet"></param>
         private void onSync(NetworkPacket packet)
         {
-            //TODO
+            connections[packet.Destination].changeState(NetworkStateMachine.TransitionEvent.SERVERSYNC);
         }
 
         /// <summary>
@@ -145,7 +145,6 @@ namespace OceanMars.Common.NetCode
             PingPacket ps = new PingPacket(packet.Destination);
             nw.SendPacket(ps); //ACK the ping
             this.globalStats.sentPkts++;
-            connections[packet.Destination].changeState(NetworkStateMachine.TransitionEvent.SERVERPING);
         }
         
         /// <summary>
@@ -250,6 +249,11 @@ namespace OceanMars.Common.NetCode
         public short ID;
         public IPEndPoint endpt;
         public long lastSYNC = -1;
+        public int MissedSyncs
+        {
+            get;
+            private set;
+        }
 
         private NetworkStateMachine StateMachine;
 
@@ -257,6 +261,7 @@ namespace OceanMars.Common.NetCode
         {
             StateMachine = new NetworkStateMachine(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED);
             initStateMachine();
+            MissedSyncs = 0; 
 
             ID = ids++;
             this.endpt = ep;
@@ -266,8 +271,10 @@ namespace OceanMars.Common.NetCode
         {
             StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CONNECTIONDISCONNECT, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
             StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT, NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, delegate { });
-            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, delegate { });
-            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.SERVERPING, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, onPing);
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, onSync );
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, delegate { });
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, onSync);
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, onMissingSync);
         }
 
         public void changeState(NetworkStateMachine.TransitionEvent transitionEvent)
@@ -275,9 +282,23 @@ namespace OceanMars.Common.NetCode
             StateMachine.DoTransition(transitionEvent, null);
         }
 
-        private void onPing(NetworkPacket packet)
+        private void onSync(NetworkPacket packet)
         {
             this.lastSYNC = 1;
+            this.MissedSyncs = 0;
+        }
+
+        /// <summary>
+        /// Keep track of the number of Syncs we have missed
+        /// and eventually transition into the TIMEOUT state
+        /// </summary>
+        /// <param name="packet"></param>
+        private void onMissingSync(NetworkPacket packet)
+        {
+            MissedSyncs += 1;
+            Debug.WriteLine(String.Format("Missed {0} SYNCS", MissedSyncs));
+            if (MissedSyncs == 10)
+                StateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT,packet);
         }
     }
 
