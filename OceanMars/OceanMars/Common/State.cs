@@ -10,11 +10,12 @@ namespace OceanMars.Common
     {
         private static Vector2 GRAVITY = new Vector2(0, 0f);
 
-        public World root = new World();
+        public World root;
         public Dictionary<int, Entity> entities = new Dictionary<int,Entity>();
 
         public State()
         {
+            root = new World(this);
         }
 
         public void nextFrame()

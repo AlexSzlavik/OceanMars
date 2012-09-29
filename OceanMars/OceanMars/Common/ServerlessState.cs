@@ -17,9 +17,6 @@ namespace OceanMars.Common
 
             root.addChild(dl);
             root.addChild(player);
-
-            entities.Add(dl.id, dl);
-            entities.Add(player.id, player);
         }
     }
 }

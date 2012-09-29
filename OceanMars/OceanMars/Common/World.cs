@@ -8,9 +8,17 @@ namespace OceanMars.Common
 {
     public class World : Entity
     {
-        public World()
+        public State owner;
+
+        public World(State owner)
             : base(Vector2.Zero)
         {
+            this.owner = owner;
+        }
+
+        public override void registerChild(Entity child)
+        {
+            owner.entities.Add(child.id, child);
         }
 
         public override Matrix getWorldTransform() { return new Matrix(); }

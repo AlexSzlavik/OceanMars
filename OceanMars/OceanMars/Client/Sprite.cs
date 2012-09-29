@@ -46,7 +46,7 @@ namespace OceanMars.Client
                 context.avatar.inverseWorldTransform *
                 e.worldTransform *
                 context.centreTransform;
-
+            
             spriteBatch.Begin(
                 SpriteSortMode.Deferred,
                 BlendState.Opaque,

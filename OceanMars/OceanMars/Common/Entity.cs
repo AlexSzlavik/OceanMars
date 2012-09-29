@@ -27,6 +27,13 @@ namespace OceanMars.Common
         {
             children.Add(child);
             child.parent = this;
+
+            registerChild(child);
+        }
+
+        public virtual void registerChild(Entity child)
+        {
+            parent.registerChild(child);
         }
 
         // When changed, will invalidate world transform matrix and all children
