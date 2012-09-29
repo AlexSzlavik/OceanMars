@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
+using OceanMars.Common.NetCode;
 
 namespace OceanMars.Common
 {
@@ -17,24 +18,6 @@ namespace OceanMars.Common
 
         public bool worldTransformDirty = false;
         public bool inverseWorldTransformDirty = false;
-
-        public Entity(Vector2 collisionBox) {
-            this.collisionBox = collisionBox;
-            this.id = next_id++;
-        }
-
-        public void addChild(Entity child)
-        {
-            children.Add(child);
-            child.parent = this;
-
-            registerChild(child);
-        }
-
-        public virtual void registerChild(Entity child)
-        {
-            parent.registerChild(child);
-        }
 
         // When changed, will invalidate world transform matrix and all children
         private Matrix transformBack = Matrix.Identity;
@@ -97,6 +80,37 @@ namespace OceanMars.Common
             private set {
                 inverseWorldTransformBack = value;
             }
+        }
+
+        public Entity(Vector2 collisionBox)
+        {
+            this.collisionBox = collisionBox;
+            this.id = next_id++;
+        }
+
+        public virtual StateChange createStateChange()
+        {
+            StateChange sc = new StateChange();
+            sc.intProperties.Add(StateProperties.ENTITY_ID, id);
+            sc.doubleProperties.Add(StateProperties.SIZE_X, collisionBox.X);
+            sc.doubleProperties.Add(StateProperties.SIZE_Y, collisionBox.Y);
+            sc.intProperties.Add(StateProperties.PARENT_ID, parent.id);
+            sc.matrixProperties.Add(StateProperties.TRANSFORM, transform);
+
+            return sc;
+        }
+
+        public void addChild(Entity child)
+        {
+            children.Add(child);
+            child.parent = this;
+
+            registerChild(child);
+        }
+
+        public virtual void registerChild(Entity child)
+        {
+            parent.registerChild(child);
         }
 
         public virtual Matrix getWorldTransform() { return parent.getWorldTransform() * transform; }
