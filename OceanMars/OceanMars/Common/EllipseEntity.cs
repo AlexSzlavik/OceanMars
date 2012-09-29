@@ -8,6 +8,7 @@ namespace OceanMars.Common
 {
     class EllipseEntity : Entity
     {
+        private const float BIG_FUZZY_EPSILON = 1;
         public Vector2 collisionEllipse;
 
         public EllipseEntity(Vector2 size, Entity parent) : base(size, parent)
@@ -105,7 +106,7 @@ namespace OceanMars.Common
 
         private float intersect(Vector2 planeOrigin, Vector2 planeNormal, Vector2 rayOrigin, Vector2 rayVector)
         {
-            rayVector.Normalize();
+            //Assuming normal and vector are normalized
             float d = -Vector2.Dot(planeNormal, planeOrigin);
             float numer = Vector2.Dot(planeNormal, rayOrigin) + d;
             float denom = Vector2.Dot(planeNormal, rayVector);
@@ -128,6 +129,7 @@ namespace OceanMars.Common
             //Assumes that the state checks velocity to see if anything is actually moving
             //Assumes that the state checks AABBs to see if testing collisions makes sense
 
+            Vector2 normalizedVelocity = new Vector2(0, 0);
             float distanceToNearest = -1;
             bool hasCollided = false;
 
@@ -157,12 +159,13 @@ namespace OceanMars.Common
                     Vector2 ellipseRadiusVector = new Vector2(-sliderNormal.X * collisionEllipse.X,
                                                               -sliderNormal.Y * collisionEllipse.Y);
                     Vector2 ellipseIntersectionPoint = ellipseRadiusVector;
+                    normalizedVelocity = Vector2.Normalize(velocity);
 
                     //calculate the plane intersection point
-                    float t = intersect(sliderEndPoints[0], sliderNormal, ellipseIntersectionPoint, velocity);
+                    float t = intersect(sliderEndPoints[0], sliderNormal, ellipseIntersectionPoint, normalizedVelocity);
                     if (Math.Abs(t) <= velocity.Length()) //TODO: ignoring plane embedded in ellipse FOR NOW
                     {
-                        Vector2 lineIntersectionPoint = ellipseIntersectionPoint + Vector2.Normalize(velocity) * t;
+                        Vector2 lineIntersectionPoint = ellipseIntersectionPoint + normalizedVelocity * t;
 
                         //check if our line intersection point is the same as our line segment intersection point
                         lineIntersectionPoint = getClosestPointOnLineSegment(lineIntersectionPoint, sliderEndPoints);
@@ -184,9 +187,16 @@ namespace OceanMars.Common
 
             if (hasCollided)
             {
-                //TRANSLATE
-                // WARNING: For Testing Purposes
-                System.Diagnostics.Debug.WriteLine("There is a collision");
+                if (distanceToNearest > BIG_FUZZY_EPSILON)
+                {
+                    transform = Matrix.CreateTranslation(new Vector3(distanceToNearest * velocity.X,
+                                                                     distanceToNearest * velocity.Y, 0)) *
+                                transform;
+                }
+            }
+            else
+            {
+                transform = Matrix.CreateTranslation(new Vector3(velocity.X, velocity.Y, 0)) * transform;
             }
         }
     }
