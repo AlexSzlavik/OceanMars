@@ -8,13 +8,13 @@ namespace OceanMars.Common
 {
     public class Entity
     {
-        int id;
-        Vector2 collisionBox;
-        Entity parent;
-        List<Entity> children;
-        Matrix transform;
-        Vector2 velocity;
+        public int id;
+        public Vector2 collisionBox;
+        public Entity parent;
+        public List<Entity> children;
+        public Matrix transform;
+        public Vector2 velocity;
 
-        Matrix getWorldTransform() { return parent.getWorldTransform() * transform; }
+        public Matrix getWorldTransform() { return parent.getWorldTransform() * transform; }
     }
 }
