@@ -38,7 +38,7 @@ namespace OceanMars.Common.NetCode
         private const int PING_PERIOD = 500; // Amount of time to wait between ping heartbeats
         #endregion
 
-        #region ServerInternalCode
+        #region ClientInternalCode
         /// <summary>
         /// Create a new raw client.
         /// </summary>
@@ -244,7 +244,7 @@ namespace OceanMars.Common.NetCode
 
 #endregion
 
-        #region Public Server Code
+        #region Public Client Code
 
         /// <summary>
         /// Send a synchronization message to the server.

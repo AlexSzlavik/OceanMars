@@ -21,7 +21,7 @@ using System.Threading;
 namespace OceanMars.Common.NetCode
 {
 
-
+#region Server Internals
     public class NetworkServer
     {
         private Thread serverThread;
@@ -30,14 +30,24 @@ namespace OceanMars.Common.NetCode
 
         private ServerStats globalStats = new ServerStats();
 
+        private NetworkStateMachine serverStateMachine;
+
         //Connection state
         Dictionary<IPEndPoint, ConnectionID> connections = new Dictionary<IPEndPoint, ConnectionID>();
         List<Command> commandQ = new List<Command>();
         Queue<Tuple<ConnectionID, MenuState>> mscQ = new Queue<Tuple<ConnectionID, MenuState>>();
 
+
+        /// <summary>
+        /// Server Constructor
+        /// </summary>
+        /// <param name="port"></param>
         public NetworkServer(int port)
         {
-            serverThread = new Thread(runThis);
+            serverStateMachine = new NetworkStateMachine(NetworkStateMachine.NetworkState.SERVERSTART);
+            initializeStateMachine();
+
+            serverThread = new Thread(newServerMainLoop);
             serverThread.Name = "Main Server";
             serverThread.Priority = ThreadPriority.AboveNormal;
             serverThread.IsBackground = true;
@@ -45,20 +55,108 @@ namespace OceanMars.Common.NetCode
             Debug.WriteLine("Starting Server");
             this.nw = new NetworkWorker(port);
             serverThread.Start();
+
+            serverStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.SERVERSTARTED, null);
         }
 
+        /// <summary>
+        /// Sets up the state machine for the main server
+        /// </summary>
+        private void initializeStateMachine()
+        {
+            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERSTART, NetworkStateMachine.TransitionEvent.SERVERSTARTED, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, delegate { });
+            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERHANDSHAKE, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onHandshake);
+            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERCOMMAND, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onCommand);
+            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERMENUSTATECHANGE, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onMenuStateChange);
+            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERPING, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onPing);
+            serverStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onSync);
+        }
+
+        /// <summary>
+        /// A client wants to connect, so they initiated a handshake
+        /// </summary>
+        /// <param name="packet"></param>
+        private void onHandshake(NetworkPacket packet)
+        {
+            if (!connections.ContainsKey(packet.Destination))
+            {
+                Debug.WriteLine("Server - New connection from: " + packet.Destination);
+                connections[packet.Destination] = new ConnectionID(packet.Destination);
+                Debug.WriteLine("Server - Added Connection: " + connections[packet.Destination].ID);
+                HandshakePacket hs = new HandshakePacket(packet.Destination);
+                nw.SendPacket(hs);
+            }
+        }
+
+        /// <summary>
+        /// Server receives a Command packet
+        /// This needs to be added to the commandQ and handled
+        /// </summary>
+        /// <param name="packet"></param>
+        private void onCommand(NetworkPacket packet)
+        {
+            Command cmd = new Command(packet.DataArray);
+            lock (commandQ)
+                this.commandQ.Add(cmd);
+        }
+
+        /// <summary>
+        /// Handles Menu state changes from clients
+        /// </summary>
+        /// <param name="packet"></param>
+        private void onMenuStateChange(NetworkPacket packet)
+        {
+            MenuState msc = new MenuState(packet.DataArray);
+            if (connections.ContainsKey(packet.Destination))
+            {
+                ConnectionID cid = connections[packet.Destination];
+                Tuple<ConnectionID, MenuState> newMQ = new Tuple<ConnectionID, MenuState>(cid, msc);
+                lock (mscQ)
+                    this.mscQ.Enqueue(newMQ);
+            }
+        }
+
+        /// <summary>
+        /// Handles Sync acks from clients
+        /// </summary>
+        /// <param name="packet"></param>
+        private void onSync(NetworkPacket packet)
+        {
+            //TODO
+        }
+
+        /// <summary>
+        /// Handles the acking of a ping from clients
+        /// </summary>
+        /// <param name="packet"></param>
+        private void onPing(NetworkPacket packet)
+        {
+            PingPacket ps = new PingPacket(packet.Destination);
+            nw.SendPacket(ps); //ACK the ping
+        }
+        
+        /// <summary>
+        /// Graceful shutdown method
+        /// </summary>
         public void exit()
         {
             this.go = false;
         }
 
-        private void runThis()
+        /// <summary>
+        /// Servers main event loop
+        /// </summary>
+        private void newServerMainLoop()
         {
-            NetworkPacket p;
+            NetworkPacket packet;
             while (this.go)
             {
-                p = nw.ReceivePacket();
-                if (p == null)
+                packet = nw.ReceivePacket();
+                NetworkStateMachine.TransitionEvent transitionEvent = NetworkStateMachine.TransitionEvent.SERVERSTARTED;
+
+                //Special case, we timed out
+                //Should query all Clients to make sure they are still alive
+                if (packet == null)
                 {
                     foreach (IPEndPoint ep in connections.Keys)
                     {
@@ -67,73 +165,37 @@ namespace OceanMars.Common.NetCode
                     }
                     continue;
                 }
-                //Console.WriteLine(p.ptype);
 
-                switch (p.Type)
+                //We actually received something, increase stats
+                this.globalStats.rcvdPkts++;
+
+                //Switch on the packet type to create the correct state transition
+                switch (packet.Type)
                 {
                     case NetworkPacket.PacketType.HANDSHAKE:
-                        if (!connections.ContainsKey(p.Destination))
-                        {
-                            Debug.WriteLine("Server - New connection from: " + p.Destination);
-                            connections[p.Destination] = new ConnectionID(p.Destination);
-                            Debug.WriteLine("Server - Added Connection: " + connections[p.Destination].ID);
-                            HandshakePacket hs = new HandshakePacket(p.Destination);
-                            nw.SendPacket(hs);
-                        }
+                        transitionEvent = NetworkStateMachine.TransitionEvent.SERVERHANDSHAKE;
                         break;
-
-                    case NetworkPacket.PacketType.STATECHANGE:
-                        //Console.WriteLine("Server - Receivd State Change from client... who do they think they are?");
-                        Environment.Exit(1);
-                        break;
-
-                    case NetworkPacket.PacketType.SYNC:
-                        if (connections.ContainsKey(p.Destination))
-                        {
-                            //Console.WriteLine("Server - SYNC Reply from: " + connections[p.Dest].ID);
-                        }
-                        else
-                        {
-                            Debug.WriteLine("Server - ERROR Unregistered SYNC");
-                        }
-                        break;
-
-                    case NetworkPacket.PacketType.PING:
-                        if (connections.ContainsKey(p.Destination))
-                        {
-                            //Console.WriteLine("Server - Ping from connection: " + connections[p.Dest].ID);
-                            PingPacket ps = new PingPacket(p.Destination);
-                            nw.SendPacket(ps); //ACK the ping
-                        }
-                        else
-                        {
-                            Debug.WriteLine("Server ERROR - Unregistered PING");
-                        }
-                        break;
-
                     case NetworkPacket.PacketType.COMMAND:
-                        //Actually handle this
-                        //Console.WriteLine("Server - Got CMD from: " + connections[p.Dest].ID);
-                        Command cmd = new Command(p.DataArray);
-                        lock (commandQ)
-                            this.commandQ.Add(cmd);
+                        transitionEvent = NetworkStateMachine.TransitionEvent.SERVERCOMMAND;
+                        break;
+                    case NetworkPacket.PacketType.SYNC:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.SERVERSYNC;
+                        break;
+                    case NetworkPacket.PacketType.PING:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.SERVERPING;
                         break;
                     case NetworkPacket.PacketType.MENUSTATECHANGE:
-                        //Actually handle this
-                        //Console.WriteLine("Server - Got MSC from: " + connections[p.Dest].ID);
-                        MenuState msc = new MenuState(p.DataArray);
-                        if (connections.ContainsKey(p.Destination))
-                        {
-                            ConnectionID cid = connections[p.Destination];
-                            Tuple<ConnectionID, MenuState> newMQ = new Tuple<ConnectionID, MenuState>(cid, msc);
-                            lock (mscQ)
-                                this.mscQ.Enqueue(newMQ);
-                        }
+                        transitionEvent = NetworkStateMachine.TransitionEvent.SERVERMENUSTATECHANGE;
                         break;
+                    default:
+                        continue;
                 }
-                this.globalStats.rcvdPkts++;
+                this.serverStateMachine.DoTransition(transitionEvent, packet);
             }
         }
+#endregion
+
+#region Server Public interfaces
 
         public ServerStats getStats() 
         {
@@ -223,6 +285,9 @@ namespace OceanMars.Common.NetCode
             nw.SendPacket(p);
         }
     }
+#endregion
+
+#region Server Connection Classes
 
     public class ConnectionID
     {
@@ -244,4 +309,6 @@ namespace OceanMars.Common.NetCode
         public long sentPkts = 0;
         public long pktsProcessed = 0;
     }
+
+#endregion
 }
