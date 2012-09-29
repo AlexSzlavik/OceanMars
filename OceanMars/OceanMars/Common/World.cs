@@ -20,7 +20,5 @@ namespace OceanMars.Common
         {
             owner.entities.Add(child.id, child);
         }
-
-        public override Matrix getWorldTransform() { return new Matrix(); }
     }
 }

@@ -58,7 +58,12 @@ namespace OceanMars.Client.GameStateManager
         /// <summary>
         /// Constructs a new screen manager component.
         /// </summary>
-        public ScreenManager(Game game) : base(game) { }
+        public ScreenManager(Game game) : base(game) 
+        {
+            //set to true for XNA to handle multiple Update calls when draw slows down
+            //set to false for one Update followed by one Draw
+            game.IsFixedTimeStep = false;
+        }
 
         /// <summary>
         /// Initializes the screen manager component.

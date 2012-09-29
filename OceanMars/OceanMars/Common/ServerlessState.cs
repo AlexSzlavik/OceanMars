@@ -21,6 +21,8 @@ namespace OceanMars.Common
             root.addChild(player);
             root.addChild(level);
             //root.addChild(w);
+
+            wall.transform = Matrix.CreateTranslation(new Vector3(0, 100, 0)) * wall.transform;
         }
     }
 }
