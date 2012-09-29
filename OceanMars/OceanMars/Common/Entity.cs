@@ -54,7 +54,10 @@ namespace OceanMars.Common
                 return worldTransformBack;
             }
 
-            private set;
+            private set
+            {
+                worldTransformBack = value;
+            }
         }
 
         // Handles caching of inverse world transformation as above
@@ -71,7 +74,9 @@ namespace OceanMars.Common
                 return inverseWorldTransformBack;
             }
 
-            private set;
+            private set {
+                inverseWorldTransformBack = value;
+            }
         }
 
         public virtual Matrix getWorldTransform() { return parent.getWorldTransform() * transform; }
