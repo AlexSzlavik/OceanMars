@@ -8,6 +8,6 @@ namespace OceanMars.Common
 {
     public class World : Entity
     {
-        override Matrix getWorldTransform() { return new Matrix(); }
+        public override Matrix getWorldTransform() { return new Matrix(); }
     }
 }
