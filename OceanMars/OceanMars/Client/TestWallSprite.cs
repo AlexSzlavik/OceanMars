@@ -11,7 +11,7 @@ namespace OceanMars.Client
     class TestWallSprite: Sprite
     {
         public TestWallSprite (View context, TestWall tm) :
-            base(context, tm, new Vector2(200, 1), 1, 10, "blacksquare")
+            base(context, tm, new Vector2(2, 1), 1, 10, "blacksquare")
         {
         }
     }
