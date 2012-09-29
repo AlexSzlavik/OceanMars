@@ -20,6 +20,7 @@ using Microsoft.Xna.Framework.Media;
 using OceanMars.Common;
 using OceanMars.Client;
 using OceanMars.Client.GameStateManager;
+using OceanMars.Client.Screens;
 #endregion
 
 namespace SkyCrane.Screens
@@ -63,6 +64,7 @@ namespace SkyCrane.Screens
             }
 
             context.textureDict.Add("defaultlevel", content.Load<Texture2D>("Sprites/scenery"));
+            context.textureDict.Add("whitesquare", content.Load<Texture2D>("Sprites/30x30whitesquare"));
 
             // After loading content, instantiate sprites
             foreach (int id in state.entities.Keys)
@@ -71,6 +73,11 @@ namespace SkyCrane.Screens
                 if (e is DefaultLevel)
                 {
                     Sprite s = new DefaultLevelSprite(context, (DefaultLevel)e);
+                    context.sprites.Add(id, s);
+                }
+                else if (e is TestMan)
+                {
+                    Sprite s = new TestManSprite(context, (TestMan)e);
                     context.sprites.Add(id, s);
                 }
             }
@@ -141,6 +148,11 @@ namespace SkyCrane.Screens
 
                 if (keyboardState.IsKeyDown(Keys.Down))
                     movement.Y++;
+
+                if (keyboardState.IsKeyDown(Keys.X))
+                {
+                    context.avatar.transform = Matrix.CreateRotationZ(0.2f) * context.avatar.transform;
+                }
 
                 Vector2 thumbstick = gamePadState.ThumbSticks.Left;
 

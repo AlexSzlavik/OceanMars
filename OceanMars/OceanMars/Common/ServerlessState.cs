@@ -8,12 +8,12 @@ namespace OceanMars.Common
 {
     class ServerlessState : State
     {
-        public EllipseEntity player;
+        public TestMan player;
 
         public ServerlessState()
         {
             DefaultLevel dl = new DefaultLevel();
-            player = new EllipseEntity(new Vector2(10, 10));
+            player = new TestMan();
 
             root.addChild(dl);
             root.addChild(player);
