@@ -8,7 +8,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// A packet representation of a state change in the CharacterSelectMenuScreen.
     /// </summary>
-    public class MenuState : Marshable
+    public class MenuState : IMarshable
     {
 
         /// <summary>

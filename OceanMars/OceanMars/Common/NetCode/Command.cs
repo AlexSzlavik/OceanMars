@@ -11,9 +11,9 @@ namespace OceanMars.Common.NetCode
     public enum CommandType { MOVE, SHOOT, ATTACK, GOBLIN_ATTACK }
 
     /// <summary>
-    /// 
+    /// A command that may be sent over the network.
     /// </summary>
-    public class Command : Marshable
+    public class Command : IMarshable
     {
         public int entity_id;
         public CommandType ct;

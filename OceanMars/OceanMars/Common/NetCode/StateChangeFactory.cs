@@ -2,8 +2,13 @@
 
 namespace OceanMars.Common.NetCode
 {
-    class StateChangeFactory
+
+    /// <summary>
+    /// Class used to generate state changes easily.
+    /// </summary>
+    public class StateChangeFactory
     {
+
         public static StateChange createEntityStateChange(int entity_id, int posX, int posY, int frameWidth, int frameTime, String textureName, float scale, int drawPriority)
         {
             StateChange sc = new StateChange();

@@ -99,6 +99,7 @@
     <Compile Include="Common\Entity.cs" />
     <Compile Include="Common\NetCode\Client.cs" />
     <Compile Include="Common\NetCode\Command.cs" />
+    <Compile Include="Common\NetCode\IMarshable.cs" />
     <Compile Include="Common\NetCode\MenuState.cs" />
     <Compile Include="Common\NetCode\NetcodeTest.cs" />
     <Compile Include="Common\NetCode\NetworkStateMachine.cs" />
