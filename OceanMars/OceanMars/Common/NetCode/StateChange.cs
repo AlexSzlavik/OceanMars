@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Xna.Framework;
 
 namespace OceanMars.Common.NetCode
 {
-    public enum StateChangeType { MOVED, CREATE_PLAYER_CHARACTER, SET_PLAYER, CREATE_ENTITY, DELETE_ENTITY, CHANGE_SPRITE, CHANGE_SCALE, CHANGE_HEALTH, CREATE_HEALTH_BAR }
-    public enum StateProperties { ENTITY_ID, HEALTH, POSITION_X, POSITION_Y, SPRITE_NAME, ANIMATION_NAME, DRAW_PRIORITY, FRAME_WIDTH, SCALE, FRAME_TIME, HEALTH_BAR_ID}
+    public enum StateChangeType { CREATE_LEVEL, CREATE_PLAYER }
+    public enum StateProperties { ENTITY_ID, PARENT_ID, TRANSFORM, LEVEL_TYPE, SIZE_X, SIZE_Y }
 
     public class StateChange : IMarshable
     {
@@ -13,6 +14,7 @@ namespace OceanMars.Common.NetCode
         public Dictionary<StateProperties, int> intProperties = new Dictionary<StateProperties, int>();
         public Dictionary<StateProperties, String> stringProperties = new Dictionary<StateProperties, String>();
         public Dictionary<StateProperties, double> doubleProperties = new Dictionary<StateProperties, double>();
+        public Dictionary<StateProperties, Matrix> matrixProperties = new Dictionary<StateProperties, Matrix>();
 
         public StateChange() { }
 
@@ -43,6 +45,28 @@ namespace OceanMars.Common.NetCode
                 bb.Write((double)kvp.Value);
             }
 
+            bb.Write((byte)matrixProperties.Count);
+            foreach (KeyValuePair<StateProperties, Matrix> kvp in matrixProperties)
+            {
+                bb.Write((byte)kvp.Key);
+                bb.Write((double)kvp.Value.M11);
+                bb.Write((double)kvp.Value.M12);
+                bb.Write((double)kvp.Value.M13);
+                bb.Write((double)kvp.Value.M14);
+                bb.Write((double)kvp.Value.M21);
+                bb.Write((double)kvp.Value.M22);
+                bb.Write((double)kvp.Value.M23);
+                bb.Write((double)kvp.Value.M24);
+                bb.Write((double)kvp.Value.M31);
+                bb.Write((double)kvp.Value.M32);
+                bb.Write((double)kvp.Value.M33);
+                bb.Write((double)kvp.Value.M34);
+                bb.Write((double)kvp.Value.M41);
+                bb.Write((double)kvp.Value.M42);
+                bb.Write((double)kvp.Value.M43);
+                bb.Write((double)kvp.Value.M44);
+            }
+
             return ms.ToArray();
         }
 
@@ -69,6 +93,17 @@ namespace OceanMars.Common.NetCode
             for (int i = 0; i < nums; i++)
             {
                 this.doubleProperties[(StateProperties)br.ReadByte()] = br.ReadDouble();
+            }
+
+            nums = br.ReadByte();
+            for (int i = 0; i < nums; i++)
+            {
+                StateProperties sp = (StateProperties)br.ReadByte();
+                Matrix n = new Matrix((float)br.ReadDouble(), (float)br.ReadDouble(), (float)br.ReadDouble(), (float)br.ReadDouble(),
+                    (float)br.ReadDouble(), (float)br.ReadDouble(), (float)br.ReadDouble(), (float)br.ReadDouble(),
+                    (float)br.ReadDouble(), (float)br.ReadDouble(), (float)br.ReadDouble(), (float)br.ReadDouble(),
+                    (float)br.ReadDouble(), (float)br.ReadDouble(), (float)br.ReadDouble(), (float)br.ReadDouble());
+                this.matrixProperties[sp] = n;
             }
         }
 

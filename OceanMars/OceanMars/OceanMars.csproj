@@ -114,6 +114,7 @@
     <Compile Include="Common\ServerlessState.cs" />
     <Compile Include="Common\SliderEntity.cs" />
     <Compile Include="Common\State.cs" />
+    <Compile Include="Common\TestLevel.cs" />
     <Compile Include="Common\TestMan.cs" />
     <Compile Include="Common\TestWall.cs" />
     <Compile Include="Common\World.cs" />

@@ -8,8 +8,17 @@ namespace OceanMars.Common
 {
     public class TestLevel : Entity
     {
-        public TestLevel() : base (new Vector2(0, 0))
+        public TestLevel(Entity parent) : base (new Vector2(0, 0), parent)
         {
+            TestWall w1 = new TestWall(this);
+
+            this.addChild(w1);
+
+            w1.transform =
+                Matrix.CreateTranslation(50, 0, 0) *
+                w1.transform *
+                Matrix.CreateRotationZ((float)Math.PI / 4) *
+                Matrix.CreateScale(2, 1, 1);
         }
     }
 }

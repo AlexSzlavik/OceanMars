@@ -43,8 +43,8 @@ namespace OceanMars.Client
         internal void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             Matrix temp =
-                context.avatar.inverseWorldTransform *
                 e.worldTransform *
+                context.avatar.inverseWorldTransform *
                 context.centreTransform;
             
             spriteBatch.Begin(

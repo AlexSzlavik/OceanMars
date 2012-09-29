@@ -12,15 +12,16 @@ namespace OceanMars.Common
 
         public ServerlessState()
         {
-            DefaultLevel dl = new DefaultLevel();
-            player = new TestMan();
-            TestWall wall = new TestWall();
+            //DefaultLevel dl = new DefaultLevel(root);
+            player = new TestMan(root);
+            TestLevel level = new TestLevel(root);
+            //TestWall w = new TestWall(root);
 
-            root.addChild(dl);
+            //root.addChild(dl);
             root.addChild(player);
-            root.addChild(wall);
+            root.addChild(level);
+            //root.addChild(w);
 
-            wall.transform = Matrix.CreateTranslation(new Vector3(0, 100, 0)) * wall.transform;
         }
     }
 }
