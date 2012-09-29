@@ -125,7 +125,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="packet">The packet received.</param>
         public void OnSync(NetworkPacket packet)
         {
-            SyncServer();
+            //SyncServer();
             return;
         }
 
@@ -178,6 +178,8 @@ namespace OceanMars.Common.NetCode
             while (continueRunning) // Loop and push packets into the state machine
             {
                 NetworkPacket receivePacket = networkWorker.ReceivePacket(); // Grab a packet from the server
+                if (receivePacket == null)
+                    continue;
                 switch (receivePacket.Type)
                 {
                     case NetworkPacket.PacketType.HANDSHAKE:

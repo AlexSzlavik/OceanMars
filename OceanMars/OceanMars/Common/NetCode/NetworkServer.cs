@@ -77,6 +77,8 @@ namespace OceanMars.Common.NetCode
                 this.nw.SendPacket(ps);
                 this.globalStats.sentPkts++;
                 connections[ep].changeState(NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING);
+                if (!connections[ep].isConnected())
+                    connections.Remove(ep);
             }
             return;
         }
@@ -270,22 +272,28 @@ namespace OceanMars.Common.NetCode
         private void initStateMachine()
         {
             StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CONNECTIONDISCONNECT, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
-            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT, NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, delegate { });
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
             StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, onSync );
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
             StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, delegate { });
             StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, onSync);
             StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, onMissingSync);
+            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
         }
 
         public void changeState(NetworkStateMachine.TransitionEvent transitionEvent)
         {
-            StateMachine.DoTransition(transitionEvent, null);
+            lock(this)
+                StateMachine.DoTransition(transitionEvent, null);
         }
 
         private void onSync(NetworkPacket packet)
         {
-            this.lastSYNC = 1;
-            this.MissedSyncs = 0;
+            lock (this)
+            {
+                this.lastSYNC = 1;
+                this.MissedSyncs = 0;
+            }
         }
 
         /// <summary>
@@ -295,10 +303,21 @@ namespace OceanMars.Common.NetCode
         /// <param name="packet"></param>
         private void onMissingSync(NetworkPacket packet)
         {
-            MissedSyncs += 1;
-            Debug.WriteLine(String.Format("Missed {0} SYNCS", MissedSyncs));
-            if (MissedSyncs == 10)
-                StateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT,packet);
+            lock (this)
+            {
+                MissedSyncs += 1;
+                Debug.WriteLine(String.Format("Missed {0} SYNCS", MissedSyncs));
+                if (MissedSyncs >= 3)
+                    changeState(NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT);
+            }
+        }
+
+        public bool isConnected()
+        {
+            lock (this)
+            {
+                return StateMachine.CurrentState != NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED;
+            }
         }
     }
 
