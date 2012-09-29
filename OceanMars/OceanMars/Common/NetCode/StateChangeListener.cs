@@ -2,8 +2,13 @@
 
 namespace OceanMars.Common.NetCode
 {
+
+    /// <summary>
+    /// Generic interface for a StateChangeListener.
+    /// </summary>
     public interface StateChangeListener
     {
-        void handleStateChange(StateChange s);
+        void HandleStateChange(StateChange s);
     }
+
 }
