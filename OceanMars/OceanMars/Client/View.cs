@@ -11,7 +11,7 @@ namespace OceanMars.Client
 {
     public class View
     {
-        Entity avatar;
+        public Entity avatar;
         State state;
 
         public Dictionary<int, Sprite> sprites;
