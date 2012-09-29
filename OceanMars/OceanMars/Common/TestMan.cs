@@ -11,13 +11,6 @@ namespace OceanMars.Common
     {
         public TestMan(Entity parent) : base(new Vector2(30, 30), parent) {
         }
-
-        public override StateChange createStateChange()
-        {
-            StateChange sc = base.createStateChange();
-
-            return sc;
-        }
     }
     
 }

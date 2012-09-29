@@ -156,10 +156,10 @@ namespace SkyCrane.Screens
                 if (keyboardState.IsKeyDown(Keys.Down))
                     movement.Y++;
 
-                if (keyboardState.IsKeyDown(Keys.X))
+                /*if (keyboardState.IsKeyDown(Keys.X))
                 {
                     context.avatar.transform = Matrix.CreateRotationZ(0.2f) * context.avatar.transform;
-                }
+                }*/
 
                 Vector2 thumbstick = gamePadState.ThumbSticks.Left;
 

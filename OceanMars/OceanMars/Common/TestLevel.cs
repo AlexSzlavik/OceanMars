@@ -10,16 +10,25 @@ namespace OceanMars.Common
     {
         public TestLevel(Entity parent) : base (new Vector2(0, 0), parent)
         {
-            TestWall w1 = new TestWall(this);
+            TestWall w1 = new TestWall(this, new Vector2(-1000, 1000), new Vector2(-1000,500));
+            TestWall w2 = new TestWall(this, new Vector2(-1000, 500), new Vector2(-700, -50));
+            TestWall w3 = new TestWall(this, new Vector2(-700, -50), new Vector2(500, -50));
+            TestWall w4 = new TestWall(this, new Vector2(500, -50), new Vector2(1000, 100));
+            TestWall w5 = new TestWall(this, new Vector2(1000, 100), new Vector2(1000, 1000));
+            TestWall w6 = new TestWall(this, new Vector2(100, 200), new Vector2(-200, 200));
+            TestWall w7 = new TestWall(this, new Vector2(200, 400), new Vector2(400, 400));
+            TestWall w8 = new TestWall(this, new Vector2(400, 400), new Vector2(400, 600));
+            TestWall w9 = new TestWall(this, new Vector2(800, 600), new Vector2(400, 600));
 
             this.addChild(w1);
-
-            w1.transform =
-
-                Matrix.CreateScale(5, 1, 1) *
-                Matrix.CreateRotationZ((float)Math.PI / 4) *
-                w1.transform *
-                Matrix.CreateTranslation(0, 150, 0);
+            this.addChild(w2);
+            this.addChild(w3);
+            this.addChild(w4);
+            this.addChild(w5);
+            this.addChild(w6);
+            this.addChild(w7);
+            this.addChild(w8);
+            this.addChild(w9);
         }
     }
 }
