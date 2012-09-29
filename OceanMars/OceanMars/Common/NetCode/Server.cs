@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Threading;
 
@@ -17,7 +18,7 @@ using System.Threading;
  * Latency and connectivity measurements
  */
 
-namespace OceanMars.NetCode
+namespace OceanMars.Common.NetCode
 {
     public class RawServer
     {
@@ -39,7 +40,7 @@ namespace OceanMars.NetCode
             serverThread.Priority = ThreadPriority.AboveNormal;
             serverThread.IsBackground = true;
 
-            System.Console.WriteLine("Starting Server");
+            Debug.WriteLine("Starting Server");
             this.nw = new NetworkWorker(port);
             serverThread.Start();
         }
@@ -59,72 +60,69 @@ namespace OceanMars.NetCode
                 {
                     foreach (IPEndPoint ep in connections.Keys)
                     {
-                        SYNCPacket ps = new SYNCPacket();
-                        ps.Dest = ep;
+                        SyncPacket ps = new SyncPacket(ep);
                         this.nw.commitPacket(ps);
                     }
                     continue;
                 }
                 //Console.WriteLine(p.ptype);
 
-                switch (p.ptype)
+                switch (p.Type)
                 {
                     case Packet.PacketType.HANDSHAKE:
-                        if (!connections.ContainsKey(p.Dest))
+                        if (!connections.ContainsKey(p.Destination))
                         {
-                            Console.WriteLine("Server - New connection from: " + p.Dest);
-                            connections[p.Dest] = new ConnectionID(p.Dest);
-                            Console.WriteLine("Server - Added Connection: " + connections[p.Dest].ID);
-                            HandshakePacket hs = new HandshakePacket();
-                            hs.Dest = p.Dest;
+                            Debug.WriteLine("Server - New connection from: " + p.Destination);
+                            connections[p.Destination] = new ConnectionID(p.Destination);
+                            Debug.WriteLine("Server - Added Connection: " + connections[p.Destination].ID);
+                            HandshakePacket hs = new HandshakePacket(p.Destination);
                             nw.commitPacket(hs);
                         }
                         break;
 
-                    case Packet.PacketType.STC:
+                    case Packet.PacketType.STATECHANGE:
                         //Console.WriteLine("Server - Receivd State Change from client... who do they think they are?");
                         Environment.Exit(1);
                         break;
 
                     case Packet.PacketType.SYNC:
-                        if (connections.ContainsKey(p.Dest))
+                        if (connections.ContainsKey(p.Destination))
                         {
                             //Console.WriteLine("Server - SYNC Reply from: " + connections[p.Dest].ID);
                         }
                         else
                         {
-                            Console.WriteLine("Server - ERROR Unregistered SYNC");
+                            Debug.WriteLine("Server - ERROR Unregistered SYNC");
                         }
                         break;
 
                     case Packet.PacketType.PING:
-                        if (connections.ContainsKey(p.Dest))
+                        if (connections.ContainsKey(p.Destination))
                         {
                             //Console.WriteLine("Server - Ping from connection: " + connections[p.Dest].ID);
-                            PingPacket ps = new PingPacket();
-                            ps.Dest = p.Dest;
+                            PingPacket ps = new PingPacket(p.Destination);
                             nw.commitPacket(ps); //ACK the ping
                         }
                         else
                         {
-                            Console.WriteLine("Server ERROR - Unregistered PING");
+                            Debug.WriteLine("Server ERROR - Unregistered PING");
                         }
                         break;
 
-                    case Packet.PacketType.CMD:
+                    case Packet.PacketType.COMMAND:
                         //Actually handle this
                         //Console.WriteLine("Server - Got CMD from: " + connections[p.Dest].ID);
-                        Command cmd = new Command(p.data);
+                        Command cmd = new Command(p.DataArray);
                         lock (commandQ)
                             this.commandQ.Add(cmd);
                         break;
-                    case Packet.PacketType.MSC:
+                    case Packet.PacketType.MENUSTATECHANGE:
                         //Actually handle this
                         //Console.WriteLine("Server - Got MSC from: " + connections[p.Dest].ID);
-                        MenuState msc = new MenuState(p.data);
-                        if (connections.ContainsKey(p.Dest))
+                        MenuState msc = new MenuState(p.DataArray);
+                        if (connections.ContainsKey(p.Destination))
                         {
-                            ConnectionID cid = connections[p.Dest];
+                            ConnectionID cid = connections[p.Destination];
                             Tuple<ConnectionID, MenuState> newMQ = new Tuple<ConnectionID, MenuState>(cid, msc);
                             lock (mscQ)
                                 this.mscQ.Enqueue(newMQ);
@@ -175,8 +173,7 @@ namespace OceanMars.NetCode
                 foreach (KeyValuePair<IPEndPoint, ConnectionID> d in connections)
                 {
                     //Console.WriteLine("Server - Sent StateChange to: " + d.Value.ID);
-                    STCPacket p = new STCPacket(sc);
-                    p.Dest = d.Key;
+                    StateChangePacket p = new StateChangePacket(d.Key, sc);
                     this.nw.commitPacket(p);
                 }
             }
@@ -186,8 +183,7 @@ namespace OceanMars.NetCode
         {
             foreach (StateChange sc in list)
             {
-                STCPacket p = new STCPacket(sc);
-                p.Dest = cid.endpt;
+                StateChangePacket p = new StateChangePacket(cid.endpt, sc);
                 nw.commitPacket(p);
             }
         }
@@ -201,13 +197,11 @@ namespace OceanMars.NetCode
             return;
         }
 
-        public void broadcastMSC(MenuState m)
+        public void broadcastMSC(MenuState menuState)
         {
             foreach (KeyValuePair<IPEndPoint, ConnectionID> d in connections)
             {
-                //Console.WriteLine("Server - Sent MenuState to: " + d.Value.ID);
-                MSCPacket p = new MSCPacket(m);
-                p.Dest = d.Key;
+                MenuStateChangePacket p = new MenuStateChangePacket(d.Key, menuState);
                 this.nw.commitPacket(p);
             }
             return;
@@ -221,10 +215,9 @@ namespace OceanMars.NetCode
             }
         }
 
-        public void signalMSC(MenuState m, ConnectionID cid)
+        public void signalMSC(MenuState menuState, ConnectionID connectionID)
         {
-            MSCPacket p = new MSCPacket(m);
-            p.Dest = cid.endpt;
+            MenuStateChangePacket p = new MenuStateChangePacket(connectionID.endpt, menuState);
             nw.commitPacket(p);
         }
     }

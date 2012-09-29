@@ -2,7 +2,7 @@
 using System.IO;
 using Microsoft.Xna.Framework;
 
-namespace OceanMars.NetCode
+namespace OceanMars.Common.NetCode
 {
     
     /// <summary>
@@ -142,7 +142,7 @@ namespace OceanMars.NetCode
         /// Get an array of bytes representing the packet.
         /// </summary>
         /// <returns>An array of bytes representing this packet state.</returns>
-        public byte[] getPacketData()
+        public byte[] GetByteArray()
         {
             using (MemoryStream memoryStream = new MemoryStream())
             {
