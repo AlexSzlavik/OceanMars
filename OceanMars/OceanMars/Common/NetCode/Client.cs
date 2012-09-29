@@ -17,7 +17,7 @@ namespace OceanMars.Common.NetCode
         private NetworkWorker nw;
         private IPEndPoint server;
         private bool go = true;
-        private NetStateMachine clientStateMachine;
+        private NetworkStateMachine clientStateMachine;
         public enum cState { DISCONNECTED, CONNECTED, TRYCONNECT };
         cState curState = cState.DISCONNECTED;
 
@@ -52,7 +52,7 @@ namespace OceanMars.Common.NetCode
 
             clientThread.Start();
 
-            clientStateMachine.DoTransition(NetStateMachine.TransitionEvent.CLIENTSTARTED, null);
+            clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTSTARTED, null);
         }
 
         /// <summary>
@@ -60,11 +60,11 @@ namespace OceanMars.Common.NetCode
         /// </summary>
         private void initStateMachine()
         {
-            clientStateMachine = new NetStateMachine(NetStateMachine.NetState.CLIENTSTART);
-            clientStateMachine.RegisterTransition(NetStateMachine.NetState.CLIENTSTART, NetStateMachine.TransitionEvent.CLIENTSTARTED, NetStateMachine.NetState.CLIENTDISCONNECTED, delegate {});
-            clientStateMachine.RegisterTransition(NetStateMachine.NetState.CLIENTDISCONNECTED, NetStateMachine.TransitionEvent.CLIENTCONNECT, NetStateMachine.NetState.CLIENTTRYCONNECT, delegate { });
-            clientStateMachine.RegisterTransition(NetStateMachine.NetState.CLIENTTRYCONNECT, NetStateMachine.TransitionEvent.CLIENTCONNECTED, NetStateMachine.NetState.CLIENTCONNECTED, onConnect);
-            clientStateMachine.RegisterTransition(NetStateMachine.NetState.CLIENTCONNECTED, NetStateMachine.TransitionEvent.CLIENTDOPING, NetStateMachine.NetState.CLIENTCONNECTED, onPing);
+            clientStateMachine = new NetworkStateMachine(NetworkStateMachine.NetworkState.CLIENTSTART);
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTSTART, NetworkStateMachine.TransitionEvent.CLIENTSTARTED, NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, delegate {});
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECT, NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, delegate { });
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED, NetworkStateMachine.NetworkState.CLIENTCONNECTED, onConnect);
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTDROPPING, NetworkStateMachine.NetworkState.CLIENTCONNECTED, onPing);
         }
 
         public void onConnect(Packet p)
@@ -91,7 +91,7 @@ namespace OceanMars.Common.NetCode
             this.nw = new NetworkWorker(server);
 
             // Client may now try to connect
-            this.clientStateMachine.DoTransition(NetStateMachine.TransitionEvent.CLIENTCONNECT, null);
+            this.clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTCONNECT, null);
 
             // Inform the client thread that the server info is ready
             ready.Release();
@@ -118,7 +118,7 @@ namespace OceanMars.Common.NetCode
         {
             //Wait until the server information has been acquired
             ready.WaitOne();
-            NetStateMachine.TransitionEvent transitionEvent = NetStateMachine.TransitionEvent.CLIENTSTARTED;
+            NetworkStateMachine.TransitionEvent transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSTARTED;
 
             //Event loop
             //Pull packets from the network layer and hand them to the state machine
@@ -129,10 +129,10 @@ namespace OceanMars.Common.NetCode
                 switch (newPacket.Type)
                 {
                     case Packet.PacketType.HANDSHAKE:
-                        transitionEvent = NetStateMachine.TransitionEvent.CLIENTCONNECTED;
+                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTCONNECTED;
                         break;
                     case Packet.PacketType.PING:
-                        transitionEvent = NetStateMachine.TransitionEvent.CLIENTDOPING;
+                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTDROPPING;
                         break;
                 }
                 this.clientStateMachine.DoTransition(transitionEvent,newPacket);    //This is amazing
