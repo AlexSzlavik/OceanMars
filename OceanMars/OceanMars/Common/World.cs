@@ -11,7 +11,7 @@ namespace OceanMars.Common
         public State owner;
 
         public World(State owner)
-            : base(Vector2.Zero)
+            : base(Vector2.Zero, null)
         {
             this.owner = owner;
         }

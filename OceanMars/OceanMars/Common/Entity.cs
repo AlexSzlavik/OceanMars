@@ -18,9 +18,10 @@ namespace OceanMars.Common
         public bool worldTransformDirty = false;
         public bool inverseWorldTransformDirty = false;
 
-        public Entity(Vector2 collisionBox) {
+        public Entity(Vector2 collisionBox, Entity parent) {
             this.collisionBox = collisionBox;
             this.id = next_id++;
+            this.parent = parent;
         }
 
         public void addChild(Entity child)

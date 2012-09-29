@@ -10,7 +10,7 @@ namespace OceanMars.Common
     {
         public Vector2 collisionEllipse;
 
-        public EllipseEntity(Vector2 size) : base(size)
+        public EllipseEntity(Vector2 size, Entity parent) : base(size, parent)
         {
             collisionEllipse = size;
         }
