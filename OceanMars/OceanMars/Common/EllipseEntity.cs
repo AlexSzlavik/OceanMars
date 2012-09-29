@@ -12,7 +12,7 @@ namespace OceanMars.Common
 
         public EllipseEntity(Vector2 size, Entity parent) : base(size, parent)
         {
-            collisionEllipse = size;
+            collisionEllipse = size/2.0f;
         }
 
         
@@ -148,7 +148,7 @@ namespace OceanMars.Common
 
                     //TODO: Unit normal
                     Vector2 sliderNormal = Vector2.Transform((sliderEndPoints[1] - sliderEndPoints[0]), 
-                        Matrix.CreateRotationZ((float)(Math.PI/2.0f)));
+                        Matrix.CreateRotationZ((float)(-Math.PI/2.0f)));
                     sliderNormal.Normalize();
 
                     //TODO: ignoring plane embedded in ellipse FOR NOW
