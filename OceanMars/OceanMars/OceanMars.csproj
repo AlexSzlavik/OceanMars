@@ -70,12 +70,30 @@
     <Reference Include="Microsoft.Xna.Framework.GamerServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client\GameStateManager\GameScreen.cs" />
+    <Compile Include="Client\GameStateManager\InputState.cs" />
+    <Compile Include="Client\GameStateManager\ScreenManager.cs" />
+    <Compile Include="Client\Screens\BackgroundScreen.cs" />
+    <Compile Include="Client\Screens\LoadingScreen.cs" />
+    <Compile Include="Client\Screens\MainMenuScreen.cs" />
+    <Compile Include="Client\Screens\MenuEntry.cs" />
+    <Compile Include="Client\Screens\MenuScreen.cs" />
+    <Compile Include="Client\Screens\MessageBoxScreen.cs" />
+    <Compile Include="Client\Screens\OptionsMenuScreen.cs" />
+    <Compile Include="Client\Screens\PauseMenuScreen.cs" />
+    <Compile Include="Client\Screens\PlayerInputEventArgs.cs" />
+    <Compile Include="Client\Screens\ResolutionsMenuScreen.cs" />
+    <Compile Include="Client\Sprite.cs" />
+    <Compile Include="Client\View.cs" />
+    <Compile Include="Common\EllipseEntity.cs" />
     <Compile Include="Common\Entity.cs" />
     <Compile Include="Common\NetCode\Client.cs" />
     <Compile Include="Common\NetCode\Command.cs" />
@@ -86,6 +104,10 @@
     <Compile Include="Common\NetCode\StateChange.cs" />
     <Compile Include="Common\NetCode\StateChangeFactory.cs" />
     <Compile Include="Common\NetCode\StateChangeListener.cs" />
+    <Compile Include="Common\SliderEntity.cs" />
+    <Compile Include="Common\State.cs" />
+    <Compile Include="Common\World.cs" />
+    <Compile Include="OceanMars.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -128,7 +150,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Client\" />
     <Folder Include="Server\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

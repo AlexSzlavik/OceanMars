@@ -3,19 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OceanMars", "OceanMars\OceanMars\OceanMars.csproj", "{C758E43C-EED6-4172-A711-6C643971BDDA}"
 EndProject
-Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "OceanMarsContent", "OceanMars\OceanMarsContent\OceanMarsContent.contentproj", "{E47E9ADE-DD2E-45E9-B79F-3B740AF7442A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OceanMarsContent", "OceanMars\OceanMarsContent\OceanMarsContent.contentproj", "{E47E9ADE-DD2E-45E9-B79F-3B740AF7442A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
+		NetTest|x86 = NetTest|x86
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{C758E43C-EED6-4172-A711-6C643971BDDA}.Debug|x86.ActiveCfg = Debug|x86
 		{C758E43C-EED6-4172-A711-6C643971BDDA}.Debug|x86.Build.0 = Debug|x86
+		{C758E43C-EED6-4172-A711-6C643971BDDA}.NetTest|x86.ActiveCfg = Release|x86
+		{C758E43C-EED6-4172-A711-6C643971BDDA}.NetTest|x86.Build.0 = Release|x86
 		{C758E43C-EED6-4172-A711-6C643971BDDA}.Release|x86.ActiveCfg = Release|x86
 		{C758E43C-EED6-4172-A711-6C643971BDDA}.Release|x86.Build.0 = Release|x86
 		{E47E9ADE-DD2E-45E9-B79F-3B740AF7442A}.Debug|x86.ActiveCfg = Debug|x86
+		{E47E9ADE-DD2E-45E9-B79F-3B740AF7442A}.NetTest|x86.ActiveCfg = Release|x86
 		{E47E9ADE-DD2E-45E9-B79F-3B740AF7442A}.Release|x86.ActiveCfg = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
