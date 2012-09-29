@@ -7,7 +7,7 @@ namespace OceanMars.Common
 {
     public class State
     {
-        World root;
+        public World root;
         Dictionary<int, Entity> entities = new Dictionary<int,Entity>();
 
         void nextFrame()

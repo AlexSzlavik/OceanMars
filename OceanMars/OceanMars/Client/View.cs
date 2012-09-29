@@ -15,10 +15,15 @@ namespace OceanMars.Client
         State state;
 
         Dictionary<int, Sprite> sprites;
+        public Dictionary<String, Texture2D> textureDict;
 
         void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            
+            Entity root = state.root;
+            foreach (Entity e in root.children)
+            {
+                if (sprites.ContainsKey(e.id)) { sprites[e.id].draw(gameTime, spriteBatch); }
+            }
         }
     }
 }
