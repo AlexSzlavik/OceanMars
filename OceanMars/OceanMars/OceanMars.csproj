@@ -59,6 +59,10 @@
     <PlatformTarget>x86</PlatformTarget>
     <XnaCompressContent>true</XnaCompressContent>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
@@ -72,8 +76,16 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\NetCode\Client.cs" />
+    <Compile Include="Common\NetCode\Command.cs" />
+    <Compile Include="Common\NetCode\MenuState.cs" />
+    <Compile Include="Common\NetCode\NetcodeTest.cs" />
+    <Compile Include="Common\NetCode\NetworkWorker.cs" />
+    <Compile Include="Common\NetCode\Server.cs" />
+    <Compile Include="Common\NetCode\StateChange.cs" />
+    <Compile Include="Common\NetCode\StateChangeFactory.cs" />
+    <Compile Include="Common\NetCode\StateChangeListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ProjectOceanMars.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />
@@ -116,7 +128,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Client\" />
-    <Folder Include="Common\" />
     <Folder Include="Server\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
