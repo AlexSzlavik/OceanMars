@@ -14,9 +14,11 @@ namespace OceanMars.Common
         {
             DefaultLevel dl = new DefaultLevel();
             player = new TestMan();
+            TestWall wall = new TestWall();
 
             root.addChild(dl);
             root.addChild(player);
+            root.addChild(wall);
         }
     }
 }

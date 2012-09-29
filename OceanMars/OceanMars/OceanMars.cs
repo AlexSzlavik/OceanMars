@@ -24,7 +24,6 @@ namespace OceanMars
         ScreenManager screenManager;
 
         // Default important values
-        public const int MAX_PLAYERS = 4;
         public const int INITIAL_WIDTH = 1280;
         public const int INITIAL_HEIGHT = 720;
         public const float INITIAL_VOLUME = 0.5f;
