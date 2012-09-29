@@ -136,13 +136,16 @@ namespace OceanMars.Common
                 if (entity is SliderEntity)
                 {
                     SliderEntity slider = (SliderEntity)entity;
-                    Matrix transformSliderToLocal = worldTransform * Matrix.Invert(slider.worldTransform);
+                    Matrix transformSliderToLocal = slider.worldTransform * inverseWorldTransform;
 
                     //find the SliderEntity's end points and normal
                     Vector2[] sliderEndPoints = {
                         Vector2.Transform(slider.endPoints[0], transformSliderToLocal),
                         Vector2.Transform(slider.endPoints[1], transformSliderToLocal)
                                                 };
+
+                    //System.Diagnostics.Debug.WriteLine(sliderEndPoints[0].X + "," + sliderEndPoints[0].Y + "\n" + sliderEndPoints[1].X + "," + sliderEndPoints[1].Y + "\n");
+
                     //TODO: Unit normal
                     Vector2 sliderNormal = Vector2.Transform((sliderEndPoints[1] - sliderEndPoints[0]), 
                         Matrix.CreateRotationZ((float)(Math.PI/2.0f)));

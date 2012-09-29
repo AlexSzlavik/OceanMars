@@ -66,6 +66,7 @@ namespace SkyCrane.Screens
             context.textureDict.Add("defaultlevel", content.Load<Texture2D>("Sprites/scenery"));
             context.textureDict.Add("whitesquare", content.Load<Texture2D>("Sprites/30x30whitesquare"));
             context.textureDict.Add("blacksquare", content.Load<Texture2D>("Sprites/1x1blacksquare"));
+            context.textureDict.Add("localcoordplayer", content.Load<Texture2D>("Sprites/localcoordplayer"));
 
             // After loading content, instantiate sprites
             foreach (int id in state.entities.Keys)
