@@ -47,7 +47,6 @@ namespace OceanMars.Client.Screens
         /// </summary>
         void NewGameMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
-            //ScreenManager.AddScreen(new CharacterSelectMenuScreen(true, false));
             ScreenManager.AddScreen(new GameplayScreen());
             return;
         }
@@ -57,7 +56,7 @@ namespace OceanMars.Client.Screens
         /// </summary>
         void MultiplayerMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
-            //ScreenManager.AddScreen(new MultiplayerMenuScreen());
+            ScreenManager.AddScreen(new MultiplayerMenuScreen());
             return;
         }
 

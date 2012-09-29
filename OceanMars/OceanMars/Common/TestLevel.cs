@@ -19,6 +19,7 @@ namespace OceanMars.Common
             TestWall w7 = new TestWall(this, new Vector2(200, 400), new Vector2(400, 400));
             TestWall w8 = new TestWall(this, new Vector2(400, 400), new Vector2(400, 600));
             TestWall w9 = new TestWall(this, new Vector2(800, 600), new Vector2(400, 600));
+            TestWall w10 = new TestWall(this, new Vector2(-200, -50), new Vector2(200, -20));
 
             this.addChild(w1);
             this.addChild(w2);
@@ -29,6 +30,7 @@ namespace OceanMars.Common
             this.addChild(w7);
             this.addChild(w8);
             this.addChild(w9);
+            this.addChild(w10);
         }
     }
 }

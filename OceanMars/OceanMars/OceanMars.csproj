@@ -77,6 +77,8 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client\Screens\HostSettingsMenuScreen.cs" />
+    <Compile Include="Client\Screens\MultiplayerMenuScreen.cs" />
     <Compile Include="Client\ServerInterface.cs" />
     <Compile Include="Client\TestWallSprite.cs" />
     <Compile Include="Client\DefaultLevelSprite.cs" />
