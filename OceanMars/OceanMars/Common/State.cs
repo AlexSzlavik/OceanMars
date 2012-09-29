@@ -8,7 +8,7 @@ namespace OceanMars.Common
 {
     public class State
     {
-        private static Vector2 GRAVITY = new Vector2(0, 0.98f);
+        private static Vector2 GRAVITY = new Vector2(0, 2.0f);
 
         public World root;
         public Dictionary<int, Entity> entities = new Dictionary<int,Entity>();
