@@ -17,6 +17,7 @@ namespace OceanMars.Common.NetCode
         private NetworkWorker nw;
         private IPEndPoint server;
         private bool go = true;
+        private NetworkStateMachine clientStateMachine;
         public enum cState { DISCONNECTED, CONNECTED, TRYCONNECT };
         cState curState = cState.DISCONNECTED;
 
@@ -27,6 +28,7 @@ namespace OceanMars.Common.NetCode
 
         // Semaphore to wait on for the server info to be known
         private Semaphore ready = new Semaphore(0, 1);
+        private Semaphore connected = new Semaphore(0, 1);
 
         // Queue of state changes to be passed off the the UI
         private Queue<StateChange> buffer = new Queue<StateChange>();
@@ -41,12 +43,43 @@ namespace OceanMars.Common.NetCode
         {
             Debug.WriteLine("Client Started");
 
+            initStateMachine();
+
             // Create the thread
-            clientThread = new Thread(this.ClientstartFunc);
+            clientThread = new Thread(this.newClientStartFunc);
             clientThread.Name = "mainClientThread";
             clientThread.IsBackground = true;
 
             clientThread.Start();
+
+            clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTSTARTED, null);
+        }
+
+        /// <summary>
+        /// Create a new state machine and create all transitions
+        /// </summary>
+        private void initStateMachine()
+        {
+            clientStateMachine = new NetworkStateMachine(NetworkStateMachine.NetworkState.CLIENTSTART);
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTSTART, NetworkStateMachine.TransitionEvent.CLIENTSTARTED, NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, delegate {});
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECT, NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, delegate { });
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED, NetworkStateMachine.NetworkState.CLIENTCONNECTED, onConnect);
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTDROPPING, NetworkStateMachine.NetworkState.CLIENTCONNECTED, onPing);
+        }
+
+        public void onConnect(Packet p)
+        {
+            connected.Release();
+            this.startPing();
+        }
+
+        public void onPing(Packet p)
+        {
+            lock (this)
+            {
+                pingStopwatch.Stop();
+                this.lastPing = pingStopwatch.ElapsedMilliseconds;
+            }
         }
 
         public bool connect(string host, int port)
@@ -54,11 +87,11 @@ namespace OceanMars.Common.NetCode
             // Store server info
             this.server = new IPEndPoint(IPAddress.Parse(host), port);
 
-            // Client may now try to connect
-            this.curState = cState.TRYCONNECT;
-
             //Spawn the client reader/writer threads
             this.nw = new NetworkWorker(server);
+
+            // Client may now try to connect
+            this.clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTCONNECT, null);
 
             // Inform the client thread that the server info is ready
             ready.Release();
@@ -67,7 +100,8 @@ namespace OceanMars.Common.NetCode
             this.handshake();
 
             // Wait for the connection to be established
-            while (this.curState == cState.TRYCONNECT) ;
+            //connect should be a blocking call, so this blocks
+            connected.WaitOne();
 
             return true;
         }
@@ -75,6 +109,34 @@ namespace OceanMars.Common.NetCode
         public void exit()
         {
             this.go = false;
+        }
+
+        /// <summary>
+        /// Re-implemenation of client with new state machine
+        /// </summary>
+        private void newClientStartFunc()
+        {
+            //Wait until the server information has been acquired
+            ready.WaitOne();
+            NetworkStateMachine.TransitionEvent transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSTARTED;
+
+            //Event loop
+            //Pull packets from the network layer and hand them to the state machine
+            while (this.go)
+            {
+                //Pull packet
+                Packet newPacket = nw.getNext();
+                switch (newPacket.Type)
+                {
+                    case Packet.PacketType.HANDSHAKE:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTCONNECTED;
+                        break;
+                    case Packet.PacketType.PING:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTDROPPING;
+                        break;
+                }
+                this.clientStateMachine.DoTransition(transitionEvent,newPacket);    //This is amazing
+            }
         }
 
         //Main routine, this does all the processing

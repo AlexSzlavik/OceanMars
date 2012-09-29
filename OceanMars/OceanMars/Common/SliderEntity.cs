@@ -8,11 +8,12 @@ namespace OceanMars.Common
 {
     public class SliderEntity : Entity
     {
-        public Point[] endPoints;
-        
-        public SliderEntity(Point[] endPoints) : base(Vector2.Zero) //TODO: zero is horribly wrong
+        public Vector2[] endPoints;
+
+        public SliderEntity(Vector2[] endPoints)
+            : base(Vector2.Zero)
         {
-            endPoints = new Point[2];
+            endPoints = new Vector2[2];
             this.endPoints[0] = endPoints[0];
             this.endPoints[1] = endPoints[1];
         }
