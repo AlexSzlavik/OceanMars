@@ -79,7 +79,7 @@ namespace OceanMars.Common.NetCode
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTDROPPING, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnPing);
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTSTATECHANGE, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnStateChange);
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTMENUSTATECHANGE, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnMenuStateChange);
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTSYNC, NetworkStateMachine.NetworkState.CLIENTCONNECTED, onSync);
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTSYNC, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnSync);
             return;
         }
 
@@ -108,33 +108,42 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
+        /// <summary>
+        /// Transition action that should occur when the state of the game changes.
+        /// </summary>
+        /// <param name="packet">The packet received.</param>
         public void OnStateChange(NetworkPacket packet)
         {
-            // Marshall the state change packet into an object
-            StateChange newSTC = new StateChange(packet.DataArray);
-
             // Add the state change object to the buffer for the UI
-            lock (this.uiStateBuffer)
+            lock (uiStateBuffer)
             {
-                uiStateBuffer.Enqueue(newSTC);
+                uiStateBuffer.Enqueue(new StateChange(packet.DataArray));
             }
+            return;
         }
 
+        /// <summary>
+        /// Transition action that should occur when the state of a menu has changed.
+        /// </summary>
+        /// <param name="packet">The packet received.</param>
         public void OnMenuStateChange(NetworkPacket packet)
         {
-            // Marshall the state change packet into an object
-            MenuState newMSC = new MenuState(packet.DataArray);
-
             // Add the state change object to the buffer for the UI
-            lock (this.menuStateBuffer)
+            lock (menuStateBuffer)
             {
-                menuStateBuffer.Enqueue(newMSC);
+                menuStateBuffer.Enqueue(new MenuState(packet.DataArray));
             }
+            return;
         }
 
-        public void onSync(NetworkPacket packet)
+        /// <summary>
+        /// Transition action that should occur when syncing.
+        /// </summary>
+        /// <param name="packet">The packet received.</param>
+        public void OnSync(NetworkPacket packet)
         {
             SyncServer();
+            return;
         }
 
         /// <summary>
@@ -242,7 +251,7 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
-#endregion
+        #endregion
 
         #region Public Client Code
 
@@ -336,6 +345,7 @@ namespace OceanMars.Common.NetCode
                 return lastPing;
             }
         }
+
         #endregion
     }
 
