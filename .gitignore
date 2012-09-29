@@ -1,0 +1,6 @@
+OceanMars.suo
+*.user
+*.cache
+*.cachefile
+bin
+obj
