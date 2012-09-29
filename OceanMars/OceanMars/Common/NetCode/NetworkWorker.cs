@@ -46,7 +46,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Terminate threads associated with the network on the next possible pass.
         /// </summary>
-        public void TerminateNetworkWorkers()
+        public void Exit()
         {
             continueRunning = false;
             return;

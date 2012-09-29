@@ -39,7 +39,7 @@ namespace OceanMars.Common.NetCode
             //    s.broadcastSC(l);
             //    Thread.Sleep(2000);
             //}
-            c.connect("127.0.0.1", 9999);
+            c.Connect("127.0.0.1", 9999);
             //c1.connect("127.0.0.1", 9999);
             //c2.connect("127.0.0.1", 9999);
             //c3.connect("127.0.0.1", 9999);
@@ -67,7 +67,7 @@ namespace OceanMars.Common.NetCode
 
         public static void doPing(Object st)
         {
-            Debug.WriteLine("Ping for 1: {0}", c.getPing());
+            Debug.WriteLine("Ping for 1: {0}", c.GetLastPing());
             //Debug.WriteLine("Ping for 2: {0}", c1.getPing());
             //Debug.WriteLine("Ping for 3: {0}", c2.getPing());
             //Debug.WriteLine("Ping for 4: {0}", c3.getPing());

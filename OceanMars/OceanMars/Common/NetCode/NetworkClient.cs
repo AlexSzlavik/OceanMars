@@ -13,120 +13,149 @@ namespace OceanMars.Common.NetCode
     public class NetworkClient
     {
 
-        private Thread clientThread;
-        private NetworkWorker nw;
-        private IPEndPoint server;
-        private bool go = true;
-        private NetworkStateMachine clientStateMachine;
-        public enum cState { DISCONNECTED, CONNECTED, TRYCONNECT };
-        cState curState = cState.DISCONNECTED;
+        // Data used to control addressing and threading in the network clinet
+        private Thread clientThread; // Thread used to host a network client
+        private NetworkWorker networkWorker; // The worker thread used to send and receive data
+        private IPEndPoint serverEndPoint; // The address of the server
+        private bool continueRunning; // Whether or not to continue the client
 
-        
-        private Stopwatch pingStopwatch = new Stopwatch();
-        private long lastPing = -1;
-        private Timer PingPacket_timeout_timer;
+        // Data used to control the state of the network client
+        private NetworkStateMachine clientStateMachine; // A network state machine run on the client
+        private enum NetworkClientState { DISCONNECTED, CONNECTED, TRYCONNECT };
+        private NetworkClientState currentState;
+
+        // Data used to control ping flow (heartbeats) in the network client
+        private Stopwatch pingStopwatch;
+        private long lastPing;
+        private Timer pingPacketTimer;
 
         // Semaphore to wait on for the server info to be known
-        private Semaphore ready = new Semaphore(0, 1);
-        private Semaphore connected = new Semaphore(0, 1);
+        private Semaphore serverReadySemaphore, clientConnectedSemaphore;
 
-        // Queue of state changes to be passed off the the UI
-        private Queue<StateChange> buffer = new Queue<StateChange>();
+        // Queues used to buffer game state changes that have been received
+        private Queue<StateChange> uiStateBuffer;
+        private Queue<MenuState> menuStateBuffer;
 
-        // Queue of menu changes to be passed off to the menu
-        private Queue<MenuState> menuBuffer = new Queue<MenuState>();
+        private const int PING_INITIAL_DELAY = 1000; // Amount of time to wait before starting to ping heartbeats
+        private const int PING_PERIOD = 500; // Amount of time to wait between ping heartbeats
 
         /// <summary>
         /// Create a new raw client.
         /// </summary>
         public NetworkClient()
         {
-            Debug.WriteLine("Client Started");
+            // Set up some member variables
+            continueRunning = true;
+            pingStopwatch = new Stopwatch();
+            lastPing = -1;
+            pingPacketTimer = null;
+            currentState = NetworkClientState.DISCONNECTED;
 
-            initStateMachine();
+            // Set up locking primatives and state queues
+            serverReadySemaphore = new Semaphore(0, 1);
+            clientConnectedSemaphore = new Semaphore(0, 1);
+            uiStateBuffer = new Queue<StateChange>();
+            menuStateBuffer = new Queue<MenuState>();
 
-            // Create the thread
-            clientThread = new Thread(this.newClientStartFunc);
-            clientThread.Name = "mainClientThread";
+            InitStateMachine(); // Set up the state machine
+
+            // Create the actual client thread
+            clientThread = new Thread(RunNetworkClientThread);
             clientThread.IsBackground = true;
-
             clientThread.Start();
 
             clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTSTARTED, null);
+            return;
         }
 
         /// <summary>
-        /// Create a new state machine and create all transitions
+        /// Create a new state machine and register all transitions associated with network clients.
         /// </summary>
-        private void initStateMachine()
+        private void InitStateMachine()
         {
             clientStateMachine = new NetworkStateMachine(NetworkStateMachine.NetworkState.CLIENTSTART);
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTSTART, NetworkStateMachine.TransitionEvent.CLIENTSTARTED, NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, delegate {});
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECT, NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, delegate { });
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED, NetworkStateMachine.NetworkState.CLIENTCONNECTED, onConnect);
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTDROPPING, NetworkStateMachine.NetworkState.CLIENTCONNECTED, onPing);
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnConnect);
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTDROPPING, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnPing);
+            return;
         }
 
-        public void onConnect(NetworkPacket p)
+        /// <summary>
+        /// Transition action that occurs on connecting to a server.
+        /// </summary>
+        /// <param name="packet">The network packet retrieved during this transition.</param>
+        public void OnConnect(NetworkPacket packet)
         {
-            connected.Release();
-            this.startPing();
+            clientConnectedSemaphore.Release();
+            StartPinging();
+            return;
         }
 
-        public void onPing(NetworkPacket p)
+        /// <summary>
+        /// Transition action that occurs on pinging.
+        /// </summary>
+        /// <param name="packet">The network packet retrieved during this transition.</param>
+        public void OnPing(NetworkPacket packet)
         {
             lock (this)
             {
                 pingStopwatch.Stop();
-                this.lastPing = pingStopwatch.ElapsedMilliseconds;
+                lastPing = pingStopwatch.ElapsedMilliseconds;
             }
-        }
-
-        public bool connect(string host, int port)
-        {
-            // Store server info
-            this.server = new IPEndPoint(IPAddress.Parse(host), port);
-
-            //Spawn the client reader/writer threads
-            this.nw = new NetworkWorker();
-
-            // Client may now try to connect
-            this.clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTCONNECT, null);
-
-            // Inform the client thread that the server info is ready
-            ready.Release();
-
-            // Send the handshake request to the server
-            this.handshake();
-
-            // Wait for the connection to be established
-            //connect should be a blocking call, so this blocks
-            connected.WaitOne();
-
-            return true;
-        }
-
-        public void exit()
-        {
-            this.go = false;
+            return;
         }
 
         /// <summary>
-        /// Re-implemenation of client with new state machine
+        /// Connect to the game server.
         /// </summary>
-        private void newClientStartFunc()
+        /// <param name="host">The name of the host to connect to.</param>
+        /// <param name="port">The port on the host to connect to.</param>
+        /// <returns>Returns a boolean representing whether or not the connection was succesful.</returns>
+        public bool Connect(String host, int port)
         {
-            //Wait until the server information has been acquired
-            ready.WaitOne();
+            try
+            {
+                serverEndPoint = new IPEndPoint(IPAddress.Parse(host), port); // Store server info
+                networkWorker = new NetworkWorker();//Spawn the client reader/writer threads
+                clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTCONNECT, null); // Client may now try to connect
+                serverReadySemaphore.Release(); // Inform the client thread that the server info is ready
+                SendHandshake(); // Send the handshake request to the server
+                clientConnectedSemaphore.WaitOne(); // Wait for the connection to be established
+                return true;
+            }
+            catch (Exception error)
+            {
+                Debug.WriteLine("Unable to connect to server: {0}", error.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Terminate the client and any associated network worker threads.
+        /// </summary>
+        public void Exit()
+        {
+            continueRunning = false;
+            if (networkWorker != null)
+            {
+                networkWorker.Exit();
+            }
+            return;
+        }
+
+        /// <summary>
+        /// Main execution loop for network clients.
+        /// </summary>
+        private void RunNetworkClientThread()
+        {
+            serverReadySemaphore.WaitOne();
             NetworkStateMachine.TransitionEvent transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSTARTED;
 
-            //Event loop
-            //Pull packets from the network layer and hand them to the state machine
-            while (this.go)
+            while (continueRunning) // Loop and push packets into the state machine
             {
-                //Pull packet
-                NetworkPacket newPacket = nw.ReceivePacket();
-                switch (newPacket.Type)
+                NetworkPacket receivePacket = networkWorker.ReceivePacket(); // Grab a packet from the server
+                switch (receivePacket.Type)
                 {
                     case NetworkPacket.PacketType.HANDSHAKE:
                         transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTCONNECTED;
@@ -135,7 +164,7 @@ namespace OceanMars.Common.NetCode
                         transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTDROPPING;
                         break;
                 }
-                this.clientStateMachine.DoTransition(transitionEvent,newPacket);    //This is amazing
+                clientStateMachine.DoTransition(transitionEvent, receivePacket); // This is amazing
             }
         }
 
@@ -143,26 +172,26 @@ namespace OceanMars.Common.NetCode
         private void ClientstartFunc()
         {
             // Hold here until the server information has been provided
-            ready.WaitOne();
+            serverReadySemaphore.WaitOne();
 
             // Event Loop
             // Pull packets out of the network layer and handle them
-            while (this.go)
+            while (this.continueRunning)
             {
-                NetworkPacket newPacket = nw.ReceivePacket(); // This is a blocking call! 
+                NetworkPacket newPacket = networkWorker.ReceivePacket(); // This is a blocking call! 
 
                 // Handle timeout
                 if (newPacket == null)
                 {
                     Debug.WriteLine("Timeout on receive");
-                    switch (curState)
+                    switch (currentState)
                     {
-                        case cState.TRYCONNECT:
+                        case NetworkClientState.TRYCONNECT:
                             // Did not receive the expected HANDSHAKE message
                             // Restart the handshake
-                            this.handshake();
+                            this.SendHandshake();
                             break;
-                        case cState.CONNECTED:
+                        case NetworkClientState.CONNECTED:
                             // The server may have died, ping the server to find out
                             //this.pingServer();
                    //TODO Should probably not silently ignore this....
@@ -176,7 +205,7 @@ namespace OceanMars.Common.NetCode
                                 }
                             }
                             break;
-                        case cState.DISCONNECTED:
+                        case NetworkClientState.DISCONNECTED:
                         default:
                             // This should not happen, die screaming!
                             Environment.Exit(1);
@@ -198,17 +227,17 @@ namespace OceanMars.Common.NetCode
                         case NetworkPacket.PacketType.HANDSHAKE:
                             Debug.WriteLine("Handshake received from the server");
 
-                            switch (curState)
+                            switch (currentState)
                             {
-                                case cState.TRYCONNECT:
+                                case NetworkClientState.TRYCONNECT:
                                     // The connection has succeeded!
-                                    this.startPing();
-                                    this.curState = cState.CONNECTED;
+                                    this.StartPinging();
+                                    this.currentState = NetworkClientState.CONNECTED;
                                     break;
-                                case cState.CONNECTED:
+                                case NetworkClientState.CONNECTED:
                                     // Repeat? This can be ignored ( I hope...)
                                     break;
-                                case cState.DISCONNECTED:
+                                case NetworkClientState.DISCONNECTED:
                                 default:
                                     // This should not happen, die screaming!
                                     Environment.Exit(1);
@@ -219,22 +248,22 @@ namespace OceanMars.Common.NetCode
                         case NetworkPacket.PacketType.STATECHANGE:
                             //Console.WriteLine("STC received from the server");
 
-                            switch (curState)
+                            switch (currentState)
                             {
-                                case cState.TRYCONNECT:
+                                case NetworkClientState.TRYCONNECT:
                                     break;
-                                case cState.CONNECTED:
+                                case NetworkClientState.CONNECTED:
                                     // Marshall the state change packet into an object
                                     StateChange newSTC = new StateChange(newPacket.DataArray);
 
                                     // Add the state change object to the buffer for the UI
-                                    lock (this.buffer)
+                                    lock (this.uiStateBuffer)
                                     {
-                                        buffer.Enqueue(newSTC);
+                                        uiStateBuffer.Enqueue(newSTC);
                                     }
 
                                     break;
-                                case cState.DISCONNECTED:
+                                case NetworkClientState.DISCONNECTED:
                                 default:
                                     // This should not happen, die screaming!
                                     Environment.Exit(1);
@@ -245,22 +274,22 @@ namespace OceanMars.Common.NetCode
                         case NetworkPacket.PacketType.MENUSTATECHANGE:
                             //Console.WriteLine("MSC received from the server");
 
-                            switch (curState)
+                            switch (currentState)
                             {
-                                case cState.TRYCONNECT:
+                                case NetworkClientState.TRYCONNECT:
                                     break;
-                                case cState.CONNECTED:
+                                case NetworkClientState.CONNECTED:
                                     // Marshall the state change packet into an object
                                     MenuState newMSC = new MenuState(newPacket.DataArray);
 
                                     // Add the state change object to the buffer for the UI
-                                    lock (this.menuBuffer)
+                                    lock (this.menuStateBuffer)
                                     {
-                                        menuBuffer.Enqueue(newMSC);
+                                        menuStateBuffer.Enqueue(newMSC);
                                     }
 
                                     break;
-                                case cState.DISCONNECTED:
+                                case NetworkClientState.DISCONNECTED:
                                 default:
                                     // This should not happen, die screaming!
                                     Environment.Exit(1);
@@ -271,14 +300,14 @@ namespace OceanMars.Common.NetCode
                         case NetworkPacket.PacketType.SYNC:
                             //Console.WriteLine("SYNC received from the server");
                             
-                            switch (curState)
+                            switch (currentState)
                             {
-                                case cState.TRYCONNECT:
+                                case NetworkClientState.TRYCONNECT:
                                     break;
-                                case cState.CONNECTED:
-                                    syncServer();
+                                case NetworkClientState.CONNECTED:
+                                    SyncServer();
                                     break;
-                                case cState.DISCONNECTED:
+                                case NetworkClientState.DISCONNECTED:
                                 default:
                                     // This should not happen, die screaming!
                                     Environment.Exit(1);
@@ -289,11 +318,11 @@ namespace OceanMars.Common.NetCode
                         case NetworkPacket.PacketType.PING:
                             //Console.WriteLine("PING received from the server");
                             
-                            switch (curState)
+                            switch (currentState)
                             {
-                                case cState.TRYCONNECT:
+                                case NetworkClientState.TRYCONNECT:
                                     break;
-                                case cState.CONNECTED:
+                                case NetworkClientState.CONNECTED:
                                     lock (this)
                                     {
                                         pingStopwatch.Stop();
@@ -301,7 +330,7 @@ namespace OceanMars.Common.NetCode
                                     }
                                     //Console.WriteLine("Ping"+lastPing);
                                     break;
-                                case cState.DISCONNECTED:
+                                case NetworkClientState.DISCONNECTED:
                                 default:
                                     // This should not happen, die screaming!
                                     Environment.Exit(1);
@@ -318,108 +347,135 @@ namespace OceanMars.Common.NetCode
             }
         }
 
-        private void handshake()
+        /// <summary>
+        /// Send a handshake packet to the server.
+        /// </summary>
+        private void SendHandshake()
         {
-            HandshakePacket hs = new HandshakePacket(server);
-            this.nw.SendPacket(hs);
+            networkWorker.SendPacket(new HandshakePacket(serverEndPoint));
+            return; 
         }
 
-        private void startPing()
+        /// <summary>
+        /// Begin sending ping heartbeats to the server.
+        /// </summary>
+        private void StartPinging()
         {
-            this.PingPacket_timeout_timer = new Timer(this.pingTimer, new AutoResetEvent(false), 1000, 500);
+            pingPacketTimer = new Timer(PingTimerTicked, new AutoResetEvent(false), PING_INITIAL_DELAY, PING_PERIOD);
+            return;
         }
 
-        private void pingTimer(Object stateInfo)
+        /// <summary>
+        /// Handle ticks from the ping timer.
+        /// </summary>
+        /// <param name="eventArgs">Event arguments.</param>
+        private void PingTimerTicked(Object eventArgs)
         {
             lock (this)
             {
                 if (pingStopwatch.IsRunning)
+                {
                     return;
-                //Console.WriteLine("Sending ping");
-                PingPacket pingPacket = new PingPacket(server);
+                }
                 pingStopwatch.Reset();
-                this.nw.SendPacket(pingPacket);
+                networkWorker.SendPacket(new PingPacket(serverEndPoint));
                 pingStopwatch.Start();
             }
+            return;
         }
 
-        private void syncServer()
+        /// <summary>
+        /// Send a synchronization message to the server.
+        /// </summary>
+        private void SyncServer()
         {
-            SyncPacket ss = new SyncPacket(server);
-            this.nw.SendPacket(ss);
+            networkWorker.SendPacket(new SyncPacket(serverEndPoint));
+            return;
         }
 
-        //OPERATORS
-        public void sendCMD(List<Command> commands)
+        /// <summary>
+        /// Send a list of commands to the server.
+        /// </summary>
+        /// <param name="commandList">A list of commands to send to the server.</param>
+        public void sendCMD(List<Command> commandList)
         {
-            foreach (Command command in commands)
+            foreach (Command command in commandList)
             {
-                // Create the CMD Packet
-                CommandPacket newCMD = new CommandPacket(server, command);
-
-                // Add the CMD packet to the network worker's send queue
-                this.nw.SendPacket(newCMD);
+                networkWorker.SendPacket(new CommandPacket(serverEndPoint, command));
             }
+            return;
         }
 
-        public void sendMSC(List<MenuState> mscs)
+        /// <summary>
+        /// Send a list of menu state changes to the server.
+        /// </summary>
+        /// <param name="menuStateList">A list of menu states to send to the server.</param>
+        public void SendMenuStateChange(List<MenuState> menuStateList)
         {
-            foreach (MenuState m in mscs)
+            foreach (MenuState menuState in menuStateList)
             {
-                sendMSC(m);
+                SendMenuStateChange(menuState);
             }
+            return;
         }
 
-        public void sendMSC(MenuState menuState)
+        /// <summary>
+        /// Send a menu state change to the server.
+        /// </summary>
+        /// <param name="menuState">The menu state to send to the server.</param>
+        public void SendMenuStateChange(MenuState menuState)
         {
-            // Create the MSC Packet
-            MenuStateChangePacket newMSC = new MenuStateChangePacket(server, menuState);
-
-            // Add the MSC packe to the network worker's send queue
-            this.nw.SendPacket(newMSC);
+            networkWorker.SendPacket(new MenuStateChangePacket(serverEndPoint, menuState));
+            return;
         }
 
-        // Called by the UI to acquire the latest state from the server
-        public List<StateChange> rcvUPD()
+        /// <summary>
+        /// Receive an update about the game state.
+        /// </summary>
+        /// <returns></returns>
+        public List<StateChange> ReceiveStateUpdate()
         {
             List<StateChange> newStates = new List<StateChange>();
-
-            // Acquire the buffer lock well emptying the buffer
-            lock (this.buffer)
+            lock (uiStateBuffer)
             {
-                // Iterate over the buffer of states that have been acquired from the server
-                while (buffer.Count > 0)
+                while (uiStateBuffer.Count > 0) // Iterate over the buffer of states that have been acquired from the server
                 {
-                    newStates.Add(buffer.Dequeue());
+                    newStates.Add(uiStateBuffer.Dequeue());
                 }
             }
-
             return newStates;
         }
 
-        // Called by the Menu to acquire the latest menu state for char. selection
-        public List<MenuState> rcvMenuState()
+        /// <summary>
+        /// Acquire any recent updates to the menu state from the character selection.
+        /// </summary>
+        /// <returns>A list of changes to the state of the menu.</returns>
+        public List<MenuState> ReceiveMenuState()
         {
             List<MenuState> newStates = new List<MenuState>();
-
-            // Acquire the buffer lock well emptying the buffer
-            lock (this.menuBuffer)
-            {
-                // Iterate over the buffer of states that have been acquired from the server
-                while (menuBuffer.Count > 0)
+            lock (menuStateBuffer)
+            { 
+                while (menuStateBuffer.Count > 0) // Iterate over the buffer of states that have been acquired from the server
                 {
-                    newStates.Add(menuBuffer.Dequeue());
+                    newStates.Add(menuStateBuffer.Dequeue());
                 }
             }
-
             return newStates;
         }
 
-        //Retrieve the last measured ping
-        public long getPing()
+        /// <summary>
+        /// Retrieve the last measured ping recorded by the client.
+        /// </summary>
+        /// <returns>A long value representing the last ping.</returns>
+        public long GetLastPing()
         {
             lock (this)
-                return this.lastPing;
+            {
+                return lastPing;
+            }
         }
+
     }
+
 }
+
