@@ -15,7 +15,95 @@ namespace OceanMars.Common
             collisionEllipse = size;
         }
 
-        public float intersect(Vector2 planeOrigin, Vector2 planeNormal, Vector2 rayOrigin, Vector2 rayVector)
+        
+        private Vector2 calculateCloserPoint(Vector2 lineIntersectionPoint, 
+                                             Vector2 firstPoint,
+                                             Vector2 secondPoint)
+        {
+            Vector2 returnPoint;
+            if (firstPoint.X != secondPoint.X)
+            {
+                if (Math.Abs(firstPoint.X - lineIntersectionPoint.X) >
+                    Math.Abs(secondPoint.X - lineIntersectionPoint.X))
+                {
+                    returnPoint = secondPoint;
+                }
+                else
+                {
+                    returnPoint = firstPoint;
+                }
+            }
+            else
+            {
+                if (Math.Abs(firstPoint.Y - lineIntersectionPoint.Y) >
+                    Math.Abs(secondPoint.Y - lineIntersectionPoint.Y))
+                {
+                    returnPoint = secondPoint;
+                }
+                else
+                {
+                    returnPoint = firstPoint;
+                }
+
+            }
+            return returnPoint;
+        }
+
+        private Vector2 getClosestPointOnLineSegment(Vector2 lineIntersectionPoint,
+                                                     Vector2[] segmentEndPoints)
+        {
+            Vector2 returnPoint = lineIntersectionPoint;
+            if (segmentEndPoints[0].X != segmentEndPoints[1].X)
+            {
+                if (lineIntersectionPoint.X > segmentEndPoints[0].X)
+                {
+                    if (!(lineIntersectionPoint.X < segmentEndPoints[1].X))
+                    {
+                        returnPoint =
+                            calculateCloserPoint(lineIntersectionPoint,
+                                                 segmentEndPoints[0],
+                                                 segmentEndPoints[1]);
+                    }
+                }
+                else if (lineIntersectionPoint.X > segmentEndPoints[1].X)
+                {
+                    if (!(lineIntersectionPoint.X < segmentEndPoints[0].X))
+                    {
+                        returnPoint =
+                            calculateCloserPoint(lineIntersectionPoint,
+                                                 segmentEndPoints[0],
+                                                 segmentEndPoints[1]);
+                    }
+                }
+            }
+            else //if our line is vertical
+            {
+                if (lineIntersectionPoint.Y > segmentEndPoints[0].Y)
+                {
+                    if (!(lineIntersectionPoint.Y < segmentEndPoints[1].Y))
+                    {
+                        returnPoint =
+                            calculateCloserPoint(lineIntersectionPoint,
+                                                 segmentEndPoints[0],
+                                                 segmentEndPoints[1]);
+                    }
+                }
+                else if (lineIntersectionPoint.Y > segmentEndPoints[1].Y)
+                {
+                    if (!(lineIntersectionPoint.Y < segmentEndPoints[0].Y))
+                    {
+                        returnPoint =
+                            calculateCloserPoint(lineIntersectionPoint,
+                                                 segmentEndPoints[0],
+                                                 segmentEndPoints[1]);
+                    }
+                }
+            }
+            return returnPoint;
+        }
+
+
+        private float intersect(Vector2 planeOrigin, Vector2 planeNormal, Vector2 rayOrigin, Vector2 rayVector)
         {
             float d = -Vector2.Dot(planeNormal, planeOrigin);
             float numer = Vector2.Dot(planeNormal, planeOrigin) + d;
@@ -23,7 +111,7 @@ namespace OceanMars.Common
             return -(numer / denom);
         }
 
-        public float intersectEllipse(Vector2 ellipseOrigin, Vector2 ellipseRadius, 
+        private float intersectEllipse(Vector2 ellipseOrigin, Vector2 ellipseRadius, 
             Vector2 rayOrigin, Vector2 rayVector)
         {
             float aa, bb, cc, m;
@@ -111,6 +199,7 @@ namespace OceanMars.Common
                         Vector2.Transform(slider.endPoints[0], transformSliderToLocal),
                         Vector2.Transform(slider.endPoints[1], transformSliderToLocal)
                                                 };
+                    //TODO: Unit normal
                     Vector2 sliderNormal = Vector2.Transform((sliderEndPoints[1] - sliderEndPoints[0]), 
                         Matrix.CreateRotationZ((float)(Math.PI/2.0f)));
 
@@ -123,27 +212,21 @@ namespace OceanMars.Common
 
                     //calculate the plane intersection point
                     float t = intersect(ellipseIntersectionPoint, velocity, sliderEndPoints[0], sliderNormal);
-                    Vector2 lineIntersectionPoint = ellipseIntersectionPoint + Vector2.Normalize(velocity) * t;
+                    if (t <= velocity.Length() && t >= ellipseRadiusVector.Length()) //TODO: ignoring plane embedded in ellipse FOR NOW
+                    {
+                        Vector2 lineIntersectionPoint = ellipseIntersectionPoint + Vector2.Normalize(velocity) * t;
 
-                    //check if our line intersection point is the same as our line segment intersection point
-                    if (lineIntersectionPoint.X < sliderEndPoints[0].X ||
-                        lineIntersectionPoint.Y < sliderEndPoints[0].Y )
-                    {
-                        lineIntersectionPoint = sliderEndPoints[0];
-                    }
-                    else if (lineIntersectionPoint.X > sliderEndPoints[1].X ||
-                             lineIntersectionPoint.Y > sliderEndPoints[1].Y )
-                    {
-                        lineIntersectionPoint = sliderEndPoints[1];
-                    }
-
-                    //finally, are we intersecting?
-                    t = intersectEllipse(new Vector2(0, 0), ellipseRadiusVector, lineIntersectionPoint, -velocity);
-                    if (t >= 0.0f && t <= velocity.Length() &&
-                        (t < distanceToNearest || !hasCollided))
-                    {
-                        distanceToNearest = t;
-                        hasCollided = true;
+                        //check if our line intersection point is the same as our line segment intersection point
+                        lineIntersectionPoint = getClosestPointOnLineSegment(lineIntersectionPoint, sliderEndPoints);
+ 
+                        //finally, are we intersecting?
+                        t = intersectEllipse(new Vector2(0, 0), ellipseRadiusVector, lineIntersectionPoint, -velocity);
+                        if (t >= 0.0f && t <= velocity.Length() &&
+                            (t < distanceToNearest || !hasCollided))
+                        {
+                            distanceToNearest = t;
+                            hasCollided = true;
+                        }
                     }
                 }
                 else //entity is EllipseEntity
