@@ -49,7 +49,6 @@ namespace OceanMars.Common.NetCode
             pingStopwatch = new Stopwatch();
             lastPing = -1;
             pingPacketTimer = null;
-            currentState = NetworkClientState.DISCONNECTED;
 
             // Set up locking primatives and state queues
             serverReadySemaphore = new Semaphore(0, 1);
