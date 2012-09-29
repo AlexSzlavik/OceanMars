@@ -54,7 +54,10 @@ namespace OceanMars.Common.NetCode
 
             SERVERACCEPTCONNECTIONS,
 
-            SERVERSYNC
+            SERVERSYNC,
+            CONNECTIONCONNECTED,
+            CONNECTIONDISCONNECTED,
+            CONNECTIONTIMEOUT
 
         }
 
@@ -105,7 +108,9 @@ namespace OceanMars.Common.NetCode
             SERVERMENUSTATECHANGE,
             SERVERSTATECHANGE,
             SERVERNEWCONNECTION,
-            SERVERDISCONNECTION
+            SERVERDISCONNECTION,
+            CONNECTIONDISCONNECT,
+            CONNECTIONTIMEOUT
 
         }
 
@@ -120,11 +125,11 @@ namespace OceanMars.Common.NetCode
         public NetworkState CurrentState
         {
             get;
-            private set;
+            protected set;
         }
 
         /// A transition table used to move to new states in the state machine.
-        private Dictionary<Tuple<NetworkState, TransitionEvent>, Tuple<NetworkState, TransitionAction>> TransitionTable;
+        protected Dictionary<Tuple<NetworkState, TransitionEvent>, Tuple<NetworkState, TransitionAction>> TransitionTable;
 
         /// <summary>
         /// Create a new NetStateMachine.
