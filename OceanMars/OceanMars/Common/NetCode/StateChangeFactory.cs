@@ -9,7 +9,7 @@ namespace OceanMars.Common.NetCode
     public class StateChangeFactory
     {
 
-        public static StateChange createEntityStateChange(int entity_id, int posX, int posY, int frameWidth, int frameTime, String textureName, float scale, int drawPriority)
+        /*public static StateChange createEntityStateChange(int entity_id, int posX, int posY, int frameWidth, int frameTime, String textureName, float scale, int drawPriority)
         {
             StateChange sc = new StateChange();
             sc.type = StateChangeType.CREATE_ENTITY;
@@ -83,6 +83,6 @@ namespace OceanMars.Common.NetCode
             sc.intProperties.Add(StateProperties.HEALTH, health);
 
             return sc;
-        }
+        }*/
     }
 }
