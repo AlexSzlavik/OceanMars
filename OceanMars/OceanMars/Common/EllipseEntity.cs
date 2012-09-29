@@ -105,8 +105,9 @@ namespace OceanMars.Common
 
         private float intersect(Vector2 planeOrigin, Vector2 planeNormal, Vector2 rayOrigin, Vector2 rayVector)
         {
+            rayVector.Normalize();
             float d = -Vector2.Dot(planeNormal, planeOrigin);
-            float numer = Vector2.Dot(planeNormal, planeOrigin) + d;
+            float numer = Vector2.Dot(planeNormal, rayOrigin) + d;
             float denom = Vector2.Dot(planeNormal, rayVector);
             return -(numer / denom);
         }
@@ -192,7 +193,7 @@ namespace OceanMars.Common
                 if (entity is SliderEntity)
                 {
                     SliderEntity slider = (SliderEntity)entity;
-                    Matrix transformSliderToLocal = getWorldTransform() * Matrix.Invert(slider.getWorldTransform());
+                    Matrix transformSliderToLocal = worldTransform * Matrix.Invert(slider.worldTransform);
 
                     //find the SliderEntity's end points and normal
                     Vector2[] sliderEndPoints = {
@@ -202,6 +203,7 @@ namespace OceanMars.Common
                     //TODO: Unit normal
                     Vector2 sliderNormal = Vector2.Transform((sliderEndPoints[1] - sliderEndPoints[0]), 
                         Matrix.CreateRotationZ((float)(Math.PI/2.0f)));
+                    sliderNormal.Normalize();
 
                     //TODO: ignoring plane embedded in ellipse FOR NOW
 
@@ -211,8 +213,8 @@ namespace OceanMars.Common
                     Vector2 ellipseIntersectionPoint = ellipseRadiusVector;
 
                     //calculate the plane intersection point
-                    float t = intersect(ellipseIntersectionPoint, velocity, sliderEndPoints[0], sliderNormal);
-                    if (t <= velocity.Length() && t >= ellipseRadiusVector.Length()) //TODO: ignoring plane embedded in ellipse FOR NOW
+                    float t = intersect(sliderEndPoints[0], sliderNormal, ellipseIntersectionPoint, velocity);
+                    if (Math.Abs(t) <= velocity.Length()) //TODO: ignoring plane embedded in ellipse FOR NOW
                     {
                         Vector2 lineIntersectionPoint = ellipseIntersectionPoint + Vector2.Normalize(velocity) * t;
 

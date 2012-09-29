@@ -98,7 +98,5 @@ namespace OceanMars.Common
                 inverseWorldTransformBack = value;
             }
         }
-
-        public virtual Matrix getWorldTransform() { return parent.getWorldTransform() * transform; }
     }
 }
