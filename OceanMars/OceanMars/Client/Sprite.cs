@@ -20,13 +20,24 @@ namespace OceanMars.Client
         int entityID;
         List<int> animationFrames;
         int frameTime;
+        int elapsedTime;
         int currentFrame;
         int frameWidth;
         int frameHeight;
         Color color;
+        Rectangle sourceRect;
 
         bool active;
         bool looping;
+
+        public Sprite(View context, Entity e, Vector2 drawSize, int frameWidth, int frameTime, string spriteStripName)
+        {
+            this.context = context;
+            this.e = e;
+            this.entityID = e.id;
+
+            setAnimationSpriteStrip(frameWidth, frameTime, spriteStripName);
+        }
 
         internal void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
@@ -39,9 +50,25 @@ namespace OceanMars.Client
                 null,
                 e.getWorldTransform());
 
+            spriteBatch.Draw(
+                spriteStrip,
+                new Vector2(),
+                sourceRect,
+                Color.White,
+                0f,
+                new Vector2(), // might be very wrong
+                drawSize,
+                SpriteEffects.None,
+                0); // Can be tweaked to order sprites
 
 
             spriteBatch.End();
+
+            // Draw children
+            foreach (Entity child in e.children) {
+                Sprite childSprite = context.sprites[child.id];
+                childSprite.draw(gameTime, spriteBatch);
+            }
         }
 
         public void setAnimationSpriteStrip(int frameWidth, int frameTime, String spriteStripName)
@@ -79,14 +106,12 @@ namespace OceanMars.Client
             if (active == false)
                 return;
 
-            /*drawingPosition = worldPosition - context.viewPosition + new Vector2(1280 / 2, 720 / 2);
-
             // Update the elapsed time
             elapsedTime += (int)gameTime.ElapsedGameTime.TotalMilliseconds;
 
             // If the elapsed time is larger than the frame time
             // we need to switch frames
-            if (elapsedTime > GetFrameTime())
+            if (elapsedTime > frameTime)
             {
                 // Move to the next frame
                 currentFrame++;
@@ -100,8 +125,6 @@ namespace OceanMars.Client
                         active = false;
                 }
 
-                //Console.WriteLine(this.spriteStrip.Name + ": " + this.GetFrameTime());
-
                 // Reset the elapsed time to zero
                 elapsedTime = 0;
             }
@@ -110,12 +133,6 @@ namespace OceanMars.Client
 
             // Grab the correct frame in the image strip by multiplying the currentFrame index by the frame width
             sourceRect = new Rectangle(drawFrame * frameWidth, 0, frameWidth, frameHeight);
-
-            // Grab the correct frame in the image strip by multiplying the currentFrame index by the frame width
-            destinationRect = new Rectangle((int)drawingPosition.X - (int)(frameWidth * scale) / 2,
-            (int)drawingPosition.Y - (int)(frameHeight * scale) / 2,
-            (int)(frameWidth * scale),
-            (int)(frameHeight * scale));*/
         }
     }
 }

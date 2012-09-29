@@ -14,7 +14,7 @@ namespace OceanMars.Client
         Entity avatar;
         State state;
 
-        Dictionary<int, Sprite> sprites;
+        public Dictionary<int, Sprite> sprites;
         public Dictionary<String, Texture2D> textureDict;
 
         void draw(GameTime gameTime, SpriteBatch spriteBatch)
