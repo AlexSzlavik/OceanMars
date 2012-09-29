@@ -60,9 +60,9 @@ namespace OceanMars.Client.GameStateManager
         /// </summary>
         public ScreenManager(Game game) : base(game) 
         {
-            //set to true for XNA to handle multiple Update calls when draw slows down
+            //set to true for XNA to handle multiple Update calls when draw slows down (default)
             //set to false for one Update followed by one Draw
-            game.IsFixedTimeStep = false;
+            game.IsFixedTimeStep = true;
         }
 
         /// <summary>
