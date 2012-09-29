@@ -77,6 +77,7 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client\ServerInterface.cs" />
     <Compile Include="Client\TestWallSprite.cs" />
     <Compile Include="Client\DefaultLevelSprite.cs" />
     <Compile Include="Client\GameStateManager\GameScreen.cs" />
@@ -110,10 +111,10 @@
     <Compile Include="Common\NetCode\NetworkServer.cs" />
     <Compile Include="Common\NetCode\StateChange.cs" />
     <Compile Include="Common\NetCode\StateChangeFactory.cs" />
-    <Compile Include="Common\NetCode\StateChangeListener.cs" />
     <Compile Include="Common\ServerlessState.cs" />
     <Compile Include="Common\SliderEntity.cs" />
     <Compile Include="Common\State.cs" />
+    <Compile Include="Common\TransformChangeListener.cs" />
     <Compile Include="Common\TestLevel.cs" />
     <Compile Include="Common\TestMan.cs" />
     <Compile Include="Common\TestWall.cs" />

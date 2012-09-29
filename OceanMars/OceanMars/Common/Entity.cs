@@ -16,8 +16,12 @@ namespace OceanMars.Common
         public Entity parent = null;
         public List<Entity> children = new List<Entity>();
 
+        private bool owned = false; // Represents whether this Entity is owned by the machine running (could be client or server)
+
         public bool worldTransformDirty = false;
         public bool inverseWorldTransformDirty = false;
+
+        List<TransformChangeListener> tcListeners = new List<TransformChangeListener>();
 
         public Entity(Vector2 collisionBox, Entity parent) {
             this.collisionBox = collisionBox;
@@ -44,6 +48,8 @@ namespace OceanMars.Common
                     child.worldTransformDirty = true;
                     child.inverseWorldTransformDirty = true;
                 }
+
+                if(owned) notifyTransformChange(); // Only notify of things we have jurisdiction over
             }
         }
 
@@ -94,18 +100,19 @@ namespace OceanMars.Common
             this.id = next_id++;
         }
 
-        public virtual StateChange createStateChange()
+        public void addTransformChangeListener(TransformChangeListener tcl)
         {
-            StateChange sc = new StateChange();
-            sc.intProperties.Add(StateProperties.ENTITY_ID, id);
-            sc.doubleProperties.Add(StateProperties.SIZE_X, collisionBox.X);
-            sc.doubleProperties.Add(StateProperties.SIZE_Y, collisionBox.Y);
-            sc.intProperties.Add(StateProperties.PARENT_ID, parent.id);
-            sc.matrixProperties.Add(StateProperties.TRANSFORM, transform);
-
-            return sc;
+            tcListeners.Add(tcl);
         }
 
+        public void notifyTransformChange()
+        {
+            foreach (TransformChangeListener tcl in tcListeners)
+            {
+                tcl.handleTransformChange(this);
+            }
+        }
+        
         public void addChild(Entity child)
         {
             children.Add(child);
