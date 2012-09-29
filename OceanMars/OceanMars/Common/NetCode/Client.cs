@@ -4,7 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Diagnostics;
 
-namespace SkyCrane.NetCode
+namespace OceanMars.NetCode
 {
     public class RawClient
     {

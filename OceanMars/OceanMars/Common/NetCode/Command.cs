@@ -2,7 +2,7 @@
 using System.IO;
 using Microsoft.Xna.Framework;
 
-namespace SkyCrane.NetCode
+namespace OceanMars.NetCode
 {
     public enum CommandType { MOVE, SHOOT, ATTACK, GOBLIN_ATTACK }
 

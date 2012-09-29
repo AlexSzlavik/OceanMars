@@ -2,7 +2,7 @@
 using System.IO;
 using Microsoft.Xna.Framework;
 
-namespace SkyCrane.NetCode
+namespace OceanMars.NetCode
 {
     
     /// <summary>

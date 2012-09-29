@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace SkyCrane.NetCode
+namespace OceanMars.NetCode
 {
     public static class NetTest
     {

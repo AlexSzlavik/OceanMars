@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace SkyCrane.NetCode
+namespace OceanMars.NetCode
 {
     class NetworkWorker : UdpClient
     {

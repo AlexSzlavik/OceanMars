@@ -17,7 +17,7 @@ using System.Threading;
  * Latency and connectivity measurements
  */
 
-namespace SkyCrane.NetCode
+namespace OceanMars.NetCode
 {
     public class RawServer
     {

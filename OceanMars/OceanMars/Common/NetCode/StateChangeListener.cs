@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SkyCrane.NetCode
+namespace OceanMars.NetCode
 {
     public interface StateChangeListener
     {
