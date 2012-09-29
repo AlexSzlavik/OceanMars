@@ -15,6 +15,6 @@ namespace OceanMars.Common
         public Matrix transform;
         public Vector2 velocity;
 
-        public Matrix getWorldTransform() { return parent.getWorldTransform() * transform; }
+        public virtual Matrix getWorldTransform() { return parent.getWorldTransform() * transform; }
     }
 }
