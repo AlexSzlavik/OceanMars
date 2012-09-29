@@ -8,7 +8,7 @@ namespace OceanMars.Common
 {
     public class SliderEntity : Entity
     {
-        public Point[] endPoints { public get; private set; }
+        public Point[] endPoints;
         
         public SliderEntity(Point[] endPoints)
         {

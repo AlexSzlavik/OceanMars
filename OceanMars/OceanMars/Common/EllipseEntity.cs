@@ -8,20 +8,29 @@ namespace OceanMars.Common
 {
     class EllipseEntity : Entity
     {
-        public Vector2 collisionEllipse { public get; private set; }
+        public Vector2 collisionEllipse;
 
         public EllipseEntity(Vector2 size)
         {
             collisionEllipse = size;
         }
 
-        public void testCollision(Entity entity)
+        public void testCollision(List<Entity> entities)
         {
-            //Assumes that the entity manager checks AABBs to see if testing collisions makes sense
+            //Assumes that the state checks velocity to see if anything is actually moving
+            //Assumes that the state checks AABBs to see if testing collisions makes sense
 
-            //Check if Entity is a SliderEntity
-
-            //Check if Entity is an EllipseEntity
+            foreach (Entity entity in entities) 
+            {
+                if (entity is SliderEntity)
+                {
+                    SliderEntity slider = (SliderEntity)entity;
+                    Point origin = slider.endPoints[0];
+                }
+                else //entity is EllipseEntity
+                {
+                }
+            }
         }
     }
 }
