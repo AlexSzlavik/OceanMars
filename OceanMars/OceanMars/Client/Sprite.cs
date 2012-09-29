@@ -48,7 +48,7 @@ namespace OceanMars.Client
                 DepthStencilState.Default,
                 RasterizerState.CullNone,
                 null,
-                e.getWorldTransform());
+                context.avatar.inverseWorldTransform * e.worldTransform);
 
             spriteBatch.Draw(
                 spriteStrip,
