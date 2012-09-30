@@ -11,8 +11,6 @@ namespace OceanMars.Common.NetCode
     public class GameClient : GameBase
     {
 
-        private Dictionary<int, int> PlayerIDToEntity = new Dictionary<int, int>();
-
         /// <summary>
         /// The client lobby associated with this game client.
         /// </summary>
@@ -72,9 +70,14 @@ namespace OceanMars.Common.NetCode
                 SpawnPointEntity sp = level.spawnPoints[i];
                 TestMan tm = new TestMan(sp, (i == myPlayerID));
 
-                PlayerIDToEntity[i] = tm.id;
+                players[i].EntityID = tm.id;
                 sp.addChild(tm);
             }
+        }
+
+        public Entity getPlayerEntity()
+        {
+            return GameState.entities[LocalPlayer.EntityID];
         }
 
         /// <summary>

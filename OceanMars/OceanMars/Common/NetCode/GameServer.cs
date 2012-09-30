@@ -131,19 +131,24 @@ namespace OceanMars.Common.NetCode
             Level level = new Level(root, LevelPack.levels[levelID]);
             root.addChild(level);
 
-            // Send level and a player ID to each client
-            foreach (Player p in players)
-            {
-                GameData gameData = new GameData(GameData.GameDataType.InitClientState, p.PlayerID, levelID);
-                Network.SignalGameData(gameData, PlayerToConnectionID(p));
-            }
-
             // Create players in personal state
             for (int i = 0; i < players.Length; i++)
             {
                 SpawnPointEntity sp = level.spawnPoints[i];
                 TestMan tm = new TestMan(sp);
                 sp.addChild(tm);
+            }
+        }
+
+        public void invitePlayer(int levelID)
+        {
+            // TODO: figure this fucking out
+
+            // Send level and a player ID to each client
+            foreach (Player p in players)
+            {
+                GameData gameData = new GameData(GameData.GameDataType.InitClientState, p.PlayerID, levelID);
+                Network.SignalGameData(gameData, PlayerToConnectionID(p));
             }
         }
 

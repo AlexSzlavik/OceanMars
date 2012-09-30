@@ -42,6 +42,15 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
+        /// Local Entity ID of player Entity
+        /// </summary>
+        public int EntityID
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Create a new player, register it, and assign an ID.
         /// </summary>
         /// <param name="connection">The connection this player is associated with.</param>

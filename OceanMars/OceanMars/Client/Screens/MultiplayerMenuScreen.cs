@@ -9,6 +9,8 @@
 
 #region Using Statements
 using Microsoft.Xna.Framework;
+using OceanMars.Common.NetCode;
+using SkyCrane.Screens;
 #endregion
 
 namespace OceanMars.Client.Screens
@@ -52,7 +54,9 @@ namespace OceanMars.Client.Screens
         /// </summary>
         void HostGameMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
-            //ScreenManager.AddScreen(new HostSettingsMenuScreen(true));
+            GameServer gs = new GameServer(9999);
+            GameClient gc = new GameClient();
+            ScreenManager.AddScreen(new GameplayScreen(gc));
             return;
         }
 
@@ -61,7 +65,8 @@ namespace OceanMars.Client.Screens
         /// </summary>
         void JoinGameMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
-            ScreenManager.AddScreen(new HostSettingsMenuScreen());
+            GameClient gc = new GameClient();
+            ScreenManager.AddScreen(new GameplayScreen(gc));
             return;
         }
 

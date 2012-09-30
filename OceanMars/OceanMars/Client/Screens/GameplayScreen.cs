@@ -21,6 +21,7 @@ using OceanMars.Common;
 using OceanMars.Client;
 using OceanMars.Client.GameStateManager;
 using OceanMars.Client.Screens;
+using OceanMars.Common.NetCode;
 #endregion
 
 namespace SkyCrane.Screens
@@ -35,8 +36,8 @@ namespace SkyCrane.Screens
         #region Fields
 
         // Our things
+        GameClient game;
         ContentManager content;
-        ServerlessState state = new ServerlessState(); // TODO: need to instantiate this from server connection in some way, and player
         View context;
         bool stillJumping = false;
         bool stillHoldingJump = false;
@@ -49,9 +50,10 @@ namespace SkyCrane.Screens
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GameplayScreen()
+        public GameplayScreen(GameClient gb)
         {
-            context = new View(state, state.player);
+            game = gb;
+            context = new View(gb.GameState, gb.getPlayerEntity());
         }
 
         private void createSprites(Entity root)
