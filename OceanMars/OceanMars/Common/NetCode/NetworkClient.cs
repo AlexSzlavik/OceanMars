@@ -13,6 +13,7 @@ namespace OceanMars.Common.NetCode
     public class NetworkClient
     {
         #region Members
+
         // Data used to control addressing and threading in the network clinet
         private Thread clientThread; // Thread used to host a network client
         private NetworkWorker networkWorker; // The worker thread used to send and receive data
@@ -24,8 +25,8 @@ namespace OceanMars.Common.NetCode
 
         // Data used to control ping flow (heartbeats) in the network client
         private Stopwatch pingStopwatch;
-        private long lastPing;
         private Timer pingPacketTimer;
+        private long lastPing;
 
         // Semaphore to wait on for the server info to be known
         private Semaphore serverReadySemaphore, clientConnectedSemaphore;
@@ -35,9 +36,11 @@ namespace OceanMars.Common.NetCode
 
         private const int PING_INITIAL_DELAY = 1000; // Amount of time to wait before starting to ping heartbeats
         private const int PING_PERIOD = 500; // Amount of time to wait between ping heartbeats
+        private const int CLIENT_TIMEOUT = 2000; // Amount of time until we are dead
         #endregion
 
         #region ClientInternalCode
+
         /// <summary>
         /// Create a new raw client.
         /// </summary>
@@ -72,9 +75,10 @@ namespace OceanMars.Common.NetCode
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTSTART, NetworkStateMachine.TransitionEvent.CLIENTSTARTED, NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, delegate {});
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECT, NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, delegate { });
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnConnect);
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTDROPPING, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnPing);
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTPINGING, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnPing);
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTGAMEDATA, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnGameData);
             clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTSYNC, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnSync);
+            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTTIMEOUT, NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, OnDisconnect);
             return;
         }
 
@@ -90,12 +94,28 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
+        /// Callback on Disconnect events
+        /// </summary>
+        /// <param name="packet">A packet received that has caused us to disconnect.</param>
+        private void OnDisconnect(NetworkPacket packet)
+        {
+            Debug.WriteLine(String.Format("Client has disconnected"));
+            continueRunning = false;
+            if (networkWorker != null)
+            {
+                networkWorker.Close();
+                networkWorker.Exit();
+            }
+            return;
+        }
+
+        /// <summary>
         /// Transition action that occurs on pinging.
         /// </summary>
         /// <param name="packet">The network packet retrieved during this transition.</param>
         public void OnPing(NetworkPacket packet)
         {
-            lock (this)
+            lock (pingStopwatch)
             {
                 pingStopwatch.Stop();
                 lastPing = pingStopwatch.ElapsedMilliseconds;
@@ -123,7 +143,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="packet">The packet received.</param>
         public void OnSync(NetworkPacket packet)
         {
-            //SyncServer();
+            SendSync();
             return;
         }
 
@@ -153,19 +173,6 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Terminate the client and any associated network worker threads.
-        /// </summary>
-        public void Exit()
-        {
-            continueRunning = false;
-            if (networkWorker != null)
-            {
-                networkWorker.Exit();
-            }
-            return;
-        }
-
-        /// <summary>
         /// Main execution loop for network clients.
         /// </summary>
         private void RunNetworkClientThread()
@@ -185,7 +192,7 @@ namespace OceanMars.Common.NetCode
                         transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTCONNECTED;
                         break;
                     case NetworkPacket.PacketType.PING:
-                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTDROPPING;
+                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTPINGING;
                         break;
                     case NetworkPacket.PacketType.GAMEDATA:
                         transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTGAMEDATA;
@@ -224,10 +231,28 @@ namespace OceanMars.Common.NetCode
         /// <param name="eventArgs">Event arguments.</param>
         private void PingTimerTicked(Object eventArgs)
         {
-            lock (this)
+            ThreadPool.QueueUserWorkItem(new WaitCallback(DoPingTimerWork));
+            return;
+        }
+
+        /// <summary>
+        /// The worker thread for the client side ping timer
+        /// This actually resets and starts the timer again if need be
+        /// This should also transition to TIMEOUT if a certain threshold is reached
+        /// </summary>
+        /// <param name="eventArgs">Unused event arguments.</param>
+        private void DoPingTimerWork(Object eventArgs)
+        {
+            lock (pingStopwatch)
             {
                 if (pingStopwatch.IsRunning)
                 {
+                    if (pingStopwatch.ElapsedMilliseconds > CLIENT_TIMEOUT)
+                    {
+                        pingStopwatch.Stop();
+                        pingPacketTimer.Dispose();
+                        clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTTIMEOUT, null);
+                    }
                     return;
                 }
                 pingStopwatch.Reset();
@@ -244,7 +269,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Send a synchronization message to the server.
         /// </summary>
-        private void SyncServer()
+        private void SendSync()
         {
             networkWorker.SendPacket(new SyncPacket(serverEndPoint));
             return;

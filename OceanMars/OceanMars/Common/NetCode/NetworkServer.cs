@@ -29,6 +29,7 @@ namespace OceanMars.Common.NetCode
         private NetworkWorker nw;
         private const int TIMEOUT_INITIAL_DELAY = 2000;
         private const int TIMEOUT_PERIOD = 1000;
+        private const int MAX_MISSED_SYNCS = 10;
 
         private Timer TimeoutTimer;
 
@@ -38,8 +39,17 @@ namespace OceanMars.Common.NetCode
 
         //Connection state
         Dictionary<IPEndPoint, ConnectionID> connections = new Dictionary<IPEndPoint, ConnectionID>();
-        Queue<Tuple<ConnectionID, GameData>> gameDataQueue = new Queue<Tuple<ConnectionID, GameData>>();
+        
+        /// <summary>
+        /// Delegate type used for subscription to game data.
+        /// </summary>
+        /// <param name="gameData">Game data used to update the state of the game.</param>
+        public delegate void GameDataUpdater(GameData gameData);
 
+        /// <summary>
+        /// The actual delegate used to update game data when appropraite packets are received.
+        /// </summary>
+        private GameDataUpdater gameDataUpdater;
 
         /// <summary>
         /// Server Constructor
@@ -55,6 +65,8 @@ namespace OceanMars.Common.NetCode
             serverThread.Priority = ThreadPriority.AboveNormal;
             serverThread.IsBackground = true;
 
+            gameDataUpdater = null;
+
             Debug.WriteLine("Starting Server");
             this.nw = new NetworkWorker(port);
             serverThread.Start();
@@ -62,6 +74,17 @@ namespace OceanMars.Common.NetCode
             serverStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.SERVERSTARTED, null);
 
             TimeoutTimer = new Timer(TimeoutTimerTicked, new AutoResetEvent(false), TIMEOUT_INITIAL_DELAY, TIMEOUT_PERIOD);
+            return;
+        }
+
+        /// <summary>
+        /// Register a delegate to handle updates to the game.
+        /// </summary>
+        /// <param name="gameDataUpdater">A delegate function to call when game data is received over the network.</param>
+        public void RegisterGameDataUpdater(GameDataUpdater gameDataUpdater)
+        {
+            this.gameDataUpdater = gameDataUpdater;
+            return;
         }
 
         /// <summary>
@@ -84,7 +107,7 @@ namespace OceanMars.Common.NetCode
                 this.nw.SendPacket(ps);
                 this.globalStats.sentPkts++;
                 connections[ep].changeState(NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING);
-                if (connections[ep].MissedSyncs >= 3)
+                if (connections[ep].MissedSyncs >= MAX_MISSED_SYNCS)
                     rmList.Add(connections[ep]);
             }
             foreach (ConnectionID con in rmList)
@@ -127,14 +150,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="packet">A packet that contains game data information.</param>
         private void OnGameData(NetworkPacket packet)
         {
-            GameData gameData = new GameData(packet.DataArray);
-            if (connections.ContainsKey(packet.Destination))
-            {
-                lock (gameDataQueue)
-                {
-                    gameDataQueue.Enqueue(new Tuple<ConnectionID, GameData>(connections[packet.Destination], gameData));
-                }
-            }
+            gameDataUpdater(new GameData(packet.DataArray));
             return;
         }
 
@@ -154,8 +170,8 @@ namespace OceanMars.Common.NetCode
         private void onPing(NetworkPacket packet)
         {
             PingPacket ps = new PingPacket(packet.Destination);
-            nw.SendPacket(ps); //ACK the ping
-            this.globalStats.sentPkts++;
+            //nw.SendPacket(ps); //ACK the ping
+            //this.globalStats.sentPkts++;
         }
         
         /// <summary>

@@ -7,14 +7,34 @@ namespace OceanMars.Common.NetCode
 {
     public static class NetTest
     {
-        public static NetworkClient c = new NetworkClient();
+        public static NetworkClient c;
         //public static RawClient c1 = new RawClient();
         //public static RawClient c2 = new RawClient();
         //public static RawClient c3 = new RawClient();
-        public static NetworkServer s = new NetworkServer(9999);
+        public static NetworkServer s;
         //Netcode testing suite... or just a template
         public static void Main(string[] args)
         {
+            try
+            {
+                c = new NetworkClient();
+            }
+            catch (Exception error)
+            {
+                Debug.WriteLine("Error occurred creating client: {0}", new object[] { error.Message });
+                throw error;
+            }
+
+            try
+            {
+                s = new NetworkServer(9999);
+            }
+            catch (Exception error)
+            {
+                Debug.WriteLine("Error occurred creating server: {0}", new object[] { error.Message });
+                throw error;
+            }
+
             //while (true)
             //{
             //    if (s.getCMD().Count > 0)
@@ -39,7 +59,7 @@ namespace OceanMars.Common.NetCode
             //    s.broadcastSC(l);
             //    Thread.Sleep(2000);
             //}
-            c.Connect("127.0.0.1", 9999);
+            c.Connect("192.168.11.33", 9999);
             //c1.connect("127.0.0.1", 9999);
             //c2.connect("127.0.0.1", 9999);
             //c3.connect("127.0.0.1", 9999);

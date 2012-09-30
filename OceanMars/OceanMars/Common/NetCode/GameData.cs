@@ -6,7 +6,7 @@ using System.IO;
 
 namespace OceanMars.Common.NetCode
 {
-    public class GameData
+    public class GameData : IMarshable
     {
 
          /// <summary>
