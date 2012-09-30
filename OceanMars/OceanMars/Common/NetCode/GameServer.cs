@@ -40,13 +40,22 @@ namespace OceanMars.Common.NetCode
             private set;
         }
 
+        /// <summary>
+        /// Whether or not this GameServer represents a host.
+        /// </summary>
+        public bool IsHosting
+        {
+            get;
+            private set;
+        }
+
         public List<Player> Players;
 
         /// <summary>
         /// Create a new GameServer.
         /// </summary>
         /// <param name="port">The port to create the GameServer on.</param>
-        public GameServer(int port)
+        public GameServer(int port, bool isHosting)
         {
             GameState = new State();
             Players = new List<Player>();
@@ -55,6 +64,7 @@ namespace OceanMars.Common.NetCode
             //We first give control to the Lobby
             GameLobby = new Lobby(this);
             GameNetworkServer.RegisterGameDataUpdater(GameLobby.UpdateGameState);
+            IsHosting = isHosting;
 
             //Once we are done with the lobby we have it 
             //hand off it's connections and player setup
