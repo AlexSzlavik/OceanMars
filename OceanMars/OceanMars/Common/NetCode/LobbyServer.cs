@@ -48,10 +48,8 @@ namespace OceanMars.Common.NetCode
                     {
                         player = new Player(gameData.ConnectionInfo, Game);
                     }
-                    response = new GameData(GameData.GameDataType.Connect, player.PlayerID);
-                    Game.Network.SignalGameData(response, gameData.ConnectionInfo);
-
-                    // TODO: Re-broadcast changes to clients
+                    response = new GameData(GameData.GameDataType.Connect, player.PlayerID, (int)GameData.ConnectionDetails.IdReqest);
+                    Game.Network.BroadCastGameData(response);
 
                     break;
                 case GameData.ConnectionDetails.Disconnected:
@@ -60,7 +58,8 @@ namespace OceanMars.Common.NetCode
                     {
                         Game.UnregisterPlayer(player);
 
-                        // TODO: Re-broadcast changes to clients
+                        response = new GameData(GameData.GameDataType.Connect,player.PlayerID,(int)GameData.ConnectionDetails.Disconnected);
+                        Game.Network.BroadCastGameData(response);
 
                     }
                     break;

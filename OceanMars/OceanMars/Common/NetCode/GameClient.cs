@@ -73,6 +73,18 @@ namespace OceanMars.Common.NetCode
             throw new NotImplementedException();
         }
 
+
+        /// <summary>
+        /// User Level connection method
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        public void ConnectToGame(String host, int port)
+        {
+            Network.Connect(host, port);
+            Lobby.JoinLobby();
+        }
+
     }
 
 }
