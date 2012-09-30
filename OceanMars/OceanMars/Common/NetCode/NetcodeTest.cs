@@ -67,7 +67,7 @@ namespace OceanMars.Common.NetCode
             //c3.connect("127.0.0.1", 9999);
 
             Timer t = new Timer(NetTest.doPing, new AutoResetEvent(false), 0, 2000);
-            Thread.Sleep(3000);
+            Thread.Sleep(5000);
             c.Lobby.SelectCharacter(1337);
             c.Lobby.LockCharacter();
 
