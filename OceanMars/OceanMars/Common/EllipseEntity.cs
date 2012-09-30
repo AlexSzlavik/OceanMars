@@ -151,6 +151,7 @@ namespace OceanMars.Common
             //Assumes that the state checks velocity to see if anything is actually moving
             //Assumes that the state checks AABBs to see if testing collisions makes sense
 
+            bool hasCollidedOnce = false;
             while (velocity.Length() >= FUZZY_EPSILON)
             {
                 Vector2 normalizedVelocity = new Vector2(0, 0);
@@ -246,8 +247,8 @@ namespace OceanMars.Common
                         if (t >= 0 && t <= velocity.Length() &&
                             (t < distanceToNearest || !hasCollided))
                         {
-
                             distanceToNearest = t;
+                            hasCollidedOnce = true;
                             hasCollided = true;
                             shortestSlider = slider;
                             shortestSliderNormal = sliderNormal;
@@ -294,6 +295,8 @@ namespace OceanMars.Common
                     break;
                 }
             }
+            if (!hasCollidedOnce)
+                inAir = true;
         }
     }
 }

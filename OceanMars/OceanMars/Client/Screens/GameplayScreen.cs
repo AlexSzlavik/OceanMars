@@ -146,6 +146,8 @@ namespace SkyCrane.Screens
             {
                 Vector2 movement = Vector2.Zero;
 
+                stillHoldingJump |= context.avatar.inAir;
+
                 if (stillHoldingJump &&
                     (keyboardState.IsKeyUp(Keys.Space) && gamePadState.Buttons.A == ButtonState.Released))
                     stillHoldingJump = false;
