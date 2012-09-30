@@ -13,26 +13,25 @@ namespace OceanMars.Common
                 double angle = 0;
                 Vector2 centre = new Vector2 (0, 0);
 
+                friction = 0.90f;
+
                 // Calculate the distance between two points for scale
                 length = Math.Sqrt(Math.Pow((point2.Y - point1.Y), 2) + Math.Pow((point2.X - point1.X), 2));
-                System.Diagnostics.Debug.WriteLine(length);
 
-                // Calculate the angle at which the line is, relative to horizontal
-                if (point1.Y < point2.Y)
-                {
-                    angle = ( 2* Math.PI - Math.Asin((point2.Y-point1.Y)/length) );
-                }
-                else
-                {
-                    angle = (Math.Asin((point1.Y - point2.Y) / length));
-                }
+                Vector2 intendedVec = point2 - point1;
+                intendedVec.Normalize();
+                Vector2 actualVec = Vector2.UnitX;
 
+                // Calculate angle between vectors
+                angle = Math.Acos(Vector2.Dot(intendedVec, actualVec));
+                float sign = Vector3.Cross(new Vector3(intendedVec.X, intendedVec.Y, 0),
+                    new Vector3(actualVec.X, actualVec.Y, 0)).Z;
+
+                if (sign < 0) angle = -angle;
                 
                 // Calculate the distance from the centre of the line to the origin
                 centre.X = (point1.X + point2.X) / 2;
-                System.Diagnostics.Debug.WriteLine(centre.X);
                 centre.Y = (point1.Y + point2.Y) / 2;
-                System.Diagnostics.Debug.WriteLine(centre.Y);
                 
                 // Apply the transforms
                 this.transform =

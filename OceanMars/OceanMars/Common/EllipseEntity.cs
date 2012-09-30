@@ -155,6 +155,7 @@ namespace OceanMars.Common
             Vector2 shortestSliderNormal = new Vector2(0, 0);
             Vector2 shortestSliderIntersectionPoint = new Vector2(0, 0);
             float distanceToNearest = -1;
+            SliderEntity slider = null;
 
             while (velocity.Length() >= FUZZY_EPSILON)
             {
@@ -163,7 +164,7 @@ namespace OceanMars.Common
                 {
                     if (entity is SliderEntity)
                     {
-                        SliderEntity slider = (SliderEntity)entity;
+                        slider = (SliderEntity)entity;
                         Vector2 lineIntersectionPoint = new Vector2(0, 0);
                         Matrix transformSliderToLocal = slider.worldTransform * inverseWorldTransform;
 
@@ -237,8 +238,13 @@ namespace OceanMars.Common
 
                 if (hasCollided)
                 {
-                    Vector3 newSource = new Vector3(distanceToNearest * normalizedVelocity.X - BIG_FUZZY_EPSILON,
-                                                    distanceToNearest * normalizedVelocity.Y - BIG_FUZZY_EPSILON, 0);
+                    float dist = Math.Max(distanceToNearest - FUZZY_EPSILON, 0.0f);
+
+                    Vector2 truncatedVelocity = new Vector2(dist * normalizedVelocity.X,
+                                                            dist * normalizedVelocity.Y);
+
+                    Vector3 newSource = new Vector3(truncatedVelocity.X,
+                                                    truncatedVelocity.Y, 0);
                     transform = transform * Matrix.CreateTranslation(newSource);
 
                     //new Vector2(newSource.X, newSource.Y)
@@ -246,7 +252,9 @@ namespace OceanMars.Common
                                                         velocity, shortestSliderNormal);
                     shortestSliderNormal = shortestSliderNormal / shortestSliderNormal.Length() * t;
                     velocity = velocity + shortestSliderNormal - shortestSliderIntersectionPoint;
-                    //System.Diagnostics.Debug.WriteLine(Vector2.Dot(shortestSliderNormal, velocity));
+
+                    velocity = slider == null ? velocity : slider.applyFriction(velocity);
+                    System.Diagnostics.Debug.WriteLine(velocity);
 
                 }
                 else
