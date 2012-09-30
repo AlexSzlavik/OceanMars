@@ -91,7 +91,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// The id of the player that performed the action.
         /// </summary>
-        public int PlayerId
+        public int PlayerID
         {
             get;
             set;
@@ -123,7 +123,7 @@ namespace OceanMars.Common.NetCode
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream))
                 {
                     Type = (GameDataType)binaryReader.ReadByte();
-                    PlayerId = (int)binaryReader.ReadByte();
+                    PlayerID = (int)binaryReader.ReadByte();
                     EventDetail = (int)binaryReader.ReadByte();
                 }
             }
@@ -140,7 +140,7 @@ namespace OceanMars.Common.NetCode
         public GameData(GameDataType gameDataType, int playerId = 0, int eventDetail = 0)
         {
             Type = gameDataType;
-            PlayerId = playerId;
+            PlayerID = playerId;
             EventDetail = eventDetail;
             return;
         }
@@ -156,7 +156,7 @@ namespace OceanMars.Common.NetCode
                 using (BinaryWriter binaryWriter = new BinaryWriter(memoryStream))
                 {
                     binaryWriter.Write((byte)Type);
-                    binaryWriter.Write((byte)PlayerId);
+                    binaryWriter.Write((byte)PlayerID);
                     binaryWriter.Write((byte)EventDetail);
                     return memoryStream.ToArray();
                 }

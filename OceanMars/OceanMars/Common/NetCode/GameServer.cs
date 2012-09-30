@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace OceanMars.Common.NetCode
 {
@@ -40,11 +42,15 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Retrieve a player from a connection ID.
         /// </summary>
-        /// <param name="connectionID">The connection ID to fetch a player ID for.</param>
+        /// <param name="connectionID">The connection ID to fetch a player ID for. Null will return the LocalPlayer.</param>
         /// <returns>A player mapped to the provided connection ID. If the connection was not mapped to a player, returns null.</returns>
         public Player ConnectionIDToPlayer(ConnectionID connectionID)
         {
-            if (ConnectionIDToPlayerMap.ContainsKey(connectionID))
+            if (connectionID == null)
+            {
+                return LocalPlayer;
+            }
+            else if (ConnectionIDToPlayerMap.ContainsKey(connectionID))
             {
                 return ConnectionIDToPlayerMap[connectionID];
             }
@@ -96,7 +102,7 @@ namespace OceanMars.Common.NetCode
         public GameServer(int port) : base(new NetworkServer(port))
         {
             availableIDs = new Stack<int>();
-            for (int i = MAX_PLAYERS - 1; i > 0; i--) // Add id's to the players
+            for (int i = MAX_PLAYERS - 1; i >= 0; i--) // Add id's to the players
             {
                 availableIDs.Push(i);
             }
@@ -109,6 +115,7 @@ namespace OceanMars.Common.NetCode
 
             // Once we're done with the lobby, the connections and players will be handed off to the game and the GameDataUpdater re-registered to GameServer.UpdateGameState
 
+            LocalPlayer = new Player(null, this); // Create and register self as a player (do this last as it needs access to the completed GameBase)
             return;
         }
 
@@ -120,25 +127,28 @@ namespace OceanMars.Common.NetCode
         public override int RegisterPlayer(Player player)
         {
             PlayerToConnectionIDMap.Add(player, player.ConnectionID);
-            ConnectionIDToPlayerMap.Add(player.ConnectionID, player);
-            return availableIDs.Pop();
+            if (player.ConnectionID != null) // Check if we're registering the local player
+            {
+                ConnectionIDToPlayerMap.Add(player.ConnectionID, player);
+            }
+            int playerID = availableIDs.Pop();
+            players[playerID] = player;
+            return playerID;
         }
 
         /// <summary>
         /// Unregister a player from the game server.
         /// </summary>
-        /// <param name="player">The player to remove from the game server.</param>
+        /// <param name="player">The player to remove from the game client.</param>
         public override void UnregisterPlayer(Player player)
         {
-            if (player != null)
+            availableIDs.Push(player.PlayerID);
+            PlayerToConnectionIDMap.Remove(player);
+            if (player.ConnectionID != null) // Don't unregister the local player as he's not in this list already
             {
-                availableIDs.Push(player.PlayerID);
-                PlayerToConnectionIDMap.Remove(player);
-                if (player.ConnectionID != null)
-                {
-                    ConnectionIDToPlayerMap.Remove(player.ConnectionID);
-                }
+                ConnectionIDToPlayerMap.Remove(player.ConnectionID);
             }
+            base.UnregisterPlayer(player);
             return;
         }
 

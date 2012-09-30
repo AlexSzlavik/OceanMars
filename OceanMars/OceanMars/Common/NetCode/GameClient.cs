@@ -60,16 +60,8 @@ namespace OceanMars.Common.NetCode
         /// <returns>Returns the ID of the player to register.</returns>
         public override int RegisterPlayer(Player player)
         {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Unregister a player from the game client.
-        /// </summary>
-        /// <param name="player">The player to remove from the game client.</param>
-        public override void UnregisterPlayer(Player player)
-        {
-            throw new NotImplementedException();
+            players[player.PlayerID] = player;
+            return player.PlayerID;
         }
 
         /// <summary>
