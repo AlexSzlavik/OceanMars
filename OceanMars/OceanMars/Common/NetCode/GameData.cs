@@ -35,7 +35,17 @@ namespace OceanMars.Common.NetCode
             /// <summary>
             /// Additional information related to movement
             /// </summary>
-            Movement
+            Movement,
+
+            /// <summary>
+            /// Player transform information
+            /// </summary>
+            PlayerTransform,
+
+            /// <summary>
+            /// Server sending Initialization information (level and player) to a client
+            /// </summary>
+            InitClientState
 
         }
 

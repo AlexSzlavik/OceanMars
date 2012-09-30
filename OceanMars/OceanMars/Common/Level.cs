@@ -10,6 +10,8 @@ namespace OceanMars.Common
 {
     public class Level : Entity
     {
+        public List<SpawnPointEntity> spawnPoints = new List<SpawnPointEntity>();
+
         public Level(Entity parent, List<Vector2[]> vectorList) : base (new Vector2(0, 0), parent)
         {
             constructWalls(vectorList);
@@ -41,6 +43,7 @@ namespace OceanMars.Common
             {
                 s = new SpawnPointEntity(this, v[i]);
                 this.addChild(s);
+                spawnPoints.Add(s);
             }
 
             // Next, create the set of walls

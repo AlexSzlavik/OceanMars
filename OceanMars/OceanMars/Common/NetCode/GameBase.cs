@@ -110,20 +110,7 @@ namespace OceanMars.Common.NetCode
         }
 
         public abstract void sendGameStates();
-
-        public void commitGameStates()
-        {
-            foreach (GameData gs in GameStatesToCommit)
-            {
-                if (gs.Type == GameData.GameDataType.Movement)
-                {
-                    int id = gs.TransformData.EntityID;
-                    GameState.entities[id].transform = gs.TransformData.matrix;
-                }
-            }
-
-            GameStatesToCommit.Clear();
-        }
+        public abstract void commitGameStates();
 
         /// <summary>
         /// Update the game state based on incoming game data.

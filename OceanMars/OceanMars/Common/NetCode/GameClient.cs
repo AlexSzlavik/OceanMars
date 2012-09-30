@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 
 namespace OceanMars.Common.NetCode
 {
@@ -9,6 +10,8 @@ namespace OceanMars.Common.NetCode
     /// </summary>
     public class GameClient : GameBase
     {
+
+        private Dictionary<int, int> PlayerIDToEntity = new Dictionary<int, int>();
 
         /// <summary>
         /// The client lobby associated with this game client.
@@ -55,6 +58,26 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
+        /// After choosing the level and number of players, start the game
+        /// </summary>
+        public void setupGameState(int levelID, int myPlayerID)
+        {
+            Entity root = GameState.root;
+
+            Level level = new Level(root, LevelPack.levels[levelID]);
+            root.addChild(level);
+
+            for (int i = 0; i < players.Length; i++)
+            {
+                SpawnPointEntity sp = level.spawnPoints[i];
+                TestMan tm = new TestMan(sp, (i == myPlayerID));
+
+                PlayerIDToEntity[i] = tm.id;
+                sp.addChild(tm);
+            }
+        }
+
+        /// <summary>
         /// Register a new player with the game client.
         /// </summary>
         /// <param name="player">The player to register with the game client.</param>
@@ -72,6 +95,29 @@ namespace OceanMars.Common.NetCode
             GameStatesToSend.Clear();
         }
 
+        public override void commitGameStates()
+        {
+            foreach (GameData gs in GameStatesToCommit)
+            {
+                if (gs.Type == GameData.GameDataType.Movement)
+                {
+                    int id = gs.TransformData.EntityID;
+                    GameState.entities[id].transform = gs.TransformData.getMatrix();
+                }
+                else if (gs.Type == GameData.GameDataType.PlayerTransform)
+                {
+                    int id = PlayerIDToEntity[gs.TransformData.EntityID];
+                    GameState.entities[id].transform = gs.TransformData.getMatrix();
+                }
+                else if (gs.Type == GameData.GameDataType.InitClientState)
+                {
+                    setupGameState(gs.EventDetail, gs.PlayerID);
+                    // START the game!!
+                }
+            }
+
+            GameStatesToCommit.Clear();
+        }
     }
 
 }
