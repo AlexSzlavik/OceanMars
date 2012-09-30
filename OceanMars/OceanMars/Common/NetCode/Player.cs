@@ -88,6 +88,15 @@ namespace OceanMars.Common.NetCode
             set;
         }
 
+        /// <summary>
+        /// Boolean to check whether this players Selection is locked
+        /// </summary>
+        public bool CharachterLocked
+        {
+            get;
+            set;
+        }
+
         #endregion
 
         /// <summary>

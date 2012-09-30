@@ -60,6 +60,9 @@ namespace OceanMars.Common.NetCode
                 case GameData.GameDataType.SelectCharacter:
                     OnSelectCharacter(gameData);
                     break;
+                case GameData.GameDataType.LockCharacter:
+                    onCharacterLock(gameData);
+                    break;
             }
             return;
         }
@@ -104,5 +107,16 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
+        /// <summary>
+        /// Hanldes the character lock request
+        /// </summary>
+        /// <param name="gameData"></param>
+        private void onCharacterLock(GameData gameData)
+        {
+            Player player = GameServer.Players[Player.ConnectionIDToPlayerID(gameData.ConnectionInfo)];
+            player.CharachterLocked = true;
+            GameServer.GameNetworkServer.BroadCastGameData(new GameData(GameData.GameDataType.LockCharacter,player.PlayerID));
+            return;
+        }
     }
 }
