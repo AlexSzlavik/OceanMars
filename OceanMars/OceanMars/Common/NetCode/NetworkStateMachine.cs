@@ -85,7 +85,7 @@ namespace OceanMars.Common.NetCode
             /// <summary>
             /// The client is dropping.
             /// </summary>
-            CLIENTDROPPING,
+            CLIENTPINGING,
 
             /// <summary>
             /// Client received a packet containing game data.
@@ -106,7 +106,8 @@ namespace OceanMars.Common.NetCode
             SERVERDISCONNECTION,
             CONNECTIONDISCONNECT,
             CONNECTIONTIMEOUT,
-            CLIENTCONNECTED_SYNCING
+            CLIENTCONNECTED_SYNCING,
+            CLIENTTIMEOUT
 
         }
 
@@ -168,7 +169,7 @@ namespace OceanMars.Common.NetCode
             catch (Exception error)
             {
                 Debug.WriteLine("You managed to break the NetStateMachine. Congratulations, asshole: {0}", new Object[] {error.Message});
-                Debug.WriteLine("Violating Transition: {0} - {1} - {2}",new Object[] {CurrentState,transEvent,packet.Type});
+                Debug.WriteLine("Violating Transition: {0} - {1} - {2}",new Object[] {CurrentState,transEvent,packet});
                 throw error;
             }
             return;

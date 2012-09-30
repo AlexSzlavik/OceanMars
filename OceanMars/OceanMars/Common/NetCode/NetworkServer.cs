@@ -154,8 +154,8 @@ namespace OceanMars.Common.NetCode
         private void onPing(NetworkPacket packet)
         {
             PingPacket ps = new PingPacket(packet.Destination);
-            nw.SendPacket(ps); //ACK the ping
-            this.globalStats.sentPkts++;
+            //nw.SendPacket(ps); //ACK the ping
+            //this.globalStats.sentPkts++;
         }
         
         /// <summary>
