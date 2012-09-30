@@ -37,6 +37,7 @@ namespace OceanMars.Common.NetCode
             networkStateMachine = new NetworkStateMachine(startingState);
             RegisterStateMachineTransitions();
             continueRunning = true;
+            gameDataUpdater = null; // Set this to null initially
             return;
         }
 

@@ -29,43 +29,33 @@ namespace OceanMars.Common.NetCode
         #region Member Variables
 
         private Thread serverThread; // Thread used to host the server
+        private Timer TimeoutTimer;
+        private ServerStats serverStats;
+        private Dictionary<IPEndPoint, ConnectionID> connections;
 
         // Timeout related constants
         private const int TIMEOUT_INITIAL_DELAY = 2000;
         private const int TIMEOUT_PERIOD = 1000;
         private const int MAX_MISSED_SYNCS = 10;
-
-        private Timer TimeoutTimer;
-
-        private ServerStats globalStats = new ServerStats();
-
+        
         #endregion
-
-        //Connection state
-        Dictionary<IPEndPoint, ConnectionID> connections = new Dictionary<IPEndPoint, ConnectionID>();
 
         /// <summary>
         /// Create a new network server.
         /// </summary>
         /// <param name="gameDataUpdater">The function to use to update the game when receiving game packets.</param>
         /// <param name="port">The port to create the network server on.</param>
-        public NetworkServer(int port)
-            : base(NetworkStateMachine.NetworkState.SERVERSTART)
+        public NetworkServer(int port) : base(NetworkStateMachine.NetworkState.SERVERSTART)
         {
-            serverThread = new Thread(ServerMainLoop);
-            serverThread.Name = "Main Server";
-            serverThread.Priority = ThreadPriority.AboveNormal;
-            serverThread.IsBackground = true;
-
-            gameDataUpdater = null;
+            serverStats = new ServerStats(); // Instantiate some basic variables
+            connections = new Dictionary<IPEndPoint, ConnectionID>();
 
             Debug.WriteLine("Starting Server");
+
+            serverThread = new Thread(ServerMainLoop); // Create the new thread and associated network worker
+            serverThread.IsBackground = true;
             networkWorker = new NetworkWorker(port);
             serverThread.Start();
-
-            networkStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.SERVERSTARTED, null);
-
-            TimeoutTimer = new Timer(TimeoutTimerTicked, new AutoResetEvent(false), TIMEOUT_INITIAL_DELAY, TIMEOUT_PERIOD);
             return;
         }
 
@@ -73,27 +63,36 @@ namespace OceanMars.Common.NetCode
         /// The sync timer timed out, we need to send out
         /// Syncs to all players
         /// </summary>
-        /// <param name="eventArgs"></param>
+        /// <param name="eventArgs">The event arguments for this timer tick.</param>
         private void TimeoutTimerTicked(Object eventArgs)
         {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(timerWork));
+            ThreadPool.QueueUserWorkItem(new WaitCallback(SendTimerSync));
             return;
         }
 
-        private void timerWork(Object data)
+        /// <summary>
+        /// Send Sync packets based on timer ticks.
+        /// </summary>
+        /// <param name="eventArgs">The event arguments passed into this function.</param>
+        private void SendTimerSync(Object eventArgs)
         {
             List<ConnectionID> rmList = new List<ConnectionID>();
             foreach (IPEndPoint ep in connections.Keys)
             {
                 SyncPacket ps = new SyncPacket(ep);
                 this.networkWorker.SendPacket(ps);
-                this.globalStats.sentPkts++;
+                this.serverStats.sentPkts++;
                 connections[ep].changeState(NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING);
                 if (connections[ep].MissedSyncs >= MAX_MISSED_SYNCS)
+                {
                     rmList.Add(connections[ep]);
+                }
             }
-            foreach (ConnectionID con in rmList)
-                connections.Remove(con.endpt);
+            for (int i = 0; i < rmList.Count; i++)
+            {
+                connections.Remove(rmList[i].endpt);
+            }
+            return;
         }
 
 
@@ -103,18 +102,19 @@ namespace OceanMars.Common.NetCode
         protected override void RegisterStateMachineTransitions()
         {
             networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERSTART, NetworkStateMachine.TransitionEvent.SERVERSTARTED, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, delegate { });
-            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERHANDSHAKE, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onHandshake);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERHANDSHAKE, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnHandshake);
             networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERGAMEDATA, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnGameData);
-            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERPING, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onPing);
-            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, onSync);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERPING, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnPing);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnSync);
+            networkStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.SERVERSTARTED, null);
             return;
         }
 
         /// <summary>
-        /// A client wants to connect, so they initiated a handshake
+        /// After receiving a handshake, respond to a client with another handshake.
         /// </summary>
         /// <param name="packet"></param>
-        private void onHandshake(NetworkPacket packet)
+        private void OnHandshake(NetworkPacket packet)
         {
             if (!connections.ContainsKey(packet.Destination))
             {
@@ -123,8 +123,9 @@ namespace OceanMars.Common.NetCode
                 Debug.WriteLine("Server - Added Connection: " + connections[packet.Destination].ID);
                 HandshakePacket hs = new HandshakePacket(packet.Destination);
                 networkWorker.SendPacket(hs);
-                this.globalStats.sentPkts++;
+                this.serverStats.sentPkts++;
             }
+            return;
         }
 
         /// <summary>
@@ -143,28 +144,31 @@ namespace OceanMars.Common.NetCode
         /// Handles Sync acks from clients
         /// </summary>
         /// <param name="packet"></param>
-        private void onSync(NetworkPacket packet)
+        private void OnSync(NetworkPacket packet)
         {
             connections[packet.Destination].changeState(NetworkStateMachine.TransitionEvent.SERVERSYNC);
+            return;
         }
 
         /// <summary>
         /// Handles the acking of a ping from clients
         /// </summary>
         /// <param name="packet"></param>
-        private void onPing(NetworkPacket packet)
+        private void OnPing(NetworkPacket packet)
         {
             PingPacket ps = new PingPacket(packet.Destination);
             networkWorker.SendPacket(ps); //ACK the ping
-            this.globalStats.sentPkts++;
+            this.serverStats.sentPkts++;
+            return;
         }
 
         /// <summary>
-        /// Graceful shutdown method
+        /// Gracefully shut down the network server.
         /// </summary>
-        public void exit()
+        public void Exit()
         {
             this.continueRunning = false;
+            return;
         }
 
         /// <summary>
@@ -173,6 +177,8 @@ namespace OceanMars.Common.NetCode
         private void ServerMainLoop()
         {
             NetworkPacket packet;
+            TimeoutTimer = new Timer(TimeoutTimerTicked, new AutoResetEvent(false), TIMEOUT_INITIAL_DELAY, TIMEOUT_PERIOD);
+            
             while (this.continueRunning)
             {
                 packet = networkWorker.ReceivePacket();
@@ -186,7 +192,7 @@ namespace OceanMars.Common.NetCode
                 }
 
                 //We actually received something, increase stats
-                this.globalStats.rcvdPkts++;
+                this.serverStats.rcvdPkts++;
 
                 //Switch on the packet type to create the correct state transition
                 switch (packet.Type)
@@ -207,8 +213,9 @@ namespace OceanMars.Common.NetCode
                         continue;
                 }
                 this.networkStateMachine.DoTransition(transitionEvent, packet);
-                this.globalStats.pktsProcessed++;
+                this.serverStats.pktsProcessed++;
             }
+            return;
         }
 
     #endregion
@@ -217,7 +224,7 @@ namespace OceanMars.Common.NetCode
 
         public ServerStats getStats()
         {
-            return this.globalStats;
+            return this.serverStats;
         }
 
         public void BroadCastGameData(List<GameData> gameDataList)
@@ -244,11 +251,13 @@ namespace OceanMars.Common.NetCode
             {
                 SignalGameData(gameData, cid);
             }
+            return;
         }
 
         public void SignalGameData(GameData gameData, ConnectionID connectionID)
         {
             networkWorker.SendPacket(new GameDataPacket(connectionID.endpt, gameData));
+            return;
         }
 
     }

@@ -75,6 +75,7 @@ namespace OceanMars.Common.NetCode
             networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTGAMEDATA, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnGameData);
             networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTSYNC, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnSync);
             networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTTIMEOUT, NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, OnDisconnect);
+            networkStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTSTARTED, null);
             return;
         }
 
@@ -173,7 +174,6 @@ namespace OceanMars.Common.NetCode
         /// </summary>
         private void RunNetworkClientThread()
         {
-            networkStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTSTARTED, null);
             serverReadySemaphore.WaitOne();
             NetworkStateMachine.TransitionEvent transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSTARTED;
 
