@@ -208,9 +208,11 @@ namespace OceanMars.Common
 
                         if (distance > (velocity.Length() + ellipseRadiusVector.Length())) continue;
 
+                        bool overlap = false;
                         if (Math.Abs(distance) <= ellipseRadiusVector.Length())
                         {
                             lineIntersectionPoint = -sliderNormal * distance;
+                            overlap = true;
                         }
                         else
                         {
@@ -232,6 +234,12 @@ namespace OceanMars.Common
                             t = intersectEllipsoid(Vector3.Zero, new Vector3(ellipseRadiusVector.X, ellipseRadiusVector.Y, 1),
                                                               new Vector3(lineIntersectionPoint.X, lineIntersectionPoint.Y, 0),
                                                               new Vector3(-velocity.X, -velocity.Y, 0));
+                        }
+                        else if (overlap)
+                        {
+                            velocity = sliderNormal * ellipseRadiusVector.Length();
+                            normalizedVelocity = Vector2.Normalize(velocity);
+                            t = ellipseRadiusVector.Length();
                         }
 
                         //finally, are we intersecting?
