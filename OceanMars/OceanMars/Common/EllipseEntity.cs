@@ -221,6 +221,13 @@ namespace OceanMars.Common
                             hasCollided = true;
                             shortestSliderNormal = sliderNormal;
                             shortestSliderIntersectionPoint = lineIntersectionPoint;
+
+                            //TODO: SHOULD PROBABLY MOVE; MAKE A CONSTANT VAR
+                            //test if we're still jumping
+                            if (Vector2.Dot(sliderNormal, new Vector2(1, 0)) < 0.5f)
+                            {
+                                inAir = false;
+                            }
                         }
                     }
                     else //entity is EllipseEntity

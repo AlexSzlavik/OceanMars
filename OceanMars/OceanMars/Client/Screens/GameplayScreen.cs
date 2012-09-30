@@ -38,6 +38,7 @@ namespace SkyCrane.Screens
         ContentManager content;
         ServerlessState state = new ServerlessState(); // TODO: need to instantiate this from server connection in some way, and player
         View context;
+        bool stillJumping = false;
 
         #endregion
 
@@ -144,6 +145,9 @@ namespace SkyCrane.Screens
             {
                 Vector2 movement = Vector2.Zero;
 
+                if (stillJumping && gamePadState.Buttons.A == ButtonState.Released)
+                    stillJumping = false;
+
                 if (keyboardState.IsKeyDown(Keys.Left))
                     movement.X--;
 
@@ -156,10 +160,24 @@ namespace SkyCrane.Screens
                 if (keyboardState.IsKeyDown(Keys.Down))
                     movement.Y++;
 
-                /*if (keyboardState.IsKeyDown(Keys.X))
+                if (keyboardState.IsKeyDown(Keys.Space) ||
+                    gamePadState.Buttons.A == ButtonState.Pressed)
                 {
-                    context.avatar.transform = Matrix.CreateRotationZ(0.2f) * context.avatar.transform;
-                }*/
+                    if (!context.avatar.inAir ||
+                        (context.avatar.inAir &&
+                         stillJumping &&
+                         Math.Abs(context.avatar.velocity.Y) < context.avatar.maxVelocity))
+                    {
+                        context.avatar.velocity.Y -= context.avatar.jumpAcceleration;
+                        context.avatar.inAir = true;
+                        stillJumping = true;
+                    }
+                    else
+                    {
+                        stillJumping = false;
+                    }
+                }
+
 
                 Vector2 thumbstick = gamePadState.ThumbSticks.Left;
 
