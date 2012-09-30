@@ -99,6 +99,7 @@
     <Compile Include="Client\Screens\LevelEditPauseScreen.cs" />
     <Compile Include="Client\Screens\LevelEditScreen.cs" />
     <Compile Include="Client\Screens\MultiplayerMenuScreen.cs" />
+    <Compile Include="Client\SpawnPointSprite.cs" />
     <Compile Include="Client\TestWallSprite.cs" />
     <Compile Include="Client\DefaultLevelSprite.cs" />
     <Compile Include="Client\GameStateManager\GameScreen.cs" />
