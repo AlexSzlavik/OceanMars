@@ -146,6 +146,7 @@ namespace SkyCrane.Screens
             else
             {
                 Vector2 movement = Vector2.Zero;
+                float movementSpeed = context.avatar.inAir ? 0.25f : 1.0f;
 
                 stillHoldingJump |= context.avatar.inAir;
 
@@ -161,10 +162,10 @@ namespace SkyCrane.Screens
                     }
 
                 if (keyboardState.IsKeyDown(Keys.Left))
-                    movement.X--;
+                    movement.X -= movementSpeed;
 
                 if (keyboardState.IsKeyDown(Keys.Right))
-                    movement.X++;
+                    movement.X += movementSpeed;
 
                 //TODO: SLIDING VELOCITY CURRENTLY AFFECTS JUMP HEIGHT; IT SHOULDN'T
 
@@ -201,8 +202,8 @@ namespace SkyCrane.Screens
 
                 Vector2 thumbstick = gamePadState.ThumbSticks.Left;
 
-                movement.X += thumbstick.X;
-                movement.Y -= thumbstick.Y;
+                movement.X += thumbstick.X * movementSpeed;
+                movement.Y -= thumbstick.Y * movementSpeed;
 
                 if (movement.Length() > 1)
                     movement.Normalize();
