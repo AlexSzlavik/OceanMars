@@ -29,6 +29,7 @@ namespace OceanMars.Common.NetCode
         private NetworkWorker nw;
         private const int TIMEOUT_INITIAL_DELAY = 2000;
         private const int TIMEOUT_PERIOD = 1000;
+        private const int MAX_MISSED_SYNCS = 10;
 
         private Timer TimeoutTimer;
 
@@ -106,7 +107,7 @@ namespace OceanMars.Common.NetCode
                 this.nw.SendPacket(ps);
                 this.globalStats.sentPkts++;
                 connections[ep].changeState(NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING);
-                if (connections[ep].MissedSyncs >= 3)
+                if (connections[ep].MissedSyncs >= MAX_MISSED_SYNCS)
                     rmList.Add(connections[ep]);
             }
             foreach (ConnectionID con in rmList)
