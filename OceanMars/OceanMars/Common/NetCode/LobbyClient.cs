@@ -83,6 +83,7 @@ namespace OceanMars.Common.NetCode
         {
             //Do we want to actually join the lobby on top of joinging the Server?
             GameData changeRequest = new GameData(GameData.GameDataType.Connect, 0, (int)GameData.ConnectionDetails.IdReqest);
+            Game.Network.SendGameData(changeRequest);
         }
 
         /// <summary>
