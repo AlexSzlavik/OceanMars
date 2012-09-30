@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 
+//TODO: Move to PlayerMan
 namespace OceanMars.Common
 {
     class EllipseEntity : Entity

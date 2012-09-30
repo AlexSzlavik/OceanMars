@@ -12,12 +12,61 @@ namespace OceanMars.Common
 {
     class EditorMan : FreeEntity
     {
+        //TODO: Move all this ellipse crap to a high level entity, inherit from that
+        private const float FUZZY_EPSILON = 0.01f;
+        public Vector2 collisionEllipse;
+
         private Vector2? point1 = null;
         private Entity parent = null;
         private List<Vector2[]> walls = null;
+        private State state = null;
 
-        public EditorMan(Entity parent) : base(new Vector2(21, 21), parent) {
+        private float intersect(Vector2 planeOrigin, Vector2 planeNormal, Vector2 rayOrigin, Vector2 rayVector)
+        {
+            //Assuming normal and vector are normalized
+            float d = -Vector2.Dot(planeNormal, planeOrigin);
+            float numer = Vector2.Dot(planeNormal, rayOrigin) + d;
+            float denom = Vector2.Dot(planeNormal, rayVector);
+            return -(numer / denom);
+        }
+
+        float intersectEllipsoid(Vector3 center, Vector3 ellipsoid_radius, Vector3 ray_origin, Vector3 ray)
+        {
+            // Center around the ellipsoid
+            ray_origin.X = ray_origin.X - center.X;
+            ray_origin.Y = ray_origin.Y - center.Y;
+            ray_origin.Z = ray_origin.Z - center.Z;
+            Vector3 ray_normal = ray;
+            ray_normal.Normalize();
+
+            // Scale the ellipsoid and apply the quadratic equation
+            float a = ((ray_normal.X * ray_normal.X) / (ellipsoid_radius.X * ellipsoid_radius.X))
+                    + ((ray_normal.Y * ray_normal.Y) / (ellipsoid_radius.Y * ellipsoid_radius.Y))
+                    + ((ray_normal.Z * ray_normal.Z) / (ellipsoid_radius.Z * ellipsoid_radius.Z));
+            float b = ((2 * ray_origin.X * ray_normal.X) / (ellipsoid_radius.X * ellipsoid_radius.X))
+                    + ((2 * ray_origin.Y * ray_normal.Y) / (ellipsoid_radius.Y * ellipsoid_radius.Y))
+                    + ((2 * ray_origin.Z * ray_normal.Z) / (ellipsoid_radius.Z * ellipsoid_radius.Z));
+            float c = ((ray_origin.X * ray_origin.X) / (ellipsoid_radius.X * ellipsoid_radius.X))
+                    + ((ray_origin.Y * ray_origin.Y) / (ellipsoid_radius.Y * ellipsoid_radius.Y))
+                    + ((ray_origin.Z * ray_origin.Z) / (ellipsoid_radius.Z * ellipsoid_radius.Z))
+                    - 1;
+
+            float d = ((b * b) - (4 * a * c));
+
+            // Check for actual intersection (if b^2 - 4ac < 0)
+            if (d < 0) { return -1; }
+            else { d = (float)Math.Sqrt(d); }
+            float hit = (-b + d) / (2 * a);
+            float hitsecond = (-b - d) / (2 * a);
+
+            if (hit < hitsecond) { return hit; }
+            else { return hitsecond; }
+        }
+
+        public EditorMan(Entity parent, State state) : base(new Vector2(21, 21), parent) {
             this.parent = parent;
+            this.state = state;
+            collisionEllipse = new Vector2(21, 21) / 2.0f;
             walls = new List<Vector2[]>();
         }
 
@@ -78,6 +127,65 @@ namespace OceanMars.Common
             {
                 w = new TestWall(this, v[0], v[1]);
                 root.addChild(w);
+            }
+        }
+
+        private SliderEntity getCollidedWall()
+        {
+            SliderEntity collisionEntity = null;
+            foreach (Entity entity in state.entities.Values.ToList())
+            {
+                if (entity is SliderEntity)
+                {
+                    SliderEntity slider = (SliderEntity)entity;
+                    Vector2 lineIntersectionPoint = new Vector2(0, 0);
+                    Matrix transformSliderToLocal = slider.worldTransform * inverseWorldTransform;
+
+                    Vector2[] worldSliderEndpoints = {
+                        Vector2.Transform(slider.endPoints[0], slider.worldTransform),
+                        Vector2.Transform(slider.endPoints[1], slider.worldTransform)
+                                                };
+
+                    //find the SliderEntity's end points and normal
+                    Vector2[] sliderEndPoints = {
+                        Vector2.Transform(slider.endPoints[0], transformSliderToLocal),
+                        Vector2.Transform(slider.endPoints[1], transformSliderToLocal)
+                                                };
+
+                    //System.Diagnostics.Debug.WriteLine(sliderEndPoints[0].X + "," + sliderEndPoints[0].Y + "\n" + sliderEndPoints[1].X + "," + sliderEndPoints[1].Y + "\n");
+
+                    //TODO: Unit normal
+                    Vector2 sliderNormal = Vector2.Transform((sliderEndPoints[1] - sliderEndPoints[0]),
+                        Matrix.CreateRotationZ((float)(-Math.PI / 2.0f)));
+                    sliderNormal.Normalize();
+
+                    //Calculate the ellipse intersection point
+                    Vector2 ellipseRadiusVector = new Vector2(-sliderNormal.X * collisionEllipse.X,
+                                                             -sliderNormal.Y * collisionEllipse.Y);
+
+                    //is the plane embedded in ellipse?
+                    float distance = intersect(sliderEndPoints[0], sliderNormal, new Vector2(0, 0), -sliderNormal);
+                    
+                    // Check if we are even within range of hitting a damn thing
+                    if (distance < 0) continue;
+
+                    //return the first entity we hit
+                    if (Math.Abs(distance) <= ellipseRadiusVector.Length())
+                    {
+                        collisionEntity = slider;
+                        break;
+                    }
+                }
+            }
+            return collisionEntity;
+        }
+
+        public void deleteOverlappingWall()
+        {
+            SliderEntity wall = getCollidedWall();
+            if (wall != null)
+            {
+                System.Diagnostics.Debug.WriteLine(wall.id);
             }
         }
     }

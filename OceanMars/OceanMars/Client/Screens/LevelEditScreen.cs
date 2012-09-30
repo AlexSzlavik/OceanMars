@@ -196,10 +196,16 @@ namespace OceanMars.Client.Screens
                     ((FreeEntity)context.avatar).setBoostOn();
                 }
 
-                if (keyboardState.IsKeyUp(Keys.B) && 
+                if (keyboardState.IsKeyUp(Keys.B) &&
                     (gamePadState.Buttons.B == ButtonState.Released))
                 {
                     ((FreeEntity)context.avatar).setBoostOff();
+                }
+
+                if (keyboardState.IsKeyDown(Keys.X) ||
+                    gamePadState.Buttons.X == ButtonState.Pressed)
+                {
+                    ((EditorMan)context.avatar).deleteOverlappingWall();
                 }
 
 

@@ -12,7 +12,7 @@ namespace OceanMars.Common
 
         public LevelEditorState()
         {
-            player = new EditorMan(root);
+            player = new EditorMan(root, this);
 
             root.addChild(player);
 
