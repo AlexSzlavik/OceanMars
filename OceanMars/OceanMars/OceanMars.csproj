@@ -119,7 +119,7 @@
     <Compile Include="Common\DefaultLevel.cs" />
     <Compile Include="Common\EllipseEntity.cs" />
     <Compile Include="Common\Entity.cs" />
-    <Compile Include="Common\Lobby.cs" />
+    <Compile Include="Common\NetCode\Lobby.cs" />
     <Compile Include="Common\NetCode\GameServerStateMachine.cs" />
     <Compile Include="Common\NetCode\GameData.cs" />
     <Compile Include="Common\NetCode\GameServer.cs" />

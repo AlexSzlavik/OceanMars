@@ -29,7 +29,7 @@ namespace OceanMars.Common.NetCode
             try
             {
                 //s = new NetworkServer(9999);
-                gs = new GameServer(9999);
+                gs = new GameServer(9999, true);
             }
             catch (Exception error)
             {
