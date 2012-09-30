@@ -186,23 +186,23 @@ namespace OceanMars.Common.NetCode
             {
                 if (i == gameData.PlayerID) continue;
                 Network.SignalGameData(gameData, PlayerToConnectionID(players[i]));
-                GameStatesToCommit.Add(gameData);
+                gameStatesToCommit.Add(gameData);
             }
         }
 
-        public override void sendGameStates()
+        public override void SendGameStates()
         {
-            List<GameData> lgd = new List<GameData>(GameStatesToSend.Values);
+            List<GameData> lgd = new List<GameData>(gameStatesToSend.Values);
             foreach(Player p in players) {
                 Network.SignalGameData(lgd, PlayerToConnectionID(p));
             }
             
-            GameStatesToSend.Clear();
+            gameStatesToSend.Clear();
         }
 
-        public override void commitGameStates()
+        public override void CommitGameStates()
         {
-            foreach (GameData gs in GameStatesToCommit)
+            foreach (GameData gs in gameStatesToCommit)
             {
                 if (gs.Type == GameData.GameDataType.Movement)
                 {

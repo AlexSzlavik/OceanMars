@@ -105,7 +105,7 @@ namespace OceanMars.Common
         {
             foreach (TransformChangeListener tcl in tcListeners)
             {
-                tcl.handleTransformChange(this);
+                tcl.HandleTransformChange(this);
             }
         }
         
