@@ -119,6 +119,7 @@
     <Compile Include="Client\TestManSprite.cs" />
     <Compile Include="Client\Sprite.cs" />
     <Compile Include="Client\View.cs" />
+    <Compile Include="Common\SpawnPointEntity.cs" />
     <Compile Include="Common\FreeEntity.cs" />
     <Compile Include="Common\DefaultLevel.cs" />
     <Compile Include="Common\EditorMan.cs" />

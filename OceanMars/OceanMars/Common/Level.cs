@@ -12,12 +12,7 @@ namespace OceanMars.Common
     {
         public Level(Entity parent, List<Vector2[]> vectorList) : base (new Vector2(0, 0), parent)
         {
-            TestWall w = null;
-            foreach (Vector2[] v in vectorList)
-            {
-                w = new TestWall(this, v[0], v[1]);
-                this.addChild(w);
-            }
+            constructWalls(vectorList);
         }
 
         public Level(Entity parent, string filePath)
@@ -30,11 +25,28 @@ namespace OceanMars.Common
             vectorList = (List<Vector2[]>)deserializer.Deserialize(textReader);
             textReader.Close();
 
-            //this.addChild(new Level(this, vectorList));
 
+            constructWalls(vectorList);
+        }
+
+        private void constructWalls(List<Vector2[]> vectorList)
+        {
             TestWall w = null;
-            foreach (Vector2[] v in vectorList)
+            SpawnPointEntity s = null;
+            Vector2[] v;
+
+            // First, create the set of spawn points
+            v = vectorList[0];
+            for (int i = 0; i < v.Length; i++)
             {
+                s = new SpawnPointEntity(this, v[i]);
+                this.addChild(s);
+            }
+
+            // Next, create the set of walls
+            for (int i = 1; i < vectorList.Count; i++ )
+            {
+                v = vectorList[i];
                 w = new TestWall(this, v[0], v[1]);
                 this.addChild(w);
             }
