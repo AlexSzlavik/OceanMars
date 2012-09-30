@@ -39,6 +39,7 @@ namespace SkyCrane.Screens
         ServerlessState state = new ServerlessState(); // TODO: need to instantiate this from server connection in some way, and player
         View context;
         bool stillJumping = false;
+        bool stillHoldingJump = false;
 
         #endregion
 
@@ -145,9 +146,9 @@ namespace SkyCrane.Screens
             {
                 Vector2 movement = Vector2.Zero;
 
-                if (stillJumping &&
+                if (stillHoldingJump &&
                     (keyboardState.IsKeyUp(Keys.Space) && gamePadState.Buttons.A == ButtonState.Released))
-                    stillJumping = false;
+                    stillHoldingJump = false;
 
                 if (keyboardState.IsKeyDown(Keys.Left))
                     movement.X--;
@@ -155,28 +156,33 @@ namespace SkyCrane.Screens
                 if (keyboardState.IsKeyDown(Keys.Right))
                     movement.X++;
 
-                if (keyboardState.IsKeyDown(Keys.Up))
-                    movement.Y--;
+                //TODO: SLIDING VELOCITY CURRENTLY AFFECTS JUMP HEIGHT; IT SHOULDN'T
 
-                if (keyboardState.IsKeyDown(Keys.Down))
-                    movement.Y++;
+                //if (keyboardState.IsKeyDown(Keys.Up))
+                //    movement.Y--;
+
+                //if (keyboardState.IsKeyDown(Keys.Down))
+                //    movement.Y++;
 
                 if (keyboardState.IsKeyDown(Keys.Space) ||
                     gamePadState.Buttons.A == ButtonState.Pressed)
                 {
-                    if (!context.avatar.inAir ||
-                        (context.avatar.inAir &&
-                         stillJumping &&
-                         Math.Abs(context.avatar.velocity.Y) < context.avatar.maxVelocity))
-                    {
-                        context.avatar.velocity.Y -= context.avatar.jumpAcceleration;
-                        context.avatar.inAir = true;
-                        stillJumping = true;
-                    }
-                    else
-                    {
-                        stillJumping = false;
-                    }
+                        if ((!context.avatar.inAir &&
+                             !stillHoldingJump) ||
+                            (context.avatar.inAir &&
+                             stillJumping &&
+                             stillHoldingJump &&
+                             Math.Abs(context.avatar.velocity.Y) < context.avatar.maxVelocity))
+                        {
+                            context.avatar.velocity.Y -= context.avatar.jumpAcceleration;
+                            context.avatar.inAir = true;
+                            stillJumping = true;
+                            stillHoldingJump = true;
+                        }
+                        else
+                        {
+                            stillJumping = false;
+                        }
                 }
 
 
