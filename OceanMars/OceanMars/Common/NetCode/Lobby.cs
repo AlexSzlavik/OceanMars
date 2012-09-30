@@ -70,11 +70,24 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">The game data related to the character joining the session.</param>
         private void OnPlayerConnect(GameData gameData)
         {
-            if (Player.ConnectionIDToPlayerID(gameData.ConnectionInfo) == -1)
+            switch ((GameData.ConnectionDetails)gameData.EventDetail)
             {
-                Player newPlayer = new Player(availableIDs.Pop(),gameData.ConnectionInfo, GameServer);
-                GameData response = new GameData(GameData.GameDataType.Connect, newPlayer.PlayerID);
-                GameServer.GameNetworkServer.SignalGameData(response, newPlayer.ConnectionID);
+                case GameData.ConnectionDetails.IdReqest:
+                    if (Player.ConnectionIDToPlayerID(gameData.ConnectionInfo) == -1)
+                    {
+                        Player newPlayer = new Player(availableIDs.Pop(),gameData.ConnectionInfo, GameServer);
+                        GameData response = new GameData(GameData.GameDataType.Connect, newPlayer.PlayerID);
+                        GameServer.GameNetworkServer.SignalGameData(response, newPlayer.ConnectionID);
+                    }
+                    break;
+                case GameData.ConnectionDetails.Connected:
+                    break;
+                case GameData.ConnectionDetails.Disconnected:
+                    break;
+                case GameData.ConnectionDetails.Dropped:
+                    break;
+                default:
+                    throw new ArgumentException();
             }
             return;
         }
