@@ -49,7 +49,7 @@ namespace OceanMars.Client
             
             spriteBatch.Begin(
                 SpriteSortMode.Deferred,
-                BlendState.Opaque,
+                BlendState.AlphaBlend,
                 null,
                 DepthStencilState.Default,
                 RasterizerState.CullNone,

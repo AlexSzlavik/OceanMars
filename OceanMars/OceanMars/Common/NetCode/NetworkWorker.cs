@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System;
 
 namespace OceanMars.Common.NetCode
 {
@@ -49,6 +50,8 @@ namespace OceanMars.Common.NetCode
         public void Exit()
         {
             continueRunning = false;
+            this.sendBuffer.Clear();
+            this.receiveBuffer.Clear();
             return;
         }
 
@@ -92,15 +95,24 @@ namespace OceanMars.Common.NetCode
             IPEndPoint serverAddress = new IPEndPoint(IPAddress.Any, 0);
             while (continueRunning)
             {
-                using (MemoryStream incomingPacketStream = new MemoryStream(this.Receive(ref serverAddress)))
-                {   
-                    NetworkPacket receivePacket = new NetworkPacket((NetworkPacket.PacketType)incomingPacketStream.ReadByte(), serverAddress);
-                    incomingPacketStream.Read(receivePacket.DataArray, 0, (int)incomingPacketStream.Length - 1);
-                    lock (receiveBuffer)
+                try
+                {
+                    using (MemoryStream incomingPacketStream = new MemoryStream(this.Receive(ref serverAddress)))
                     {
-                        receiveBuffer.Enqueue(receivePacket);
+                        NetworkPacket receivePacket = new NetworkPacket((NetworkPacket.PacketType)incomingPacketStream.ReadByte(), serverAddress);
+                        incomingPacketStream.Read(receivePacket.DataArray, 0, (int)incomingPacketStream.Length - 1);
+                        lock (receiveBuffer)
+                        {
+                            receiveBuffer.Enqueue(receivePacket);
+                        }
+                        receiveSemaphore.Release();
                     }
-                    receiveSemaphore.Release();
+                }
+                catch (SocketException exception) 
+                {
+                    //We should only come here when
+                    //A) Things go horrible wrong...
+                    //B) When we are disconnecting and this network worker needs to quit
                 }
             }
             return;
@@ -117,7 +129,13 @@ namespace OceanMars.Common.NetCode
                 lock (sendBuffer)
                 {
                     NetworkPacket sendPacket = sendBuffer.Dequeue();
-                    Send(sendPacket.DataArray, sendPacket.DataArray.Length, sendPacket.Destination);
+                    try
+                    {
+                        Send(sendPacket.DataArray, sendPacket.DataArray.Length, sendPacket.Destination);
+                    }
+                    catch (ObjectDisposedException exception)
+                    {
+                    }
                 }
             }
         }
