@@ -37,6 +37,7 @@ namespace OceanMars.Common.NetCode
         {
             Player p = new Player(nextPlayerId++, connection);
             Player.PlayerToConnectionMap.Add(p.PlayerID, connection);
+            Player.ConnectionToPlayerMap.Add(connection, p.PlayerID);
             return p;
         }
 
@@ -47,7 +48,10 @@ namespace OceanMars.Common.NetCode
         /// <returns></returns>
         public static ConnectionID PlayerToConnection(int playerId)
         {
-            return Player.PlayerToConnectionMap[playerId];
+            if(Player.PlayerToConnectionMap.ContainsKey(playerId))
+                return Player.PlayerToConnectionMap[playerId];
+            else
+                return null;
         }
 
         /// <summary>
@@ -57,7 +61,10 @@ namespace OceanMars.Common.NetCode
         /// <returns></returns>
         public static int ConnectionToPlayer(ConnectionID connection)
         {
-            return Player.ConnectionToPlayerMap[connection];
+            if(ConnectionToPlayerMap.ContainsKey(connection))
+                return Player.ConnectionToPlayerMap[connection];
+            else
+                return -1;
         }
 
         #endregion
