@@ -112,6 +112,7 @@ namespace OceanMars.Common.NetCode
 
             Lobby = new LobbyServer(this); // Give initial control to the lobby
             Network.RegisterGameDataUpdater(Lobby.UpdateLobbyState);
+            Network.RegisterGameDataUpdater(UpdateGameState);
 
             // Once we're done with the lobby, the connections and players will be handed off to the game and the GameDataUpdater re-registered to GameServer.UpdateGameState
 

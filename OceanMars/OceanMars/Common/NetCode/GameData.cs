@@ -30,7 +30,12 @@ namespace OceanMars.Common.NetCode
             /// <summary>
             /// The host has started the game.
             /// </summary>
-            GameStart
+            GameStart,
+
+            /// <summary>
+            /// Additional information related to movement
+            /// </summary>
+            Movement
 
         }
 
@@ -112,6 +117,12 @@ namespace OceanMars.Common.NetCode
             set;
         }
 
+        public TransformData TransformData
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Create a new piece of GameData from a byte array representation.
         /// </summary>
@@ -125,6 +136,12 @@ namespace OceanMars.Common.NetCode
                     Type = (GameDataType)binaryReader.ReadByte();
                     PlayerID = (int)binaryReader.ReadByte();
                     EventDetail = (int)binaryReader.ReadByte();
+
+                    byte [] SubData  = new byte[byteArray.Length - 3];
+                    byteArray.CopyTo(SubData, 3);
+
+                    if (Type == GameDataType.Movement)
+                        TransformData = new TransformData(SubData);
                 }
             }
             
@@ -158,6 +175,10 @@ namespace OceanMars.Common.NetCode
                     binaryWriter.Write((byte)Type);
                     binaryWriter.Write((byte)PlayerID);
                     binaryWriter.Write((byte)EventDetail);
+
+                    if (Type == GameDataType.Movement)
+                        binaryWriter.Write(TransformData.GetByteArray());
+
                     return memoryStream.ToArray();
                 }
             }

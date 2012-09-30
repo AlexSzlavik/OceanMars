@@ -150,6 +150,7 @@ namespace OceanMars.Common.NetCode
 
         public GameDataPacket(IPEndPoint destination, GameData gameData) : base(PacketType.GAMEDATA, destination)
         {
+            AddContent(gameData.GetByteArray());
             FinalizeData();
             return;
         }
