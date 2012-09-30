@@ -238,7 +238,7 @@ namespace OceanMars.Common
 
                 if (hasCollided)
                 {
-                    float dist = Math.Max(distanceToNearest - FUZZY_EPSILON, 0.0f);
+                    float dist = Math.Max(distanceToNearest - BIG_FUZZY_EPSILON, 0.0f);
 
                     Vector2 truncatedVelocity = new Vector2(dist * normalizedVelocity.X,
                                                             dist * normalizedVelocity.Y);
