@@ -8,7 +8,7 @@ namespace OceanMars.Common.NetCode
     public enum StateChangeType { CREATE_LEVEL, CREATE_PLAYER }
     public enum StateProperties { ENTITY_ID, PARENT_ID, TRANSFORM, LEVEL_TYPE, SIZE_X, SIZE_Y }
 
-    public class StateChange : IMarshable
+    public class StateChange : IMarshallable
     {
         public StateChangeType type;
         public Dictionary<StateProperties, int> intProperties = new Dictionary<StateProperties, int>();

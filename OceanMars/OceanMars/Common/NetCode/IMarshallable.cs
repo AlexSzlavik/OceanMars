@@ -4,9 +4,9 @@ namespace OceanMars.Common.NetCode
 {
 
     /// <summary>
-    /// Inherited interface that forces objects to implement a serialization method.
+    /// Inherited interface that forces objects to implement a marshallisation method.
     /// </summary>
-    public interface IMarshable
+    public interface IMarshallable
     {
 
         /// <summary>

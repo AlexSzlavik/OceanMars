@@ -54,7 +54,7 @@ namespace OceanMars.Common
 
         public Vector2 velocity;
         public float jumpAcceleration = 10.0f;
-        public float maxVelocity = 50.0f;
+        public float maxVelocity = 35.0f;
         public bool inAir = false;
 
         // Handles caching of world transform matrix to avoid redundant work

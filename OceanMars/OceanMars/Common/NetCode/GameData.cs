@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 
 namespace OceanMars.Common.NetCode
 {
-    public class GameData : IMarshable
+    public class GameData : IMarshallable
     {
 
          /// <summary>
@@ -56,7 +53,12 @@ namespace OceanMars.Common.NetCode
             /// <summary>
             /// Request for disconnect or information about unconnected clients.
             /// </summary>
-            Disconnected
+            Disconnected,
+
+            /// <summary>
+            /// The player was dropped from the session.
+            /// </summary>
+            Dropped
 
         }
 
@@ -99,6 +101,12 @@ namespace OceanMars.Common.NetCode
         /// The extra detail associated with this event.
         /// </summary>
         public int EventDetail
+        {
+            get;
+            set;
+        }
+
+        public ConnectionID ConnectionInfo
         {
             get;
             set;

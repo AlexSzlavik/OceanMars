@@ -1,46 +1,30 @@
-#region File Description
-//-----------------------------------------------------------------------------
-// GameplayScreen.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-#endregion
-
-#region Using Statements
 using System;
-using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
-using OceanMars.Common;
-using OceanMars.Client;
 using OceanMars.Client.GameStateManager;
-using OceanMars.Client.Screens;
-#endregion
+using OceanMars.Common;
 
-namespace SkyCrane.Screens
+
+namespace OceanMars.Client.Screens
 {
     /// <summary>
-    /// This screen implements the actual game logic. It is just a
-    /// placeholder to get the idea across: you'll probably want to
-    /// put some more interesting gameplay in here!
+    /// This is a game component that implements IUpdateable.
     /// </summary>
-    public class GameplayScreen : GameScreen
+    public class LevelEditScreen : GameScreen
     {
         #region Fields
-
         // Our things
         ContentManager content;
-        ServerlessState state = new ServerlessState(); // TODO: need to instantiate this from server connection in some way, and player
+        LevelEditorState state = new LevelEditorState(); // TODO: need to instantiate this from server connection in some way, and player
         View context;
-        bool stillJumping = false;
-        bool stillHoldingJump = false;
-
+        bool pointSetDown = false;
         #endregion
 
         #region Initialization
@@ -48,7 +32,7 @@ namespace SkyCrane.Screens
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GameplayScreen()
+        public LevelEditScreen()
         {
             context = new View(state, state.player);
         }
@@ -66,9 +50,8 @@ namespace SkyCrane.Screens
             }
 
             context.textureDict.Add("defaultlevel", content.Load<Texture2D>("Sprites/scenery"));
-            context.textureDict.Add("whitesquare", content.Load<Texture2D>("Sprites/30x30whitesquare"));
+            context.textureDict.Add("whitecrosshair", content.Load<Texture2D>("Sprites/21x21crosshair"));
             context.textureDict.Add("blacksquare", content.Load<Texture2D>("Sprites/1x1blacksquare"));
-            context.textureDict.Add("localcoordplayer", content.Load<Texture2D>("Sprites/localcoordplayer"));
 
             // After loading content, instantiate sprites
             foreach (int id in state.entities.Keys)
@@ -79,9 +62,9 @@ namespace SkyCrane.Screens
                     Sprite s = new DefaultLevelSprite(context, (DefaultLevel)e);
                     context.sprites.Add(id, s);
                 }
-                else if (e is TestMan)
+                else if (e is EditorMan)
                 {
-                    Sprite s = new TestManSprite(context, (TestMan)e);
+                    Sprite s = new EditorManSprite(context, (EditorMan)e);
                     context.sprites.Add(id, s);
                 }
                 else if (e is TestWall)
@@ -140,15 +123,11 @@ namespace SkyCrane.Screens
             if (input.IsPauseGame() || gamePadDisconnected)
             {
                 //pauseSoundEffect.Play();
-                //ScreenManager.AddScreen(new PauseMenuScreen());
+                ScreenManager.AddScreen(new PauseMenuScreen());
             }
             else
             {
                 Vector2 movement = Vector2.Zero;
-
-                if (stillHoldingJump &&
-                    (keyboardState.IsKeyUp(Keys.Space) && gamePadState.Buttons.A == ButtonState.Released))
-                    stillHoldingJump = false;
 
                 if (keyboardState.IsKeyDown(Keys.Left))
                     movement.X--;
@@ -156,33 +135,46 @@ namespace SkyCrane.Screens
                 if (keyboardState.IsKeyDown(Keys.Right))
                     movement.X++;
 
-                //TODO: SLIDING VELOCITY CURRENTLY AFFECTS JUMP HEIGHT; IT SHOULDN'T
+                if (keyboardState.IsKeyDown(Keys.Up))
+                    movement.Y--;
 
-                //if (keyboardState.IsKeyDown(Keys.Up))
-                //    movement.Y--;
-
-                //if (keyboardState.IsKeyDown(Keys.Down))
-                //    movement.Y++;
+                if (keyboardState.IsKeyDown(Keys.Down))
+                    movement.Y++;
 
                 if (keyboardState.IsKeyDown(Keys.Space) ||
                     gamePadState.Buttons.A == ButtonState.Pressed)
                 {
-                        if ((!context.avatar.inAir &&
-                             !stillHoldingJump) ||
-                            (context.avatar.inAir &&
-                             stillJumping &&
-                             stillHoldingJump &&
-                             Math.Abs(context.avatar.velocity.Y) < context.avatar.maxVelocity))
+                    if (pointSetDown == false)
+                    {
+                        Entity e = ((EditorMan)context.avatar).pointSet();
+                        if (e != null)
                         {
-                            context.avatar.velocity.Y -= context.avatar.jumpAcceleration;
-                            context.avatar.inAir = true;
-                            stillJumping = true;
-                            stillHoldingJump = true;
+                            if (e is TestWall)
+                            {
+                                Sprite s = new TestWallSprite(context, (TestWall)e);
+                                context.sprites.Add(e.id, s);
+                            }
                         }
-                        else
-                        {
-                            stillJumping = false;
-                        }
+                        pointSetDown = true;
+                    }
+                }
+
+                if (keyboardState.IsKeyUp(Keys.Space) &&
+                    gamePadState.Buttons.A == ButtonState.Released)
+                {
+                    pointSetDown = false;
+                }
+
+                if (keyboardState.IsKeyDown(Keys.B) || 
+                    (gamePadState.Buttons.B == ButtonState.Pressed))
+                {
+                    ((FreeEntity)context.avatar).setBoostOn();
+                }
+
+                if (keyboardState.IsKeyUp(Keys.B) && 
+                    (gamePadState.Buttons.B == ButtonState.Released))
+                {
+                    ((FreeEntity)context.avatar).setBoostOff();
                 }
 
 

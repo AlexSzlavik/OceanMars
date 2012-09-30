@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 
 namespace OceanMars.Common.NetCode
@@ -149,7 +150,8 @@ namespace OceanMars.Common.NetCode
 
         public GameDataPacket(IPEndPoint destination, GameData gameData) : base(PacketType.GAMEDATA, destination)
         {
-            
+            FinalizeData();
+            return;
         }
 
     }

@@ -10,18 +10,17 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// Class representing a UDP packet-based client.
     /// </summary>
-    public class NetworkClient
+    public class NetworkClient : NetworkBase
     {
-        #region Members
 
-        // Data used to control addressing and threading in the network clinet
+        #region Member Variables
+
+        // Data used to control addressing and threading in the network client
         private Thread clientThread; // Thread used to host a network client
-        private NetworkWorker networkWorker; // The worker thread used to send and receive data
         private IPEndPoint serverEndPoint; // The address of the server
-        private bool continueRunning; // Whether or not to continue the client
 
         // Data used to control the state of the network client
-        private NetworkStateMachine clientStateMachine; // A network state machine run on the client
+
 
         // Data used to control ping flow (heartbeats) in the network client
         private Stopwatch pingStopwatch;
@@ -37,6 +36,7 @@ namespace OceanMars.Common.NetCode
         private const int PING_INITIAL_DELAY = 1000; // Amount of time to wait before starting to ping heartbeats
         private const int PING_PERIOD = 500; // Amount of time to wait between ping heartbeats
         private const int CLIENT_TIMEOUT = 2000; // Amount of time until we are dead
+
         #endregion
 
         #region ClientInternalCode
@@ -44,10 +44,9 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Create a new raw client.
         /// </summary>
-        public NetworkClient()
+        public NetworkClient() : base(NetworkStateMachine.NetworkState.CLIENTSTART)
         {
             // Set up some member variables
-            continueRunning = true;
             pingStopwatch = new Stopwatch();
             lastPing = -1;
             pingPacketTimer = null;
@@ -57,8 +56,6 @@ namespace OceanMars.Common.NetCode
             clientConnectedSemaphore = new Semaphore(0, 1);
             gameDataBuffer = new Queue<GameData>();
 
-            InitStateMachine(); // Set up the state machine
-
             // Create the actual client thread
             clientThread = new Thread(RunNetworkClientThread);
             clientThread.IsBackground = true;
@@ -67,18 +64,18 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Create a new state machine and register all transitions associated with network clients.
+        /// Register state machine transitions.
         /// </summary>
-        private void InitStateMachine()
+        protected override void RegisterStateMachineTransitions()
         {
-            clientStateMachine = new NetworkStateMachine(NetworkStateMachine.NetworkState.CLIENTSTART);
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTSTART, NetworkStateMachine.TransitionEvent.CLIENTSTARTED, NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, delegate {});
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECT, NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, delegate { });
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnConnect);
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTPINGING, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnPing);
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTGAMEDATA, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnGameData);
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTSYNC, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnSync);
-            clientStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTTIMEOUT, NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, OnDisconnect);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTSTART, NetworkStateMachine.TransitionEvent.CLIENTSTARTED, NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, delegate {});
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECT, NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, delegate { });
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTTRYCONNECT, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnConnect);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTPINGING, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnPing);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTGAMEDATA, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnGameData);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTSYNC, NetworkStateMachine.NetworkState.CLIENTCONNECTED, OnSync);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CLIENTCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTTIMEOUT, NetworkStateMachine.NetworkState.CLIENTDISCONNECTED, OnDisconnect);
+            networkStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTSTARTED, null);
             return;
         }
 
@@ -159,7 +156,7 @@ namespace OceanMars.Common.NetCode
             {
                 serverEndPoint = new IPEndPoint(IPAddress.Parse(host), port); // Store server info
                 networkWorker = new NetworkWorker();//Spawn the client reader/writer threads
-                clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTCONNECT, null); // Client may now try to connect
+                networkStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTCONNECT, null); // Client may now try to connect
                 serverReadySemaphore.Release(); // Inform the client thread that the server info is ready
                 SendHandshake(); // Send the handshake request to the server
                 clientConnectedSemaphore.WaitOne(); // Wait for the connection to be established
@@ -177,7 +174,6 @@ namespace OceanMars.Common.NetCode
         /// </summary>
         private void RunNetworkClientThread()
         {
-            clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTSTARTED, null);
             serverReadySemaphore.WaitOne();
             NetworkStateMachine.TransitionEvent transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSTARTED;
 
@@ -201,7 +197,7 @@ namespace OceanMars.Common.NetCode
                         transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSYNC;
                         break;
                 }
-                clientStateMachine.DoTransition(transitionEvent, receivePacket); // This is amazing
+                networkStateMachine.DoTransition(transitionEvent, receivePacket); // This is amazing
             }
 
             return;
@@ -251,7 +247,7 @@ namespace OceanMars.Common.NetCode
                     {
                         pingStopwatch.Stop();
                         pingPacketTimer.Dispose();
-                        clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTTIMEOUT, null);
+                        networkStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTTIMEOUT, null);
                     }
                     return;
                 }
