@@ -38,7 +38,7 @@ namespace OceanMars.Common.NetCode
         public Lobby(GameServer gameServer)
         {
             availableIDs = new Stack<int>();
-            for (int i = MAX_PLAYERS - 1; i > 0; i++) // Add id's to the players
+            for (int i = MAX_PLAYERS - 1; i > 0; i--) // Add id's to the players
             {
                 availableIDs.Push(i);
             }
