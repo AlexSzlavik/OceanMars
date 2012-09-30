@@ -21,18 +21,21 @@ namespace OceanMars.Client.Screens
             // Create our menu entries.
             MenuEntry newGameMenuEntry = new MenuEntry("New Game");
             MenuEntry multiplayerMenuEntry = new MenuEntry("Multiplayer");
+            MenuEntry levelEditEntry = new MenuEntry("Level Editor");
             MenuEntry optionsMenuEntry = new MenuEntry("Options");
             MenuEntry exitMenuEntry = new MenuEntry("Exit");
 
             // Hook up menu event handlers.
             newGameMenuEntry.Selected += NewGameMenuEntrySelected;
             multiplayerMenuEntry.Selected += MultiplayerMenuEntrySelected;
+            levelEditEntry.Selected += LevelEditEntrySelected;
             optionsMenuEntry.Selected += OptionsMenuEntrySelected;
             exitMenuEntry.Selected += OnCancel;
 
             // Add entries to the menu.
             MenuEntries.Add(newGameMenuEntry);
             MenuEntries.Add(multiplayerMenuEntry);
+            MenuEntries.Add(levelEditEntry);
             MenuEntries.Add(optionsMenuEntry);
             MenuEntries.Add(exitMenuEntry);
             return;
@@ -57,6 +60,15 @@ namespace OceanMars.Client.Screens
         void MultiplayerMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
             ScreenManager.AddScreen(new MultiplayerMenuScreen());
+            return;
+        }
+
+        /// <summary>
+        /// Event handler for when the Play Game menu entry is selected.
+        /// </summary>
+        void LevelEditEntrySelected(object sender, PlayerInputEventArgs e)
+        {
+            ScreenManager.AddScreen(new LevelEditScreen());
             return;
         }
 

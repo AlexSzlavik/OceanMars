@@ -7,10 +7,10 @@ using OceanMars.Common;
 
 namespace OceanMars.Client
 {
-    class TestManSprite : Sprite
+    class EditorManSprite : Sprite
     {
-        public TestManSprite(View context, TestMan tm) :
-            base(context,  tm, new Vector2(30, 30), 30, 10, "whitesquare") {
+        public EditorManSprite(View context, EditorMan tm) :
+            base(context,  tm, new Vector2(21, 21), 21, 10, "whitecrosshair") {
         }
     }
 }
