@@ -12,7 +12,7 @@ namespace OceanMars.Common
         private const float FUZZY_EPSILON = 0.01f;
         public Vector2 collisionEllipse;
 
-        public EllipseEntity(Vector2 size, Entity parent) : base(size, parent)
+        public EllipseEntity(Vector2 size, Entity parent, bool owner = false) : base(size, parent, owner)
         {
             collisionEllipse = size/2.0f;
         }
@@ -201,7 +201,8 @@ namespace OceanMars.Common
                         float distance = intersect(sliderEndPoints[0], sliderNormal, new Vector2(0, 0), -sliderNormal);
 
                         //if we're moving in the same direction as the normal, we shouldn't collide, so keep going
-                        if (Vector2.Dot(sliderNormal, normalizedVelocity) > 1)
+                        //TODO: FIGURE OUT WHY NORMALIZEDVELOCITY DOESN'T WORK
+                        if (Vector2.Dot(sliderNormal, velocity) > 0)
                             continue;
 
                         // Check if we are even within range of hitting a damn thing
@@ -209,11 +210,9 @@ namespace OceanMars.Common
 
                         if (distance > (velocity.Length() + ellipseRadiusVector.Length())) continue;
 
-                        bool overlap = false;
                         if (Math.Abs(distance) <= ellipseRadiusVector.Length())
                         {
                             lineIntersectionPoint = -sliderNormal * distance;
-                            overlap = true;
                         }
                         else
                         {
@@ -235,12 +234,6 @@ namespace OceanMars.Common
                             t = intersectEllipsoid(Vector3.Zero, new Vector3(ellipseRadiusVector.X, ellipseRadiusVector.Y, 1),
                                                               new Vector3(lineIntersectionPoint.X, lineIntersectionPoint.Y, 0),
                                                               new Vector3(-velocity.X, -velocity.Y, 0));
-                        }
-                        else if (overlap)
-                        {
-                            velocity = sliderNormal * ellipseRadiusVector.Length();
-                            normalizedVelocity = Vector2.Normalize(velocity);
-                            t = ellipseRadiusVector.Length();
                         }
 
                         //finally, are we intersecting?

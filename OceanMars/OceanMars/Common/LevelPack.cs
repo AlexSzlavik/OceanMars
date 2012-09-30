@@ -12,16 +12,20 @@ namespace OceanMars.Common
 {
     class LevelPack : Entity
     {
-        public List<Level> levelList = new List<Level>();
+        public static String[] levels = {@"../../../../OceanMarsContent/Levels/testLevel.lvl"
+                                        };
+
+        //public List<Level> levelList = new List<Level>();
 
         public LevelPack(Entity parent)
             : base(new Vector2(0, 0), parent)
         {
             // Collect the set of .xml files
-            string[] filePaths = System.IO.Directory.GetFiles(@"../../../../OceanMarsContent/Levels/");
+            //string[] filePaths = System.IO.Directory.GetFiles(@"../../../../OceanMarsContent/Levels/");
+            string filePath = @"../../../../OceanMarsContent/Levels/testLevel.lvl";
 
-            foreach (string filePath in filePaths)
-            {
+            //foreach (string filePath in filePaths)
+            //{
                 // Parse each .xml file and create a Level Entity
                 XmlSerializer deserializer = new XmlSerializer(typeof(List<Vector2[]>));
 
@@ -30,15 +34,16 @@ namespace OceanMars.Common
                 vectorList = (List<Vector2[]>)deserializer.Deserialize(textReader);
                 textReader.Close();
 
-                levelList.Add(new Level(this, vectorList));
-            }
+                this.addChild(new Level(this, vectorList));
+                //levelList.Add(new Level(this, vectorList));
+            //}
 
-            // Add each level to the scene graph
-            foreach (Level l in levelList)
+            // Add one of the levels to the scene graph
+            /*foreach (Level l in levelList)
             {
                 this.addChild(l);
-            }
-            
+            }*/
+            //this.addChild(levelList[0]);
         }
     }
 }

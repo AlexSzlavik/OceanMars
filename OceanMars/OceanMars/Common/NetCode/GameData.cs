@@ -35,7 +35,17 @@ namespace OceanMars.Common.NetCode
             /// <summary>
             /// Additional information related to movement
             /// </summary>
-            Movement
+            Movement,
+
+            /// <summary>
+            /// Player transform information
+            /// </summary>
+            PlayerTransform,
+
+            /// <summary>
+            /// Server sending Initialization information (level and player) to a client
+            /// </summary>
+            InitClientState
 
         }
 
@@ -154,11 +164,12 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameDataType">The type associated with this packet.</param>
         /// <param name="playerId">The id of the player that performed the action.</param>
         /// <param name="eventDetail">The extra detail associated with this event.</param>
-        public GameData(GameDataType gameDataType, int playerId = 0, int eventDetail = 0)
+        public GameData(GameDataType gameDataType, int playerId = 0, int eventDetail = 0, TransformData transformData = null)
         {
             Type = gameDataType;
             PlayerID = playerId;
             EventDetail = eventDetail;
+            TransformData = transformData;
             return;
         }
 

@@ -5,6 +5,8 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using OceanMars.Common;
 using OceanMars.Client;
+using System.Xml.Serialization;
+using System.IO;
 
 namespace OceanMars.Common
 {
@@ -29,13 +31,11 @@ namespace OceanMars.Common
             // If the first point is not set, set it now
             if (point1 == null)
             {
-                System.Diagnostics.Debug.WriteLine("point 1 set");
                 point1 = new Vector2(worldTransform.Translation.X, inverseWorldTransform.Translation.Y);
             }
             // Otherwise, create the new wall entity
             else
             {
-                System.Diagnostics.Debug.WriteLine("point 2 set");
                 Vector2 point2 = new Vector2(worldTransform.Translation.X, inverseWorldTransform.Translation.Y);
                 TestWall w = new TestWall(this, (Vector2)point1, point2);
                 parent.addChild(w);
@@ -53,13 +53,31 @@ namespace OceanMars.Common
             return result;
         }
 
+        // Write the contents of the wall list to a file
         public void saveWalls()
         {
-            System.Diagnostics.Debug.WriteLine("Save the Game");
-            foreach (Vector2[] w in walls)
+            string filePath = @"../../../../OceanMarsContent/Levels/custom.lvl";
+            XmlSerializer serializer = new XmlSerializer(typeof(List<Vector2[]>));
+
+            TextWriter textWriter = new StreamWriter(filePath);
+            serializer.Serialize(textWriter, walls);
+            textWriter.Close();
+
+        }
+
+        public void loadLevel(string filePath, Entity root)
+        {
+            XmlSerializer deserializer = new XmlSerializer(typeof(List<Vector2[]>));
+
+            TextReader textReader = new StreamReader(filePath);
+            walls = (List<Vector2[]>)deserializer.Deserialize(textReader);
+            textReader.Close();
+
+            TestWall w = null;
+            foreach (Vector2[] v in walls)
             {
-                System.Diagnostics.Debug.WriteLine(w[0]);
-                System.Diagnostics.Debug.WriteLine(w[1]);
+                w = new TestWall(this, v[0], v[1]);
+                root.addChild(w);
             }
         }
     }

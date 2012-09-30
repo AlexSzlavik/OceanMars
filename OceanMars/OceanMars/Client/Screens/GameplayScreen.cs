@@ -54,6 +54,29 @@ namespace SkyCrane.Screens
             context = new View(state, state.player);
         }
 
+        private void createSprites(Entity root)
+        {
+
+            foreach (Entity e in root.children)
+            {
+                createSprites(e);
+                if (e is DefaultLevel)
+                {
+                    Sprite s = new DefaultLevelSprite(context, (DefaultLevel)e);
+                    context.sprites.Add(e.id, s);
+                }
+                else if (e is TestMan)
+                {
+                    Sprite s = new TestManSprite(context, (TestMan)e);
+                    context.sprites.Add(e.id, s);
+                }
+                else if (e is TestWall)
+                {
+                    Sprite s = new TestWallSprite(context, (TestWall)e);
+                    context.sprites.Add(e.id, s);
+                }
+            }
+        }
 
         /// <summary>
         /// Load graphics content for the game.
@@ -72,25 +95,8 @@ namespace SkyCrane.Screens
             context.textureDict.Add("localcoordplayer", content.Load<Texture2D>("Sprites/localcoordplayer"));
 
             // After loading content, instantiate sprites
-            foreach (int id in state.entities.Keys)
-            {
-                Entity e = state.entities[id];
-                if (e is DefaultLevel)
-                {
-                    Sprite s = new DefaultLevelSprite(context, (DefaultLevel)e);
-                    context.sprites.Add(id, s);
-                }
-                else if (e is TestMan)
-                {
-                    Sprite s = new TestManSprite(context, (TestMan)e);
-                    context.sprites.Add(id, s);
-                }
-                else if (e is TestWall)
-                {
-                    Sprite s = new TestWallSprite(context, (TestWall)e);
-                    context.sprites.Add(id, s);
-                }
-            }
+            createSprites(state.root);
+            
 
             return;
         }
@@ -146,7 +152,7 @@ namespace SkyCrane.Screens
             else
             {
                 Vector2 movement = Vector2.Zero;
-                float movementSpeed = context.avatar.inAir ? 0.25f : 1.0f;
+                float movementSpeed = context.avatar.inAir ? 0.25f : 2.5f;
 
                 stillHoldingJump |= context.avatar.inAir;
 
@@ -205,8 +211,8 @@ namespace SkyCrane.Screens
                 movement.X += thumbstick.X * movementSpeed;
                 movement.Y -= thumbstick.Y * movementSpeed;
 
-                if (movement.Length() > 1)
-                    movement.Normalize();
+                //if (movement.Length() > 1)
+                //    movement.Normalize();
 
                 context.avatar.velocity += 1 * movement;
             }

@@ -99,7 +99,6 @@
     <Compile Include="Client\Screens\LevelEditPauseScreen.cs" />
     <Compile Include="Client\Screens\LevelEditScreen.cs" />
     <Compile Include="Client\Screens\MultiplayerMenuScreen.cs" />
-    <Compile Include="Client\ServerInterface.cs" />
     <Compile Include="Client\TestWallSprite.cs" />
     <Compile Include="Client\DefaultLevelSprite.cs" />
     <Compile Include="Client\GameStateManager\GameScreen.cs" />
@@ -119,11 +118,13 @@
     <Compile Include="Client\TestManSprite.cs" />
     <Compile Include="Client\Sprite.cs" />
     <Compile Include="Client\View.cs" />
+    <Compile Include="Common\SpawnPointEntity.cs" />
     <Compile Include="Common\FreeEntity.cs" />
     <Compile Include="Common\DefaultLevel.cs" />
     <Compile Include="Common\EditorMan.cs" />
     <Compile Include="Common\EllipseEntity.cs" />
     <Compile Include="Common\Entity.cs" />
+    <Compile Include="Common\IStatePhaseListener.cs" />
     <Compile Include="Common\Level.cs" />
     <Compile Include="Common\LevelEditorState.cs" />
     <Compile Include="Common\LevelPack.cs" />

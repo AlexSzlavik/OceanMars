@@ -3,41 +3,56 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
+using System.Xml.Serialization;
+using System.IO;
 
 namespace OceanMars.Common
 {
     public class Level : Entity
     {
+        public List<SpawnPointEntity> spawnPoints = new List<SpawnPointEntity>();
+
         public Level(Entity parent, List<Vector2[]> vectorList) : base (new Vector2(0, 0), parent)
         {
+            constructWalls(vectorList);
+        }
+
+        public Level(Entity parent, string filePath)
+            : base(new Vector2(0, 0), parent)
+        {
+            XmlSerializer deserializer = new XmlSerializer(typeof(List<Vector2[]>));
+
+            TextReader textReader = new StreamReader(filePath);
+            List<Vector2[]> vectorList;
+            vectorList = (List<Vector2[]>)deserializer.Deserialize(textReader);
+            textReader.Close();
+
+
+            constructWalls(vectorList);
+        }
+
+        private void constructWalls(List<Vector2[]> vectorList)
+        {
             TestWall w = null;
-            foreach (Vector2[] v in vectorList)
+            SpawnPointEntity s = null;
+            Vector2[] v;
+
+            // First, create the set of spawn points
+            v = vectorList[0];
+            for (int i = 0; i < v.Length; i++)
             {
+                s = new SpawnPointEntity(this, v[i]);
+                this.addChild(s);
+                spawnPoints.Add(s);
+            }
+
+            // Next, create the set of walls
+            for (int i = 1; i < vectorList.Count; i++ )
+            {
+                v = vectorList[i];
                 w = new TestWall(this, v[0], v[1]);
                 this.addChild(w);
             }
-            
-            /*TestWall w1 = new TestWall(this, new Vector2(-1000, 1000), new Vector2(-1000,500));
-            TestWall w2 = new TestWall(this, new Vector2(-1000, 500), new Vector2(-700, -50));
-            TestWall w3 = new TestWall(this, new Vector2(-700, -50), new Vector2(500, -50));
-            TestWall w4 = new TestWall(this, new Vector2(500, -50), new Vector2(1000, 100));
-            TestWall w5 = new TestWall(this, new Vector2(1000, 100), new Vector2(1000, 1000));
-            TestWall w6 = new TestWall(this, new Vector2(100, 200), new Vector2(-200, 200));
-            TestWall w7 = new TestWall(this, new Vector2(200, 400), new Vector2(400, 400));
-            TestWall w8 = new TestWall(this, new Vector2(400, 400), new Vector2(400, 600));
-            TestWall w9 = new TestWall(this, new Vector2(800, 600), new Vector2(400, 600));
-            TestWall w10 = new TestWall(this, new Vector2(-200, -50), new Vector2(200, -20));
-
-            this.addChild(w1);
-            this.addChild(w2);
-            this.addChild(w3);
-            this.addChild(w4);
-            this.addChild(w5);
-            this.addChild(w6);
-            this.addChild(w7);
-            this.addChild(w8);
-            this.addChild(w9);
-            this.addChild(w10);*/
         }
     }
 }

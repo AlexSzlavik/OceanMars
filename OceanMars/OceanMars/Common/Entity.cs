@@ -22,7 +22,7 @@ namespace OceanMars.Common
         public bool inverseWorldTransformDirty = false;
 
         List<TransformChangeListener> tcListeners = new List<TransformChangeListener>();
-        public Entity(Vector2 collisionBox, Entity parent) {
+        public Entity(Vector2 collisionBox, Entity parent, bool owner = false) {
             this.collisionBox = collisionBox;
             this.id = next_id++;
             this.parent = parent;
@@ -94,12 +94,6 @@ namespace OceanMars.Common
             private set {
                 inverseWorldTransformBack = value;
             }
-        }
-
-        public Entity(Vector2 collisionBox)
-        {
-            this.collisionBox = collisionBox;
-            this.id = next_id++;
         }
 
         public void addTransformChangeListener(TransformChangeListener tcl)

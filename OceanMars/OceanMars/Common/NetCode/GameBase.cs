@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace OceanMars.Common.NetCode
 {
@@ -6,9 +7,12 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// Abstraction of the top-of-network-stack game.
     /// </summary>
-    public abstract class GameBase
+    public abstract class GameBase : TransformChangeListener, IStatePhaseListener
     {
         public const int MAX_PLAYERS = 8; // Maximum number of players allowed in a lobby
+
+        public List<GameData> GameStatesToCommit = new List<GameData>();
+        public Dictionary<int, GameData> GameStatesToSend = new Dictionary<int, GameData>();
 
         /// <summary>
         /// The hierarchical tree that represents the state of the game.
@@ -41,12 +45,6 @@ namespace OceanMars.Common.NetCode
             get;
             set;
         }
-
-        /// <summary>
-        /// Update the game state based on incoming game data.
-        /// </summary>
-        /// <param name="gameData">Received game data that should inform us about changing state, requests, etc.</param>
-        protected abstract void UpdateGameState(GameData gameData);
 
         /// <summary>
         /// Register a player with the game and return their ID.
@@ -86,6 +84,10 @@ namespace OceanMars.Common.NetCode
             players = new Player[MAX_PLAYERS]; // Defaults to null elements (unlike C, you don't have to set the elements)
             GameState = new State();
             Network = network;
+
+            GameState.addStatePhaseListener(this);
+            GameState.addTransformChangeListener(this);
+
             return;
         }
 
@@ -97,6 +99,38 @@ namespace OceanMars.Common.NetCode
         public Player GetPlayer(int playerID)
         {
             return players[playerID];
+        }
+
+        public virtual void handleTransformChange(Entity e)
+        {
+            // Generate a transform change packet, put it on stack
+            TransformData td = new TransformData(e.id, e.transform);
+            GameData gd = new GameData(GameData.GameDataType.Movement, transformData: td);
+            GameStatesToSend.Add(e.id, gd);
+        }
+
+        public abstract void sendGameStates();
+        public abstract void commitGameStates();
+
+        /// <summary>
+        /// Update the game state based on incoming game data.
+        /// </summary>
+        /// <param name="gameData">Received game data that should inform us about changing state, requests, etc.</param>
+        protected virtual void UpdateGameState(GameData gameData)
+        {
+            GameStatesToCommit.Add(gameData);
+        }
+
+        public void handleStatePhaseChange(State.PHASE phase)
+        {
+            if (phase == State.PHASE.READY_FOR_CHANGES)
+            {
+                commitGameStates();
+            }
+            else if (phase == State.PHASE.FINISHED_FRAME)
+            {
+                sendGameStates();
+            }
         }
 
     }
