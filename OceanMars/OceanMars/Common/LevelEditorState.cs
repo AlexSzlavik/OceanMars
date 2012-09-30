@@ -15,6 +15,8 @@ namespace OceanMars.Common
             player = new EditorMan(root);
 
             root.addChild(player);
+
+            player.loadLevel(@"../../../../OceanMarsContent/Levels/custom.lvl", root);
         }
     }
 }
