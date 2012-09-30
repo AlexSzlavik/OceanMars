@@ -24,23 +24,37 @@ namespace OceanMars.Common.NetCode
         #region Static Methods
 
         /// <summary>
-        /// Lookup function
+        /// Retrieve a connection ID from a player ID.
         /// </summary>
-        /// <param name="playerId"></param>
-        /// <returns></returns>
+        /// <param name="playerId">The player ID to fetch a connection ID for.</param>
+        /// <returns>A connection ID mapped to the provided player ID. If the player does not exist, returns null.</returns>
         public static ConnectionID PlayerToConnection(int playerId)
         {
-            return Player.PlayerToConnectionMap[playerId];
+            if (Player.PlayerToConnectionMap.ContainsKey(playerId))
+            {
+                return Player.PlayerToConnectionMap[playerId];
+            }
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>
-        /// Get a player ID from a connection
+        /// Retrieve a player ID from a connection ID.
         /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        public static int ConnectionToPlayer(ConnectionID connection)
+        /// <param name="connectionID">The connection ID to fetch a player ID for.</param>
+        /// <returns>A player ID mapped to the provided connection ID. If the connection was not mapped to a player, returns -1.</returns>
+        public static int ConnectionIDToPlayerID(ConnectionID connectionID)
         {
-            return Player.ConnectionToPlayerMap[connection];
+            if (ConnectionToPlayerMap.ContainsKey(connectionID))
+            {
+                return Player.ConnectionToPlayerMap[connectionID];
+            }
+            else
+            {
+                return -1;
+            }
         }
 
         #endregion
@@ -87,16 +101,10 @@ namespace OceanMars.Common.NetCode
             PlayerID = playerID;
             ConnectionID = connection;
             Player.PlayerToConnectionMap.Add(PlayerID, connection);
+            Player.ConnectionToPlayerMap.Add(connection, PlayerID);
             gameServer.RegisterPlayer(this);
             return;
         }
 
-        /// <summary>
-        /// Destructor, Clean up the map
-        /// </summary>
-        ~Player()
-        {
-            Player.PlayerToConnectionMap.Remove(this.PlayerID);
-        }
     }
 }
