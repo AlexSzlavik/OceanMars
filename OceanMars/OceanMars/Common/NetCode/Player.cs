@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace OceanMars.Common.NetCode
 {
@@ -51,16 +48,14 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Create a new Player, register it in the dictionary, and add it to a game server.
         /// </summary>
-        /// <param name="playerID">The ID to assign to the player.</param>
         /// <param name="connection">The connection this player is associated with.</param>
-        /// <param name="gameServer">The game server that this player will be registered under.</param>
-        public Player(int playerID, ConnectionID connection, GameClient gameServer)
+        /// <param name="gameBase">The game server that this player will be registered under.</param>
+        public Player(ConnectionID connection, GameBase gameBase)
         {
-            PlayerID = playerID;
             ConnectionID = connection;
             CharacterSelection = -1;
             CharacterLocked = false;
-            gameServer.RegisterPlayer(this);
+            PlayerID = gameBase.RegisterPlayer(this);
             return;
         }
 

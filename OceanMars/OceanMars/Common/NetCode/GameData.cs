@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 
 namespace OceanMars.Common.NetCode
 {
-    public class GameData : IMarshable
+    public class GameData : IMarshallable
     {
 
          /// <summary>

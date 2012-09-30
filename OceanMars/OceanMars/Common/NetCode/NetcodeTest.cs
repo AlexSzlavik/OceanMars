@@ -12,7 +12,7 @@ namespace OceanMars.Common.NetCode
         //public static RawClient c2 = new RawClient();
         //public static RawClient c3 = new RawClient();
         //public static NetworkServer s;
-        public static GameClient gs;
+        public static GameServer gs;
         //Netcode testing suite... or just a template
         public static void Main(string[] args)
         {
@@ -29,7 +29,7 @@ namespace OceanMars.Common.NetCode
             try
             {
                 //s = new NetworkServer(9999);
-                gs = new GameClient(9999, true);
+                gs = new GameServer(9999);
             }
             catch (Exception error)
             {
