@@ -255,6 +255,13 @@ namespace OceanMars.Common
                     Vector2 truncatedVelocity = new Vector2(dist * normalizedVelocity.X,
                                                             dist * normalizedVelocity.Y);
 
+                    //TODO: SHOULD PROBABLY MOVE; MAKE A CONSTANT VAR
+                    //test if we're still jumping
+                    if (Math.Abs(Vector2.Dot(shortestSliderNormal, new Vector2(1, 0))) < 0.9f)
+                    {
+                        inAir = false;
+                    }
+
                     Vector3 newSource = new Vector3(truncatedVelocity.X,
                                                     truncatedVelocity.Y, 0);
                     transform = transform * Matrix.CreateTranslation(newSource);
@@ -267,13 +274,7 @@ namespace OceanMars.Common
 
                     velocity = shortestSlider == null ? velocity : shortestSlider.applyFriction(velocity);
 
-                    //TODO: SHOULD PROBABLY MOVE; MAKE A CONSTANT VAR
-                    //test if we're still jumping
-                    if (Vector2.Dot(shortestSliderNormal, new Vector2(1, 0)) < 0.5f)
-                    {
-                        inAir = false;
-                    }
-
+                    
                 }
                 else
                 {
