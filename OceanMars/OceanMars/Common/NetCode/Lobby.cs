@@ -57,7 +57,7 @@ namespace OceanMars.Common.NetCode
                 Player newPlayer = Player.CreateNewPlayer(data.ConnectionInfo);
                 MainGameServer.Players.Add(newPlayer);
                 GameData response = new GameData(GameData.GameDataType.Connect, newPlayer.PlayerID);
-                MainGameServer.GameNetworkServer.SignalGameData(response, newPlayer.ConnectionID);
+                MainGameServer.GameNetworkServer.BroadCastGameData(response);
             }
             return;
         }
