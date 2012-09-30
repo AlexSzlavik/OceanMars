@@ -71,17 +71,26 @@ namespace OceanMars.Common.NetCode
         /// <param name="eventArgs"></param>
         private void TimeoutTimerTicked(Object eventArgs)
         {
+            ThreadPool.QueueUserWorkItem(new WaitCallback(timerWork));
+            return;
+        }
+
+        private void timerWork(Object data)
+        {
+            List<ConnectionID> rmList = new List<ConnectionID>();
             foreach (IPEndPoint ep in connections.Keys)
             {
                 SyncPacket ps = new SyncPacket(ep);
                 this.nw.SendPacket(ps);
                 this.globalStats.sentPkts++;
                 connections[ep].changeState(NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING);
-                if (!connections[ep].isConnected())
-                    connections.Remove(ep);
+                if (connections[ep].MissedSyncs >= 3)
+                    rmList.Add(connections[ep]);
             }
-            return;
+            foreach (ConnectionID con in rmList)
+                connections.Remove(con.endpt);
         }
+
 
         /// <summary>
         /// Sets up the state machine for the main server
@@ -251,6 +260,7 @@ namespace OceanMars.Common.NetCode
         public short ID;
         public IPEndPoint endpt;
         public long lastSYNC = -1;
+
         public int MissedSyncs
         {
             get;
@@ -283,8 +293,10 @@ namespace OceanMars.Common.NetCode
 
         public void changeState(NetworkStateMachine.TransitionEvent transitionEvent)
         {
-            lock(this)
+            lock (this)
+            {
                 StateMachine.DoTransition(transitionEvent, null);
+            }
         }
 
         private void onSync(NetworkPacket packet)
@@ -307,8 +319,6 @@ namespace OceanMars.Common.NetCode
             {
                 MissedSyncs += 1;
                 Debug.WriteLine(String.Format("Missed {0} SYNCS", MissedSyncs));
-                if (MissedSyncs >= 3)
-                    changeState(NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT);
             }
         }
 

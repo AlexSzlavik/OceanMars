@@ -60,8 +60,6 @@ namespace OceanMars.Common.NetCode
             clientThread = new Thread(RunNetworkClientThread);
             clientThread.IsBackground = true;
             clientThread.Start();
-
-            clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTSTARTED, null);
             return;
         }
 
@@ -172,6 +170,7 @@ namespace OceanMars.Common.NetCode
         /// </summary>
         private void RunNetworkClientThread()
         {
+            clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTSTARTED, null);
             serverReadySemaphore.WaitOne();
             NetworkStateMachine.TransitionEvent transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSTARTED;
 
