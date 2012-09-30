@@ -13,6 +13,7 @@ namespace OceanMars.Common.NetCode
     public class NetworkClient
     {
         #region Members
+
         // Data used to control addressing and threading in the network clinet
         private Thread clientThread; // Thread used to host a network client
         private NetworkWorker networkWorker; // The worker thread used to send and receive data
@@ -35,10 +36,11 @@ namespace OceanMars.Common.NetCode
 
         private const int PING_INITIAL_DELAY = 1000; // Amount of time to wait before starting to ping heartbeats
         private const int PING_PERIOD = 500; // Amount of time to wait between ping heartbeats
-        private const int CLIENT_TIMEOUT = 2000; //Amount of time until we are dead
+        private const int CLIENT_TIMEOUT = 2000; // Amount of time until we are dead
         #endregion
 
         #region ClientInternalCode
+
         /// <summary>
         /// Create a new raw client.
         /// </summary>
@@ -94,12 +96,17 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Callback on Disconnect events
         /// </summary>
-        /// <param name="packet"></param>
+        /// <param name="packet">A packet received that has caused us to disconnect.</param>
         private void OnDisconnect(NetworkPacket packet)
         {
             Debug.WriteLine(String.Format("Client has disconnected"));
-            this.networkWorker.Close();
-            this.networkWorker.Exit();
+            continueRunning = false;
+            if (networkWorker != null)
+            {
+                networkWorker.Close();
+                networkWorker.Exit();
+            }
+            return;
         }
 
         /// <summary>
@@ -136,7 +143,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="packet">The packet received.</param>
         public void OnSync(NetworkPacket packet)
         {
-            SyncServer();
+            SendSync();
             return;
         }
 
@@ -163,19 +170,6 @@ namespace OceanMars.Common.NetCode
                 Debug.WriteLine("Unable to connect to server: {0}", error.Message);
                 return false;
             }
-        }
-
-        /// <summary>
-        /// Terminate the client and any associated network worker threads.
-        /// </summary>
-        public void Exit()
-        {
-            continueRunning = false;
-            if (networkWorker != null)
-            {
-                networkWorker.Exit();
-            }
-            return;
         }
 
         /// <summary>
@@ -238,6 +232,7 @@ namespace OceanMars.Common.NetCode
         private void PingTimerTicked(Object eventArgs)
         {
             ThreadPool.QueueUserWorkItem(new WaitCallback(DoPingTimerWork));
+            return;
         }
 
         /// <summary>
@@ -245,8 +240,8 @@ namespace OceanMars.Common.NetCode
         /// This actually resets and starts the timer again if need be
         /// This should also transition to TIMEOUT if a certain threshold is reached
         /// </summary>
-        /// <param name="dataWeDontUse"></param>
-        private void DoPingTimerWork(Object dataWeDontUse)
+        /// <param name="eventArgs">Unused event arguments.</param>
+        private void DoPingTimerWork(Object eventArgs)
         {
             lock (pingStopwatch)
             {
@@ -258,13 +253,13 @@ namespace OceanMars.Common.NetCode
                         pingPacketTimer.Dispose();
                         clientStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.CLIENTTIMEOUT, null);
                     }
-
                     return;
                 }
                 pingStopwatch.Reset();
                 networkWorker.SendPacket(new PingPacket(serverEndPoint));
                 pingStopwatch.Start();
             }
+            return;
         }
 
         #endregion
@@ -274,7 +269,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Send a synchronization message to the server.
         /// </summary>
-        private void SyncServer()
+        private void SendSync()
         {
             networkWorker.SendPacket(new SyncPacket(serverEndPoint));
             return;

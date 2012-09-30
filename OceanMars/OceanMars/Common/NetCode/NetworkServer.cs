@@ -73,6 +73,7 @@ namespace OceanMars.Common.NetCode
             serverStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.SERVERSTARTED, null);
 
             TimeoutTimer = new Timer(TimeoutTimerTicked, new AutoResetEvent(false), TIMEOUT_INITIAL_DELAY, TIMEOUT_PERIOD);
+            return;
         }
 
         /// <summary>
