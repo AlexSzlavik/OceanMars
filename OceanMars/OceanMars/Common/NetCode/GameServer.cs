@@ -21,13 +21,33 @@ namespace OceanMars.Common.NetCode
             private set;
         }
 
+        /// <summary>
+        /// The underlying network server that is used by this game.
+        /// </summary>
+        public NetworkServer GameNetworkServer
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Create a new GameServer.
         /// </summary>
-        public GameServer()
+        /// <param name="port">The port to create the GameServer on.</param>
+        public GameServer(int port)
         {
             GameState = new State();
+            GameNetworkServer = new NetworkServer(port);
+            GameNetworkServer.RegisterGameDataUpdater(UpdateGameState);
+            return;
+        }
+
+        /// <summary>
+        /// Update the game state based on incoming game data.
+        /// </summary>
+        /// <param name="gameData">Received game data that should inform us about changing state, requests, etc.</param>
+        public void UpdateGameState(GameData gameData)
+        {
             return;
         }
 
