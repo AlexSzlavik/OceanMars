@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 
 namespace OceanMars.Common.NetCode
 {
@@ -8,6 +10,8 @@ namespace OceanMars.Common.NetCode
     /// </summary>
     public class GameClient : GameBase
     {
+
+        private Dictionary<int, int> PlayerIDToEntity = new Dictionary<int, int>();
 
         /// <summary>
         /// The client lobby associated with this game client.
@@ -54,6 +58,26 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
+        /// After choosing the level and number of players, start the game
+        /// </summary>
+        public void setupGameState(int levelID, int myPlayerID)
+        {
+            Entity root = GameState.root;
+
+            Level level = new Level(root, LevelPack.levels[levelID]);
+            root.addChild(level);
+
+            for (int i = 0; i < players.Length; i++)
+            {
+                SpawnPointEntity sp = level.spawnPoints[i];
+                TestMan tm = new TestMan(sp, (i == myPlayerID));
+
+                PlayerIDToEntity[i] = tm.id;
+                sp.addChild(tm);
+            }
+        }
+
+        /// <summary>
         /// Register a new player with the game client.
         /// </summary>
         /// <param name="player">The player to register with the game client.</param>
@@ -64,15 +88,47 @@ namespace OceanMars.Common.NetCode
             return player.PlayerID;
         }
 
-        /// <summary>
-        /// Update the state of the game based on received game data.
-        /// </summary>
-        /// <param name="gameData">The game data to use to update the game.</param>
-        protected override void UpdateGameState(GameData gameData)
+        public override void sendGameStates()
         {
-            throw new NotImplementedException();
+            List<GameData> lgd = new List<GameData>(GameStatesToSend.Values);
+            Network.SendGameData(lgd);
+            GameStatesToSend.Clear();
         }
 
+        /// <summary>
+        /// User Level connection method
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        public void ConnectToGame(String host, int port)
+        {
+            Network.Connect(host, port);
+            Lobby.JoinLobby();
+        }
+
+        public override void commitGameStates()
+        {
+            foreach (GameData gs in GameStatesToCommit)
+            {
+                if (gs.Type == GameData.GameDataType.Movement)
+                {
+                    int id = gs.TransformData.EntityID;
+                    GameState.entities[id].transform = gs.TransformData.getMatrix();
+                }
+                else if (gs.Type == GameData.GameDataType.PlayerTransform)
+                {
+                    int id = PlayerIDToEntity[gs.TransformData.EntityID];
+                    GameState.entities[id].transform = gs.TransformData.getMatrix();
+                }
+                else if (gs.Type == GameData.GameDataType.InitClientState)
+                {
+                    setupGameState(gs.EventDetail, gs.PlayerID);
+                    // START the game!!
+                }
+            }
+
+            GameStatesToCommit.Clear();
+        }
     }
 
 }

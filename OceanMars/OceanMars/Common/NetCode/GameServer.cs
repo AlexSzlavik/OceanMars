@@ -10,7 +10,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// Abstraction of a game server that rests on top of the network stack.
     /// </summary>
-    public class GameServer : GameBase
+    public class GameServer : GameBase, TransformChangeListener, IStatePhaseListener
     {
 
         /// <summary>
@@ -113,12 +113,37 @@ namespace OceanMars.Common.NetCode
 
             Lobby = new LobbyServer(this); // Give initial control to the lobby
             Network.RegisterGameDataUpdater(Lobby.UpdateLobbyState);
-            Network.RegisterGameDataUpdater(UpdateGameState);
 
             // Once we're done with the lobby, the connections and players will be handed off to the game and the GameDataUpdater re-registered to GameServer.UpdateGameState
 
             LocalPlayer = new Player(null, this); // Create and register self as a player (do this last as it needs access to the completed GameBase)
             return;
+        }
+
+        /// <summary>
+        /// After choosing the level and number of players, start the game by sending everyone the level and a player ID
+        /// </summary>
+        public void setupAndSendGameState(int levelID)
+        {
+            Entity root = GameState.root;
+
+            Level level = new Level(root, LevelPack.levels[levelID]);
+            root.addChild(level);
+
+            // Send level and a player ID to each client
+            foreach (Player p in players)
+            {
+                GameData gameData = new GameData(GameData.GameDataType.InitClientState, p.PlayerID, levelID);
+                Network.SignalGameData(gameData, PlayerToConnectionID(p));
+            }
+
+            // Create players in personal state
+            for (int i = 0; i < players.Length; i++)
+            {
+                SpawnPointEntity sp = level.spawnPoints[i];
+                TestMan tm = new TestMan(sp);
+                sp.addChild(tm);
+            }
         }
 
         /// <summary>
@@ -154,15 +179,42 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
-        /// <summary>
-        /// Update the state of the game based on received game data.
-        /// </summary>
-        /// <param name="gameData">The game data to use to update the game.</param>
         protected override void UpdateGameState(GameData gameData)
         {
-            if (gameData.Type == GameData.GameDataType.Movement)
-                Debug.WriteLine(String.Format("Matrix: {0}",gameData.TransformData.Matrix[2]));
-            //throw new NotImplementedException();
+            // Should forward to other machines (not the one received from)
+            for (int i = 0; i < players.Length; i++ )
+            {
+                if (i == gameData.PlayerID) continue;
+                Network.SignalGameData(gameData, PlayerToConnectionID(players[i]));
+                GameStatesToCommit.Add(gameData);
+            }
+        }
+
+        public override void sendGameStates()
+        {
+            List<GameData> lgd = new List<GameData>(GameStatesToSend.Values);
+            foreach(Player p in players) {
+                Network.SignalGameData(lgd, PlayerToConnectionID(p));
+            }
+            
+            GameStatesToSend.Clear();
+        }
+
+        public override void commitGameStates()
+        {
+            foreach (GameData gs in GameStatesToCommit)
+            {
+                if (gs.Type == GameData.GameDataType.Movement)
+                {
+                    int id = gs.TransformData.EntityID;
+                    GameState.entities[id].transform = gs.TransformData.getMatrix();
+                }
+                else if (gs.Type == GameData.GameDataType.PlayerTransform)
+                {
+                    int id = gs.TransformData.EntityID;
+                    GameState.entities[id].transform = gs.TransformData.getMatrix();
+                }
+            }
         }
 
     }

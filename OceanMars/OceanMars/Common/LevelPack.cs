@@ -12,6 +12,9 @@ namespace OceanMars.Common
 {
     class LevelPack : Entity
     {
+        public static String[] levels = {@"../../../../OceanMarsContent/Levels/testLevel.lvl"
+                                        };
+
         //public List<Level> levelList = new List<Level>();
 
         public LevelPack(Entity parent)

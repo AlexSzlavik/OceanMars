@@ -61,23 +61,19 @@ namespace OceanMars.Common.NetCode
             //    s.broadcastSC(l);
             //    Thread.Sleep(2000);
             //}
-            c.Network.Connect("127.0.0.1", 9999);
+            c.ConnectToGame("127.0.0.1", 9999);
             //c1.connect("127.0.0.1", 9999);
             //c2.connect("127.0.0.1", 9999);
             //c3.connect("127.0.0.1", 9999);
 
             Timer t = new Timer(NetTest.doPing, new AutoResetEvent(false), 0, 2000);
+            Thread.Sleep(5000);
+            c.Lobby.SelectCharacter(1337);
+            c.Lobby.LockCharacter();
 
             while (true)
             {
-                GameData g = new GameData(GameData.GameDataType.Movement);
-                //c.Network.SendGameData(g);
-                g.TransformData = new TransformData(1337,new Microsoft.Xna.Framework.Matrix(1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6));
-                c.Network.SendGameData(g);
-                List<GameData> l = c.Network.ReceiveGameData();
-                if (l.Count > 0)
-                    Debug.WriteLine("received Ack");
-                Thread.Sleep(100);
+                Thread.Sleep(10000);
             }
         }
 

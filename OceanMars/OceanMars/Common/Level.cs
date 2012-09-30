@@ -10,9 +10,11 @@ namespace OceanMars.Common
 {
     public class Level : Entity
     {
+        public List<SpawnPointEntity> spawnPoints = new List<SpawnPointEntity>();
+
         public Level(Entity parent, List<Vector2[]> vectorList) : base (new Vector2(0, 0), parent)
         {
-            constructWalls(vectorList);
+            constructLevel(vectorList);
         }
 
         public Level(Entity parent, string filePath)
@@ -26,10 +28,10 @@ namespace OceanMars.Common
             textReader.Close();
 
 
-            constructWalls(vectorList);
+            constructLevel(vectorList);
         }
 
-        private void constructWalls(List<Vector2[]> vectorList)
+        private void constructLevel(List<Vector2[]> vectorList)
         {
             TestWall w = null;
             SpawnPointEntity s = null;
@@ -41,6 +43,7 @@ namespace OceanMars.Common
             {
                 s = new SpawnPointEntity(this, v[i]);
                 this.addChild(s);
+                spawnPoints.Add(s);
             }
 
             // Next, create the set of walls

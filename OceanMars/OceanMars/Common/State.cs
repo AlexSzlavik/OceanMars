@@ -8,20 +8,32 @@ namespace OceanMars.Common
 {
     public class State : TransformChangeListener
     {
+        public enum PHASE { READY_FOR_CHANGES, PROCESSING_FRAME, FINISHED_FRAME }
+
         private static Vector2 GRAVITY = new Vector2(0, 2.0f);
 
+        private List<IStatePhaseListener> spListeners = new List<IStatePhaseListener>();
         private List<TransformChangeListener> scListeners = new List<TransformChangeListener>();
-
-        public void handleTransformChange(Entity e)
-        {
-            foreach (TransformChangeListener scl in scListeners)
-            {
-                scl.handleTransformChange(e);
-            }
-        }
 
         public World root;
         public Dictionary<int, Entity> entities = new Dictionary<int,Entity>();
+
+        private PHASE phaseBack = PHASE.READY_FOR_CHANGES;
+        public PHASE phase
+        {
+            get
+            {
+                return phaseBack;
+            }
+
+            private set {
+                phaseBack = value;
+                foreach (IStatePhaseListener spl in spListeners)
+                {
+                    spl.handleStatePhaseChange(phaseBack);
+                }
+            }
+        }
 
         public void registerEntity(Entity e)
         {
@@ -52,6 +64,24 @@ namespace OceanMars.Common
                 }
                 // Do not do collisions for SliderEntities
             }
+        }
+
+        public void handleTransformChange(Entity e)
+        {
+            foreach (TransformChangeListener scl in scListeners)
+            {
+                scl.handleTransformChange(e);
+            }
+        }
+
+        public void addTransformChangeListener(TransformChangeListener tcl)
+        {
+            scListeners.Add(tcl);
+        }
+
+        public void addStatePhaseListener(IStatePhaseListener spl)
+        {
+            spListeners.Add(spl);
         }
     }
 }

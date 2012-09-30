@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Threading;
+using System.Collections.ObjectModel;
 
 namespace OceanMars.Common.NetCode
 {
@@ -126,11 +127,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="packet">The packet received.</param>
         public void OnGameData(NetworkPacket packet)
         {
-            // Add the state change object to the buffer for the UI
-            lock (gameDataBuffer)
-            {
-                gameDataBuffer.Enqueue(new GameData(packet.DataArray));
-            }
+            gameDataUpdater(new GameData(packet.DataArray));
             return;
         }
 
