@@ -169,7 +169,7 @@ namespace SkyCrane.Screens
                 if (movement.Length() > 1)
                     movement.Normalize();
 
-                context.avatar.velocity = movement;
+                context.avatar.velocity += movement;
             }
         }
 

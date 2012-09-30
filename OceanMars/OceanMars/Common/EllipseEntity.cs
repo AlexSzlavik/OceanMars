@@ -200,19 +200,17 @@ namespace OceanMars.Common
                             t = intersect(sliderEndPoints[0], sliderNormal, ellipseIntersectionPoint, normalizedVelocity);
 
                             lineIntersectionPoint = ellipseIntersectionPoint + normalizedVelocity * t;
+                        }
 
-                            //check if our line intersection point is the same as our line segment intersection point
-                            bool inside;
-                            lineIntersectionPoint = getClosestPointOnLineSegment(lineIntersectionPoint, sliderEndPoints, out inside);
+                        //check if our line intersection point is the same as our line segment intersection point
+                        bool inside;
+                        lineIntersectionPoint = getClosestPointOnLineSegment(lineIntersectionPoint, sliderEndPoints, out inside);
 
-                            System.Diagnostics.Debug.WriteLine(inside);
-
-                            if (!inside)
-                            {
-                                 t = intersectEllipsoid(Vector3.Zero, new Vector3(ellipseRadiusVector.X, ellipseRadiusVector.Y, 1), 
-                                                                   new Vector3(lineIntersectionPoint.X, lineIntersectionPoint.Y, 0), 
-                                                                   new Vector3(-velocity.X, -velocity.Y, 0));
-                            }
+                        if (!inside)
+                        {
+                            t = intersectEllipsoid(Vector3.Zero, new Vector3(ellipseRadiusVector.X, ellipseRadiusVector.Y, 1),
+                                                              new Vector3(lineIntersectionPoint.X, lineIntersectionPoint.Y, 0),
+                                                              new Vector3(-velocity.X, -velocity.Y, 0));
                         }
 
                         //finally, are we intersecting?
@@ -232,8 +230,8 @@ namespace OceanMars.Common
 
                 if (hasCollided)
                 {
-                    Vector3 newSource = new Vector3(distanceToNearest * velocity.X - BIG_FUZZY_EPSILON,
-                                                                     distanceToNearest * velocity.Y - BIG_FUZZY_EPSILON, 0);
+                    Vector3 newSource = new Vector3(distanceToNearest * normalizedVelocity.X - BIG_FUZZY_EPSILON,
+                                                    distanceToNearest * normalizedVelocity.Y - BIG_FUZZY_EPSILON, 0);
                     transform = transform * Matrix.CreateTranslation(newSource);
 
                     //new Vector2(newSource.X, newSource.Y)
