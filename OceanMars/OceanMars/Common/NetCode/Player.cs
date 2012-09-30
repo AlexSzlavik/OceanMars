@@ -10,13 +10,7 @@ namespace OceanMars.Common.NetCode
         #region Static Members
 
         /// <summary>
-        /// The next available PlayerId
-        /// This is used in the Factory
-        /// </summary>
-        private static int nextPlayerId = 1;
-
-        /// <summary>
-        /// A Mapping between playerIDs and actual Connections
+        /// A mapping between player IDs and actual connections.
         /// </summary>
         private static Dictionary<int, ConnectionID> PlayerToConnectionMap = new Dictionary<int, ConnectionID>();
 
@@ -30,53 +24,74 @@ namespace OceanMars.Common.NetCode
         #region Static Methods
 
         /// <summary>
-        /// Factory Pattern
+        /// Retrieve a connection ID from a player ID.
         /// </summary>
-        /// <returns></returns>
-        public static Player CreateNewPlayer(ConnectionID connection)
-        {
-            Player p = new Player(nextPlayerId++, connection);
-            Player.PlayerToConnectionMap.Add(p.PlayerID, connection);
-            return p;
-        }
-
-        /// <summary>
-        /// Lookup function
-        /// </summary>
-        /// <param name="playerId"></param>
-        /// <returns></returns>
+        /// <param name="playerId">The player ID to fetch a connection ID for.</param>
+        /// <returns>A connection ID mapped to the provided player ID. If the player does not exist, returns null.</returns>
         public static ConnectionID PlayerToConnection(int playerId)
         {
-            return Player.PlayerToConnectionMap[playerId];
+            if (Player.PlayerToConnectionMap.ContainsKey(playerId))
+            {
+                return Player.PlayerToConnectionMap[playerId];
+            }
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>
-        /// Get a player ID from a connection
+        /// Retrieve a player ID from a connection ID.
         /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        public static int ConnectionToPlayer(ConnectionID connection)
+        /// <param name="connectionID">The connection ID to fetch a player ID for.</param>
+        /// <returns>A player ID mapped to the provided connection ID. If the connection was not mapped to a player, returns -1.</returns>
+        public static int ConnectionIDToPlayerID(ConnectionID connectionID)
         {
-            return Player.ConnectionToPlayerMap[connection];
+            if (ConnectionToPlayerMap.ContainsKey(connectionID))
+            {
+                return Player.ConnectionToPlayerMap[connectionID];
+            }
+            else
+            {
+                return -1;
+            }
         }
 
         #endregion
 
         #region Members
 
+        /// <summary>
+        /// The numerical ID of the player.
+        /// </summary>
         public int PlayerID
         {
             get;
             private set;
         }
 
+        /// <summary>
+        /// The internet connection ID associated with the player.
+        /// </summary>
         public ConnectionID ConnectionID
         {
             get;
             private set;
         }
 
+        /// <summary>
+        /// The character selection choice the player has made.
+        /// </summary>
         public int CharacterSelection
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Boolean to check whether this players Selection is locked
+        /// </summary>
+        public bool CharachterLocked
         {
             get;
             set;
@@ -85,20 +100,20 @@ namespace OceanMars.Common.NetCode
         #endregion
 
         /// <summary>
-        /// Constructor
+        /// Create a new Player, register it in the dictionary, and add it to a game server.
         /// </summary>
-        private Player(int playerID, ConnectionID connection)
+        /// <param name="playerID">The ID to assign to the player.</param>
+        /// <param name="connection">The connection this player is associated with.</param>
+        /// <param name="gameServer">The game server that this player will be registered under.</param>
+        public Player(int playerID, ConnectionID connection, GameServer gameServer)
         {
-            this.PlayerID = playerID;
-            this.ConnectionID = connection;
+            PlayerID = playerID;
+            ConnectionID = connection;
+            Player.PlayerToConnectionMap.Add(PlayerID, connection);
+            Player.ConnectionToPlayerMap.Add(connection, PlayerID);
+            gameServer.RegisterPlayer(this);
+            return;
         }
 
-        /// <summary>
-        /// Destructor, Clean up the map
-        /// </summary>
-        ~Player()
-        {
-            Player.PlayerToConnectionMap.Remove(this.PlayerID);
-        }
     }
 }

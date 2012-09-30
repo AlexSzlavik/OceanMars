@@ -29,7 +29,7 @@ namespace OceanMars.Common.NetCode
             try
             {
                 //s = new NetworkServer(9999);
-                gs = new GameServer(9999);
+                gs = new GameServer(9999, true);
             }
             catch (Exception error)
             {
@@ -61,7 +61,7 @@ namespace OceanMars.Common.NetCode
             //    s.broadcastSC(l);
             //    Thread.Sleep(2000);
             //}
-            c.Connect("192.168.11.33", 9999);
+            c.Connect("127.0.0.1", 9999);
             //c1.connect("127.0.0.1", 9999);
             //c2.connect("127.0.0.1", 9999);
             //c3.connect("127.0.0.1", 9999);
@@ -70,18 +70,12 @@ namespace OceanMars.Common.NetCode
 
             while (true)
             {
-                //Command cm = new Command();
-                //cm.ct = CommandType.ATTACK;
-                //cm.direction.X = 3.14159F;
-                //cm.direction.Y = 3.14159F;
-                //cm.position.X = 3.14159F;
-                //cm.position.Y = 3.14159F;
-                //l.Add(cm);
-                //c.sendCMD(l);
-                //c1.sendCMD(l);
-                //c2.sendCMD(l);
-                //c3.sendCMD(l);
-                Thread.Sleep(10);
+                GameData g = new GameData(GameData.GameDataType.Connect);
+                c.SendGameData(g);
+                List<GameData> l = c.ReceiveGameData();
+                if (l.Count > 0)
+                    Debug.WriteLine("received Ack");
+                Thread.Sleep(100);
             }
         }
 

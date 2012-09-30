@@ -108,7 +108,7 @@ namespace OceanMars.Common.NetCode
                         receiveSemaphore.Release();
                     }
                 }
-                catch (SocketException exception) 
+                catch
                 {
                     //We should only come here when
                     //A) Things go horrible wrong...

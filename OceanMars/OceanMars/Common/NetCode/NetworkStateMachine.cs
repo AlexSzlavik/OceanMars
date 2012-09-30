@@ -169,7 +169,7 @@ namespace OceanMars.Common.NetCode
             catch (Exception error)
             {
                 Debug.WriteLine("You managed to break the NetStateMachine. Congratulations, asshole: {0}", new Object[] {error.Message});
-                Debug.WriteLine("Violating Transition: {0} - {1} - {2}",new Object[] {CurrentState,transEvent,packet});
+                Debug.WriteLine("Violating Transition: {0} - {1}",new Object[] {CurrentState,transEvent});
                 throw error;
             }
             return;

@@ -56,7 +56,12 @@ namespace OceanMars.Common.NetCode
             /// <summary>
             /// Request for disconnect or information about unconnected clients.
             /// </summary>
-            Disconnected
+            Disconnected,
+
+            /// <summary>
+            /// The player was dropped from the session.
+            /// </summary>
+            Dropped
 
         }
 
