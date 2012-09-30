@@ -42,7 +42,7 @@ namespace OceanMars.Common
         {
             Vector2 returnPoint = lineIntersectionPoint;
             inside = true;
-            if (segmentEndPoints[0].X != segmentEndPoints[1].X)
+            if (Math.Abs(segmentEndPoints[0].X - segmentEndPoints[1].X) > FUZZY_EPSILON)
             {
                 if (lineIntersectionPoint.X > segmentEndPoints[0].X)
                 {
@@ -168,6 +168,11 @@ namespace OceanMars.Common
                         Vector2 lineIntersectionPoint = new Vector2(0, 0);
                         Matrix transformSliderToLocal = slider.worldTransform * inverseWorldTransform;
 
+                        Vector2[] worldSliderEndpoints = {
+                        Vector2.Transform(slider.endPoints[0], slider.worldTransform),
+                        Vector2.Transform(slider.endPoints[1], slider.worldTransform)
+                                                };
+
                         //find the SliderEntity's end points and normal
                         Vector2[] sliderEndPoints = {
                         Vector2.Transform(slider.endPoints[0], transformSliderToLocal),
@@ -184,10 +189,6 @@ namespace OceanMars.Common
                         double parallel = Vector2.Dot(sliderNormal, velocity);
                         if (Math.Abs(parallel) < FUZZY_EPSILON) continue;
 
-                        //if we're moving in the same direction as the normal, we shouldn't collide, so keep going
-                        if ((sliderNormal.Y < 0) == (velocity.Y < 0))
-                            continue;
-
                         sliderNormal.Normalize();
 
                         //Calculate the ellipse intersection point
@@ -198,8 +199,21 @@ namespace OceanMars.Common
                         //is the plane embedded in ellipse?
                         float distance = intersect(sliderEndPoints[0], sliderNormal, new Vector2(0, 0), -sliderNormal);
 
+                        if (worldSliderEndpoints[0].X == 1000 && worldSliderEndpoints[1].X == 1000)
+                        {
+                            if (distance < 30)
+                            {
+                                System.Diagnostics.Debug.WriteLine(distance);
+                            }
+                        }
+
+                        //if we're moving in the same direction as the normal, we shouldn't collide, so keep going
+                        if ((Math.Abs(sliderNormal.Y) > FUZZY_EPSILON) && (Math.Abs(velocity.Y) > FUZZY_EPSILON) && (sliderNormal.Y * velocity.Y > 0))
+                            continue;
+
                         // Check if we are even within range of hitting a damn thing
                         if (distance < 0) continue;
+
                         if (distance > (velocity.Length() + ellipseRadiusVector.Length())) continue;
 
                         if (Math.Abs(distance) <= ellipseRadiusVector.Length())
@@ -232,8 +246,13 @@ namespace OceanMars.Common
                         if (t >= 0 && t <= velocity.Length() &&
                             (t < distanceToNearest || !hasCollided))
                         {
-                            //System.Diagnostics.Debug.WriteLine("Collided w velocity: " + velocity);
+                            //
                             //if (slider != null) System.Diagnostics.Debug.WriteLine(slider.name);
+
+                            if (worldSliderEndpoints[0].X == 1000 && worldSliderEndpoints[1].X == 1000)
+                            {
+                                 System.Diagnostics.Debug.WriteLine("Collided with right wall");
+                            }
 
                             distanceToNearest = t;
                             hasCollided = true;

@@ -27,7 +27,7 @@ namespace OceanMars.Common
                 float sign = Vector3.Cross(new Vector3(intendedVec.X, intendedVec.Y, 0),
                     new Vector3(actualVec.X, actualVec.Y, 0)).Z;
 
-                if (sign < 0) angle = -angle;
+                if (sign < 0) angle = 2 * Math.PI - angle;
                 
                 // Calculate the distance from the centre of the line to the origin
                 centre.X = (point1.X + point2.X) / 2;
