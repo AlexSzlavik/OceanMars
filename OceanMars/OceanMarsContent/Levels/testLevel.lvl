@@ -52,11 +52,11 @@
   </ArrayOfVector2>
   <ArrayOfVector2>
     <Vector2>
-      <X>100</X>
+      <X>-200</X>
       <Y>200</Y>
     </Vector2>
     <Vector2>
-      <X>-200</X>
+      <X>100</X>
       <Y>200</Y>
     </Vector2>
   </ArrayOfVector2>
@@ -82,11 +82,11 @@
   </ArrayOfVector2>
   <ArrayOfVector2>
     <Vector2>
-      <X>800</X>
+      <X>400</X>
       <Y>600</Y>
     </Vector2>
     <Vector2>
-      <X>400</X>
+      <X>800</X>
       <Y>600</Y>
     </Vector2>
   </ArrayOfVector2>

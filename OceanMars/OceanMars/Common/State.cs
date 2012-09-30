@@ -44,6 +44,11 @@ namespace OceanMars.Common
                     ellipseEntity.velocity += GRAVITY;
                     ellipseEntity.testCollision(entities.Values.ToList()); // TODO: using ToList may be inefficient
                 }
+                else if (child is FreeEntity)
+                {
+                    FreeEntity freeEntity = (FreeEntity)child;
+                    freeEntity.testCollision(entities.Values.ToList()); // TODO: using ToList may be inefficient
+                }
                 // Do not do collisions for SliderEntities
             }
         }
