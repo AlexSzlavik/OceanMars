@@ -40,6 +40,7 @@ namespace SkyCrane.Screens
         View context;
         bool stillJumping = false;
         bool stillHoldingJump = false;
+        bool firstRelease = false;
 
         #endregion
 
@@ -140,7 +141,7 @@ namespace SkyCrane.Screens
             if (input.IsPauseGame() || gamePadDisconnected)
             {
                 //pauseSoundEffect.Play();
-                //ScreenManager.AddScreen(new PauseMenuScreen());
+                ScreenManager.AddScreen(new PauseMenuScreen());
             }
             else
             {
@@ -150,7 +151,14 @@ namespace SkyCrane.Screens
 
                 if (stillHoldingJump &&
                     (keyboardState.IsKeyUp(Keys.Space) && gamePadState.Buttons.A == ButtonState.Released))
-                    stillHoldingJump = false;
+                    if (firstRelease == false)
+                    {
+                        firstRelease = true;
+                    }
+                    else
+                    {
+                        stillHoldingJump = false;
+                    }
 
                 if (keyboardState.IsKeyDown(Keys.Left))
                     movement.X--;
@@ -169,6 +177,8 @@ namespace SkyCrane.Screens
                 if (keyboardState.IsKeyDown(Keys.Space) ||
                     gamePadState.Buttons.A == ButtonState.Pressed)
                 {
+                    if (firstRelease == true)
+                    {
                         if ((!context.avatar.inAir &&
                              !stillHoldingJump) ||
                             (context.avatar.inAir &&
@@ -185,6 +195,7 @@ namespace SkyCrane.Screens
                         {
                             stillJumping = false;
                         }
+                    }
                 }
 
 

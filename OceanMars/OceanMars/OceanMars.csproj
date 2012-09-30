@@ -96,6 +96,7 @@
   <ItemGroup>
     <Compile Include="Client\EditorManSprite.cs" />
     <Compile Include="Client\Screens\HostSettingsMenuScreen.cs" />
+    <Compile Include="Client\Screens\LevelEditPauseScreen.cs" />
     <Compile Include="Client\Screens\LevelEditScreen.cs" />
     <Compile Include="Client\Screens\MultiplayerMenuScreen.cs" />
     <Compile Include="Client\ServerInterface.cs" />

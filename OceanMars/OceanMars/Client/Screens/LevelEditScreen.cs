@@ -24,7 +24,9 @@ namespace OceanMars.Client.Screens
         ContentManager content;
         LevelEditorState state = new LevelEditorState(); // TODO: need to instantiate this from server connection in some way, and player
         View context;
+        bool pointSetFirstReleased = false;
         bool pointSetDown = false;
+        bool saveDown = false;
         #endregion
 
         #region Initialization
@@ -123,7 +125,7 @@ namespace OceanMars.Client.Screens
             if (input.IsPauseGame() || gamePadDisconnected)
             {
                 //pauseSoundEffect.Play();
-                ScreenManager.AddScreen(new PauseMenuScreen());
+                ScreenManager.AddScreen(new LevelEditPauseScreen());
             }
             else
             {
@@ -141,10 +143,39 @@ namespace OceanMars.Client.Screens
                 if (keyboardState.IsKeyDown(Keys.Down))
                     movement.Y++;
 
+                if (keyboardState.IsKeyDown(Keys.S) ||
+                   gamePadState.Buttons.Back == ButtonState.Pressed)
+                {
+                    saveDown = true;
+                }
+
+                if (keyboardState.IsKeyUp(Keys.S) &&
+                    gamePadState.Buttons.Back == ButtonState.Released)
+                {
+                    if (saveDown == true)
+                    {
+                        ((EditorMan)context.avatar).saveWalls();
+                        saveDown = false;
+                    }
+                }
+
                 if (keyboardState.IsKeyDown(Keys.Space) ||
                     gamePadState.Buttons.A == ButtonState.Pressed)
                 {
-                    if (pointSetDown == false)
+                    if (pointSetFirstReleased == true)
+                    {
+                        pointSetDown = true;
+                    }
+                }
+
+                if (keyboardState.IsKeyUp(Keys.Space) &&
+                    gamePadState.Buttons.A == ButtonState.Released)
+                {
+                    if (pointSetFirstReleased == false)
+                    {
+                        pointSetFirstReleased = true;
+                    }
+                    else if (pointSetDown == true)
                     {
                         Entity e = ((EditorMan)context.avatar).pointSet();
                         if (e != null)
@@ -155,14 +186,8 @@ namespace OceanMars.Client.Screens
                                 context.sprites.Add(e.id, s);
                             }
                         }
-                        pointSetDown = true;
+                        pointSetDown = false;
                     }
-                }
-
-                if (keyboardState.IsKeyUp(Keys.Space) &&
-                    gamePadState.Buttons.A == ButtonState.Released)
-                {
-                    pointSetDown = false;
                 }
 
                 if (keyboardState.IsKeyDown(Keys.B) || 

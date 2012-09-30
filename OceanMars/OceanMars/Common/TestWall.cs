@@ -8,6 +8,7 @@ namespace OceanMars.Common
 {
     class TestWall : SliderEntity
     {
+
             public TestWall (Entity parent, Vector2 point1, Vector2 point2) : base (new Vector2(-1, 0), new Vector2(1, 0), parent) {
                 double length = 1;
                 double angle = 0;
