@@ -144,6 +144,7 @@
     <Compile Include="Common\NetCode\NetworkWorker.cs" />
     <Compile Include="Common\NetCode\NetworkPacket.cs" />
     <Compile Include="Common\NetCode\NetworkServer.cs" />
+    <Compile Include="Common\NetCode\PacketInformation.cs" />
     <Compile Include="Common\NetCode\Player.cs" />
     <Compile Include="Common\NetCode\StateChange.cs" />
     <Compile Include="Common\ServerlessState.cs" />

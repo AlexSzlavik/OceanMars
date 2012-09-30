@@ -7,7 +7,7 @@ namespace OceanMars.Common.NetCode
 {
     public static class NetTest
     {
-        public static NetworkClient c;
+        public static GameClient c;
         //public static RawClient c1 = new RawClient();
         //public static RawClient c2 = new RawClient();
         //public static RawClient c3 = new RawClient();
@@ -18,7 +18,7 @@ namespace OceanMars.Common.NetCode
         {
             try
             {
-                c = new NetworkClient();
+                c = new GameClient();
             }
             catch (Exception error)
             {
@@ -61,7 +61,7 @@ namespace OceanMars.Common.NetCode
             //    s.broadcastSC(l);
             //    Thread.Sleep(2000);
             //}
-            c.Connect("127.0.0.1", 9999);
+            c.Network.Connect("127.0.0.1", 9999);
             //c1.connect("127.0.0.1", 9999);
             //c2.connect("127.0.0.1", 9999);
             //c3.connect("127.0.0.1", 9999);
@@ -71,8 +71,8 @@ namespace OceanMars.Common.NetCode
             while (true)
             {
                 GameData g = new GameData(GameData.GameDataType.Connect);
-                c.SendGameData(g);
-                List<GameData> l = c.ReceiveGameData();
+                c.Network.SendGameData(g);
+                List<GameData> l = c.Network.ReceiveGameData();
                 if (l.Count > 0)
                     Debug.WriteLine("received Ack");
                 Thread.Sleep(100);
@@ -81,7 +81,7 @@ namespace OceanMars.Common.NetCode
 
         public static void doPing(Object st)
         {
-            Debug.WriteLine("Ping for 1: {0}", c.GetLastPing());
+            Debug.WriteLine("Ping for 1: {0}", c.Network.GetLastPing());
             //Debug.WriteLine("Ping for 2: {0}", c1.getPing());
             //Debug.WriteLine("Ping for 3: {0}", c2.getPing());
             //Debug.WriteLine("Ping for 4: {0}", c3.getPing());
