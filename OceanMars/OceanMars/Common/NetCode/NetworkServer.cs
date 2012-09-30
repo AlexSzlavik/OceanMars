@@ -150,7 +150,9 @@ namespace OceanMars.Common.NetCode
         /// <param name="packet">A packet that contains game data information.</param>
         private void OnGameData(NetworkPacket packet)
         {
-            gameDataUpdater(new GameData(packet.DataArray));
+            GameData gameData = new GameData(packet.DataArray);
+            gameData.ConnectionInfo = connections[packet.Destination];
+            gameDataUpdater(gameData);
             return;
         }
 
@@ -170,8 +172,8 @@ namespace OceanMars.Common.NetCode
         private void onPing(NetworkPacket packet)
         {
             PingPacket ps = new PingPacket(packet.Destination);
-            //nw.SendPacket(ps); //ACK the ping
-            //this.globalStats.sentPkts++;
+            nw.SendPacket(ps); //ACK the ping
+            this.globalStats.sentPkts++;
         }
         
         /// <summary>

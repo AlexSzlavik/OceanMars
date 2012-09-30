@@ -11,7 +11,6 @@ namespace OceanMars.Common.NetCode
     /// </summary>
     public class GameServer
     {
-
         /// <summary>
         /// The hierarchical tree that represents the state of the game.
         /// </summary>
@@ -31,14 +30,37 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
+        /// The Lobby code. 
+        /// Mostly the interface will interface with this. 
+        /// Eventually it will hand control to the GameServers main logic
+        /// </summary>
+        public Lobby GameLobby
+        {
+            get;
+            private set;
+        }
+
+        public List<Player> Players;
+
+        /// <summary>
         /// Create a new GameServer.
         /// </summary>
         /// <param name="port">The port to create the GameServer on.</param>
         public GameServer(int port)
         {
             GameState = new State();
+            Players = new List<Player>();
             GameNetworkServer = new NetworkServer(port);
-            GameNetworkServer.RegisterGameDataUpdater(UpdateGameState);
+
+            //We first give control to the Lobby
+            GameLobby = new Lobby(this);
+            GameNetworkServer.RegisterGameDataUpdater(GameLobby.UpdateGameState);
+
+            //Once we are done with the lobby we have it 
+            //hand off it's connections and player setup
+            //The lobby will then close down and the GameServer processses the rest of the 
+            //information
+
             return;
         }
 
