@@ -184,13 +184,9 @@ namespace OceanMars.Common
                         double parallel = Vector2.Dot(sliderNormal, velocity);
                         if (Math.Abs(parallel) < FUZZY_EPSILON) continue;
 
-                        //TODO: Edge case vertical lines
                         //if we're moving in the same direction as the normal, we shouldn't collide, so keep going
-                        if (sliderNormal.Y != 0)
-                        {
-                            if (sliderNormal.Y < 0 &&  velocity.Y < 0)
-                                continue;
-                        }
+                        if ((sliderNormal.Y < 0) == (velocity.Y < 0))
+                            continue;
 
                         sliderNormal.Normalize();
 
