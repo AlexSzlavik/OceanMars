@@ -24,6 +24,7 @@ namespace OceanMars.Client.Screens
         ContentManager content;
         LevelEditorState state = new LevelEditorState(); // TODO: need to instantiate this from server connection in some way, and player
         View context;
+        bool pointSetDown = false;
         #endregion
 
         #region Initialization
@@ -122,7 +123,7 @@ namespace OceanMars.Client.Screens
             if (input.IsPauseGame() || gamePadDisconnected)
             {
                 //pauseSoundEffect.Play();
-                //ScreenManager.AddScreen(new PauseMenuScreen());
+                ScreenManager.AddScreen(new PauseMenuScreen());
             }
             else
             {
@@ -140,12 +141,38 @@ namespace OceanMars.Client.Screens
                 if (keyboardState.IsKeyDown(Keys.Down))
                     movement.Y++;
 
-                if (keyboardState.IsKeyDown(Keys.B) || (gamePadState.Buttons.B == ButtonState.Pressed))
+                if (keyboardState.IsKeyDown(Keys.Space) ||
+                    gamePadState.Buttons.A == ButtonState.Pressed)
+                {
+                    if (pointSetDown == false)
+                    {
+                        Entity e = ((EditorMan)context.avatar).pointSet();
+                        if (e != null)
+                        {
+                            if (e is TestWall)
+                            {
+                                Sprite s = new TestWallSprite(context, (TestWall)e);
+                                context.sprites.Add(e.id, s);
+                            }
+                        }
+                        pointSetDown = true;
+                    }
+                }
+
+                if (keyboardState.IsKeyUp(Keys.Space) &&
+                    gamePadState.Buttons.A == ButtonState.Released)
+                {
+                    pointSetDown = false;
+                }
+
+                if (keyboardState.IsKeyDown(Keys.B) || 
+                    (gamePadState.Buttons.B == ButtonState.Pressed))
                 {
                     ((FreeEntity)context.avatar).setBoostOn();
                 }
 
-                if (keyboardState.IsKeyUp(Keys.B) && (gamePadState.Buttons.B == ButtonState.Released))
+                if (keyboardState.IsKeyUp(Keys.B) && 
+                    (gamePadState.Buttons.B == ButtonState.Released))
                 {
                     ((FreeEntity)context.avatar).setBoostOff();
                 }
