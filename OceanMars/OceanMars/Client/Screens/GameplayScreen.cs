@@ -145,7 +145,8 @@ namespace SkyCrane.Screens
             {
                 Vector2 movement = Vector2.Zero;
 
-                if (stillJumping && gamePadState.Buttons.A == ButtonState.Released)
+                if (stillJumping &&
+                    (gamePadState.Buttons.A == ButtonState.Released || keyboardState.IsKeyDown(Keys.Space)))
                     stillJumping = false;
 
                 if (keyboardState.IsKeyDown(Keys.Left))
