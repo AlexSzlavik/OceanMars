@@ -138,7 +138,7 @@ namespace OceanMars.Common.NetCode
                     EventDetail = (int)binaryReader.ReadByte();
 
                     byte [] SubData  = new byte[byteArray.Length - 3];
-                    byteArray.CopyTo(SubData, 3);
+                    Array.ConstrainedCopy(byteArray, 3, SubData, 0,byteArray.Length - 3);
 
                     if (Type == GameDataType.Movement)
                         TransformData = new TransformData(SubData);

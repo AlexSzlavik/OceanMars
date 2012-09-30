@@ -70,7 +70,9 @@ namespace OceanMars.Common.NetCode
 
             while (true)
             {
-                GameData g = new GameData(GameData.GameDataType.Connect);
+                GameData g = new GameData(GameData.GameDataType.Movement);
+                //c.Network.SendGameData(g);
+                g.TransformData = new TransformData(1337,new Microsoft.Xna.Framework.Matrix(1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6));
                 c.Network.SendGameData(g);
                 List<GameData> l = c.Network.ReceiveGameData();
                 if (l.Count > 0)
