@@ -199,16 +199,8 @@ namespace OceanMars.Common
                         //is the plane embedded in ellipse?
                         float distance = intersect(sliderEndPoints[0], sliderNormal, new Vector2(0, 0), -sliderNormal);
 
-                        if (worldSliderEndpoints[0].X == 1000 && worldSliderEndpoints[1].X == 1000)
-                        {
-                            if (distance < 30)
-                            {
-                                System.Diagnostics.Debug.WriteLine(distance);
-                            }
-                        }
-
                         //if we're moving in the same direction as the normal, we shouldn't collide, so keep going
-                        if ((Math.Abs(sliderNormal.Y) > FUZZY_EPSILON) && (Math.Abs(velocity.Y) > FUZZY_EPSILON) && (sliderNormal.Y * velocity.Y > 0))
+                        if (Vector2.Dot(sliderNormal, normalizedVelocity) > 1)
                             continue;
 
                         // Check if we are even within range of hitting a damn thing
@@ -246,13 +238,6 @@ namespace OceanMars.Common
                         if (t >= 0 && t <= velocity.Length() &&
                             (t < distanceToNearest || !hasCollided))
                         {
-                            //
-                            //if (slider != null) System.Diagnostics.Debug.WriteLine(slider.name);
-
-                            if (worldSliderEndpoints[0].X == 1000 && worldSliderEndpoints[1].X == 1000)
-                            {
-                                 System.Diagnostics.Debug.WriteLine("Collided with right wall");
-                            }
 
                             distanceToNearest = t;
                             hasCollided = true;
