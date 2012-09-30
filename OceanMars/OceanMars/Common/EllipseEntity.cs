@@ -8,8 +8,8 @@ namespace OceanMars.Common
 {
     class EllipseEntity : Entity
     {
-        private const float BIG_FUZZY_EPSILON = 20;
-        private const float FUZZY_EPSILON = 0.0001f;
+        private const float BIG_FUZZY_EPSILON = 0.5f;
+        private const float FUZZY_EPSILON = 0.01f;
         public Vector2 collisionEllipse;
 
         public EllipseEntity(Vector2 size, Entity parent) : base(size, parent)
@@ -23,54 +23,43 @@ namespace OceanMars.Common
                                              Vector2 secondPoint)
         {
             Vector2 returnPoint;
-            if (firstPoint.X != secondPoint.X)
+            Vector2 firstVector = firstPoint - lineIntersectionPoint;
+            Vector2 secondVector = secondPoint - lineIntersectionPoint;
+            if (firstVector.Length() > secondVector.Length())
             {
-                if (Math.Abs(firstPoint.X - lineIntersectionPoint.X) >
-                    Math.Abs(secondPoint.X - lineIntersectionPoint.X))
-                {
-                    returnPoint = secondPoint;
-                }
-                else
-                {
-                    returnPoint = firstPoint;
-                }
+                returnPoint = secondPoint;
             }
             else
             {
-                if (Math.Abs(firstPoint.Y - lineIntersectionPoint.Y) >
-                    Math.Abs(secondPoint.Y - lineIntersectionPoint.Y))
-                {
-                    returnPoint = secondPoint;
-                }
-                else
-                {
-                    returnPoint = firstPoint;
-                }
-
+                returnPoint = firstPoint;
             }
             return returnPoint;
         }
 
         private Vector2 getClosestPointOnLineSegment(Vector2 lineIntersectionPoint,
-                                                     Vector2[] segmentEndPoints)
+                                                     Vector2[] segmentEndPoints,
+                                                    out bool inside)
         {
             Vector2 returnPoint = lineIntersectionPoint;
+            inside = true;
             if (segmentEndPoints[0].X != segmentEndPoints[1].X)
             {
                 if (lineIntersectionPoint.X > segmentEndPoints[0].X)
                 {
-                    if (!(lineIntersectionPoint.X < segmentEndPoints[1].X))
+                    if (lineIntersectionPoint.X > segmentEndPoints[1].X)
                     {
+                        inside = false;
                         returnPoint =
                             calculateCloserPoint(lineIntersectionPoint,
                                                  segmentEndPoints[0],
                                                  segmentEndPoints[1]);
                     }
                 }
-                else if (lineIntersectionPoint.X > segmentEndPoints[1].X)
+                else if (lineIntersectionPoint.X < segmentEndPoints[1].X)
                 {
-                    if (!(lineIntersectionPoint.X < segmentEndPoints[0].X))
+                    if (lineIntersectionPoint.X < segmentEndPoints[0].X)
                     {
+                        inside = false;
                         returnPoint =
                             calculateCloserPoint(lineIntersectionPoint,
                                                  segmentEndPoints[0],
@@ -82,18 +71,20 @@ namespace OceanMars.Common
             {
                 if (lineIntersectionPoint.Y > segmentEndPoints[0].Y)
                 {
-                    if (!(lineIntersectionPoint.Y < segmentEndPoints[1].Y))
+                    if (lineIntersectionPoint.Y > segmentEndPoints[1].Y)
                     {
+                        inside = false;
                         returnPoint =
                             calculateCloserPoint(lineIntersectionPoint,
                                                  segmentEndPoints[0],
                                                  segmentEndPoints[1]);
                     }
                 }
-                else if (lineIntersectionPoint.Y > segmentEndPoints[1].Y)
+                else if (lineIntersectionPoint.Y < segmentEndPoints[1].Y)
                 {
-                    if (!(lineIntersectionPoint.Y < segmentEndPoints[0].Y))
+                    if (lineIntersectionPoint.Y < segmentEndPoints[0].Y)
                     {
+                        inside = false;
                         returnPoint =
                             calculateCloserPoint(lineIntersectionPoint,
                                                  segmentEndPoints[0],
@@ -105,7 +96,7 @@ namespace OceanMars.Common
         }
 
 
-        //intersect(shortestSliderIntersectionPoint, shortestSliderNormal, velocity, shortestSliderNormal);
+        //intersect(new Vector2(0, 0), -sliderNormal, sliderEndPoints[0], sliderNormal);
         private float intersect(Vector2 planeOrigin, Vector2 planeNormal, Vector2 rayOrigin, Vector2 rayVector)
         {
             //Assuming normal and vector are normalized
@@ -115,12 +106,45 @@ namespace OceanMars.Common
             return -(numer / denom);
         }
 
-        private float intersectEllipse(Vector2 ellipseRadius, Vector2 rayOrigin)
+        //private float intersectEllipse(Vector2 ellipseRadius, Vector2 rayOrigin)
+        //{
+        //    //Assuming the ellipse is at the origin
+        //    float t = -(rayOrigin.X - ellipseRadius.X)/ellipseRadius.X;
+        //    return t;
+        //} 
+
+        float intersectEllipsoid(Vector3 center, Vector3 ellipsoid_radius, Vector3 ray_origin, Vector3 ray)
         {
-            //Assuming the ellipse is at the origin
-            float t = -(rayOrigin.X - ellipseRadius.X)/ellipseRadius.X;
-            return t;
-        } 
+	        // Center around the ellipsoid
+            ray_origin.X = ray_origin.X - center.X;
+            ray_origin.Y = ray_origin.Y - center.Y;
+            ray_origin.Z = ray_origin.Z - center.Z;
+	        Vector3 ray_normal = ray;
+            ray_normal.Normalize();
+
+	        // Scale the ellipsoid and apply the quadratic equation
+            float a = ((ray_normal.X * ray_normal.X) / (ellipsoid_radius.X * ellipsoid_radius.X))
+                    + ((ray_normal.Y*ray_normal.Y)/(ellipsoid_radius.Y*ellipsoid_radius.Y))
+                    + ((ray_normal.Z*ray_normal.Z)/(ellipsoid_radius.Z*ellipsoid_radius.Z));
+            float b = ((2 * ray_origin.X * ray_normal.X) / (ellipsoid_radius.X * ellipsoid_radius.X))
+                    + ((2*ray_origin.Y*ray_normal.Y)/(ellipsoid_radius.Y*ellipsoid_radius.Y))
+                    + ((2*ray_origin.Z*ray_normal.Z)/(ellipsoid_radius.Z*ellipsoid_radius.Z));
+            float c = ((ray_origin.X * ray_origin.X) / (ellipsoid_radius.X * ellipsoid_radius.X))
+                    + ((ray_origin.Y*ray_origin.Y)/(ellipsoid_radius.Y*ellipsoid_radius.Y))
+                    + ((ray_origin.Z*ray_origin.Z)/(ellipsoid_radius.Z*ellipsoid_radius.Z))
+                    - 1;
+
+            float d = ((b * b) - (4 * a * c));
+
+	        // Check for actual intersection (if b^2 - 4ac < 0)
+            if ( d < 0 ) { return -1; }
+            else { d = (float)Math.Sqrt(d); }
+            float hit = (-b + d)/(2*a);
+            float hitsecond = (-b - d) / (2 * a);
+
+            if( hit < hitsecond) { return hit; }
+            else { return hitsecond; }
+        }
 
         public void testCollision(List<Entity> entities)
         {
@@ -131,9 +155,8 @@ namespace OceanMars.Common
             Vector2 shortestSliderNormal = new Vector2(0, 0);
             Vector2 shortestSliderIntersectionPoint = new Vector2(0, 0);
             float distanceToNearest = -1;
-            bool TEMP_NAME_STOP = false;
 
-            while (!TEMP_NAME_STOP)
+            while (velocity.Length() >= FUZZY_EPSILON)
             {
                 bool hasCollided = false;
                 foreach (Entity entity in entities)
@@ -160,9 +183,10 @@ namespace OceanMars.Common
                         //Calculate the ellipse intersection point
                         Vector2 ellipseRadiusVector = new Vector2(-sliderNormal.X * collisionEllipse.X,
                                                                  -sliderNormal.Y * collisionEllipse.Y);
-                                             
+
+                        float t = 0;
                         //is the plane embedded in ellipse?
-                        float distance = intersect(new Vector2(0, 0), -sliderNormal, sliderEndPoints[0], sliderNormal);
+                        float distance = intersect(sliderEndPoints[0], sliderNormal, new Vector2(0, 0), -sliderNormal);
                         if (Math.Abs(distance) <= ellipseRadiusVector.Length())
                         {
                             lineIntersectionPoint = -sliderNormal * distance;
@@ -173,23 +197,29 @@ namespace OceanMars.Common
                             normalizedVelocity = Vector2.Normalize(velocity);
 
                             //calculate the plane intersection point
-                            float d = intersect(sliderEndPoints[0], sliderNormal, ellipseIntersectionPoint, normalizedVelocity);
+                            t = intersect(sliderEndPoints[0], sliderNormal, ellipseIntersectionPoint, normalizedVelocity);
 
-                            if (Math.Abs(d) <= velocity.Length())
+                            lineIntersectionPoint = ellipseIntersectionPoint + normalizedVelocity * t;
+
+                            //check if our line intersection point is the same as our line segment intersection point
+                            bool inside;
+                            lineIntersectionPoint = getClosestPointOnLineSegment(lineIntersectionPoint, sliderEndPoints, out inside);
+
+                            System.Diagnostics.Debug.WriteLine(inside);
+
+                            if (!inside)
                             {
-                                lineIntersectionPoint = ellipseIntersectionPoint + normalizedVelocity * d;
-
-                                //check if our line intersection point is the same as our line segment intersection point
-                                lineIntersectionPoint = getClosestPointOnLineSegment(lineIntersectionPoint, sliderEndPoints);
+                                 t = intersectEllipsoid(Vector3.Zero, new Vector3(ellipseRadiusVector.X, ellipseRadiusVector.Y, 1), 
+                                                                   new Vector3(lineIntersectionPoint.X, lineIntersectionPoint.Y, 0), 
+                                                                   new Vector3(-velocity.X, -velocity.Y, 0));
                             }
                         }
 
                         //finally, are we intersecting?
-                        float t = intersectEllipse(ellipseRadiusVector, lineIntersectionPoint);
-                        if (t <= velocity.Length() &&
+                        if (t >= 0 && t <= velocity.Length() &&
                             (t < distanceToNearest || !hasCollided))
                         {
-                            distanceToNearest = t - FUZZY_EPSILON;
+                            distanceToNearest = t;
                             hasCollided = true;
                             shortestSliderNormal = sliderNormal;
                             shortestSliderIntersectionPoint = lineIntersectionPoint;
@@ -202,23 +232,22 @@ namespace OceanMars.Common
 
                 if (hasCollided)
                 {
-                    transform = transform *
-                                Matrix.CreateTranslation(new Vector3(distanceToNearest * velocity.X,
-                                                                     distanceToNearest * velocity.Y, 0));
+                    Vector3 newSource = new Vector3(distanceToNearest * velocity.X - BIG_FUZZY_EPSILON,
+                                                                     distanceToNearest * velocity.Y - BIG_FUZZY_EPSILON, 0);
+                    transform = transform * Matrix.CreateTranslation(newSource);
 
+                    //new Vector2(newSource.X, newSource.Y)
                     float t = intersect(shortestSliderIntersectionPoint, shortestSliderNormal,
                                                         velocity, shortestSliderNormal);
                     shortestSliderNormal = shortestSliderNormal / shortestSliderNormal.Length() * t;
                     velocity = velocity + shortestSliderNormal - shortestSliderIntersectionPoint;
-                    if (velocity.Length() < FUZZY_EPSILON)
-                    {
-                        TEMP_NAME_STOP = true;
-                    }
+                    //System.Diagnostics.Debug.WriteLine(Vector2.Dot(shortestSliderNormal, velocity));
+
                 }
                 else
                 {
                     transform = Matrix.CreateTranslation(new Vector3(velocity.X, velocity.Y, 0)) * transform;
-                    TEMP_NAME_STOP = true;
+                    break;
                 }
             }
         }
