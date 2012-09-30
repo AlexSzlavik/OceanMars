@@ -139,18 +139,6 @@ namespace OceanMars.Common.NetCode
             }
         }
 
-        public void invitePlayer(int levelID)
-        {
-            // TODO: figure this fucking out
-
-            // Send level and a player ID to each client
-            foreach (Player p in players)
-            {
-                GameData gameData = new GameData(GameData.GameDataType.InitClientState, p.PlayerID, levelID);
-                Network.SignalGameData(gameData, PlayerToConnectionID(p));
-            }
-        }
-
         /// <summary>
         /// Register a new player with the game server.
         /// </summary>
@@ -203,23 +191,6 @@ namespace OceanMars.Common.NetCode
             }
             
             GameStatesToSend.Clear();
-        }
-
-        public override void commitGameStates()
-        {
-            foreach (GameData gs in GameStatesToCommit)
-            {
-                if (gs.Type == GameData.GameDataType.Movement)
-                {
-                    int id = gs.TransformData.EntityID;
-                    GameState.entities[id].transform = gs.TransformData.getMatrix();
-                }
-                else if (gs.Type == GameData.GameDataType.PlayerTransform)
-                {
-                    int id = gs.TransformData.EntityID;
-                    GameState.entities[id].transform = gs.TransformData.getMatrix();
-                }
-            }
         }
 
     }

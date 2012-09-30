@@ -108,30 +108,6 @@ namespace OceanMars.Common.NetCode
             Network.Connect(host, port);
             Lobby.JoinLobby();
         }
-
-        public override void commitGameStates()
-        {
-            foreach (GameData gs in GameStatesToCommit)
-            {
-                if (gs.Type == GameData.GameDataType.Movement)
-                {
-                    int id = gs.TransformData.EntityID;
-                    GameState.entities[id].transform = gs.TransformData.getMatrix();
-                }
-                else if (gs.Type == GameData.GameDataType.PlayerTransform)
-                {
-                    int id = PlayerIDToEntity[gs.TransformData.EntityID];
-                    GameState.entities[id].transform = gs.TransformData.getMatrix();
-                }
-                else if (gs.Type == GameData.GameDataType.InitClientState)
-                {
-                    setupGameState(gs.EventDetail, gs.PlayerID);
-                    // START the game!!
-                }
-            }
-
-            GameStatesToCommit.Clear();
-        }
     }
 
 }

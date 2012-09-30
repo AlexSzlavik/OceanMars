@@ -50,7 +50,7 @@ namespace OceanMars.Client.Screens
         /// </summary>
         void NewGameMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
-            ScreenManager.AddScreen(new GameplayScreen());
+            //ScreenManager.AddScreen(new GameplayScreen());
             return;
         }
 

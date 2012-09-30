@@ -56,7 +56,10 @@ namespace OceanMars.Client.Screens
         {
             GameServer gs = new GameServer(9999);
             GameClient gc = new GameClient();
+            gc.ConnectToGame("localhost", 9999);
+            gc.setupGameState(0, gc.LocalPlayer.PlayerID);
             ScreenManager.AddScreen(new GameplayScreen(gc));
+
             return;
         }
 
@@ -65,8 +68,7 @@ namespace OceanMars.Client.Screens
         /// </summary>
         void JoinGameMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
-            GameClient gc = new GameClient();
-            ScreenManager.AddScreen(new GameplayScreen(gc));
+            ScreenManager.AddScreen(new HostSettingsMenuScreen());
             return;
         }
 

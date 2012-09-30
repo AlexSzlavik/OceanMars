@@ -40,12 +40,7 @@ namespace OceanMars.Common.NetCode
             /// <summary>
             /// Player transform information
             /// </summary>
-            PlayerTransform,
-
-            /// <summary>
-            /// Server sending Initialization information (level and player) to a client
-            /// </summary>
-            InitClientState
+            PlayerTransform
 
         }
 

@@ -11,6 +11,8 @@
 using Microsoft.Xna.Framework;
 using System.Text;
 using Microsoft.Xna.Framework.Audio;
+using OceanMars.Common.NetCode;
+using SkyCrane.Screens;
 #endregion
 
 namespace OceanMars.Client.Screens
@@ -204,45 +206,21 @@ namespace OceanMars.Client.Screens
         /// </summary>
         void ContinueMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
-            /*int port;
+            int port;
             if (!int.TryParse(hostPort.ToString(), out port) || port <= MIN_PORT || port >= MAX_PORT)
             {
                 return;
             }
 
-            if (host) // We are hosting, immediately jump into the character select
+            string hostAddressString = hostAddress.ToString().Trim();
+            if (string.IsNullOrWhiteSpace(hostAddressString)) // Sanity
             {
-                try
-                {
-                    ((ProjectSkyCrane)ScreenManager.Game).RawServer = new NetCode.RawServer(port);
-                }
-                catch // Something crazy happened, error out
-                {
-                    return;
-                }
-
-                ScreenManager.AddScreen(new CharacterSelectMenuScreen(true, true));
+                return;
             }
-            else // Start up a client and try connecting to the host
-            {
-                string hostAddressString = hostAddress.ToString().Trim();
-                if (string.IsNullOrWhiteSpace(hostAddressString)) // Sanity
-                {
-                    return;
-                }
 
-                try
-                {
-                    ((ProjectSkyCrane)ScreenManager.Game).RawClient = new NetCode.RawClient();
-                    ((ProjectSkyCrane)ScreenManager.Game).RawClient.connect(hostAddressString, port);
-                }
-                catch // Something crazy happened, error out
-                {
-                    return;
-                }
-
-                ScreenManager.AddScreen(new CharacterSelectMenuScreen(false, true));
-            }*/
+            GameClient gc = new GameClient();
+            gc.ConnectToGame(hostAddressString, port);
+            ScreenManager.AddScreen(new GameplayScreen(gc));
             return;
         }
 

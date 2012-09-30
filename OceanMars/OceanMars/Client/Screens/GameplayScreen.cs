@@ -97,7 +97,7 @@ namespace SkyCrane.Screens
             context.textureDict.Add("localcoordplayer", content.Load<Texture2D>("Sprites/localcoordplayer"));
 
             // After loading content, instantiate sprites
-            createSprites(state.root);
+            createSprites(game.GameState.root);
             
 
             return;
@@ -124,7 +124,7 @@ namespace SkyCrane.Screens
         public override void Update(GameTime gameTime, bool otherScreenHasFocus,
                                                        bool coveredByOtherScreen)
         {
-            state.nextFrame();
+            game.GameState.nextFrame();
         }
 
 
