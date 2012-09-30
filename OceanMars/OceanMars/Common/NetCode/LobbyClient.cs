@@ -46,7 +46,7 @@ namespace OceanMars.Common.NetCode
                     Game.LocalPlayer = new Player(null, Game, gameData.PlayerID);
                     break;
                 case GameData.ConnectionDetails.Connected: // Register a new player on a client
-                    Game.RegisterPlayer(new Player(null, Game, gameData.PlayerID));
+                    new Player(null, Game, gameData.PlayerID);
                     break;
                 case GameData.ConnectionDetails.Disconnected: // Drop a connected player from the client
                 case GameData.ConnectionDetails.Dropped:
