@@ -49,7 +49,14 @@ namespace OceanMars.Common.NetCode
             private set;
         }
 
-        public List<Player> Players;
+        /// <summary>
+        /// The list of players currently registered with this game server.
+        /// </summary>
+        public List<Player> Players
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Create a new GameServer.
@@ -80,6 +87,16 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">Received game data that should inform us about changing state, requests, etc.</param>
         public void UpdateGameState(GameData gameData)
         {
+            return;
+        }
+
+        /// <summary>
+        /// Register a new player with the game server.
+        /// </summary>
+        /// <param name="player">The player to register with the game server.</param>
+        public void RegisterPlayer(Player player)
+        {
+            Players.Add(player);
             return;
         }
 

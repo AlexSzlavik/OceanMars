@@ -10,13 +10,7 @@ namespace OceanMars.Common.NetCode
         #region Static Members
 
         /// <summary>
-        /// The next available PlayerId
-        /// This is used in the Factory
-        /// </summary>
-        private static int nextPlayerId = 1;
-
-        /// <summary>
-        /// A Mapping between playerIDs and actual Connections
+        /// A mapping between player IDs and actual connections.
         /// </summary>
         private static Dictionary<int, ConnectionID> PlayerToConnectionMap = new Dictionary<int, ConnectionID>();
 
@@ -28,17 +22,6 @@ namespace OceanMars.Common.NetCode
         #endregion
 
         #region Static Methods
-
-        /// <summary>
-        /// Factory Pattern
-        /// </summary>
-        /// <returns></returns>
-        public static Player CreateNewPlayer(ConnectionID connection)
-        {
-            Player p = new Player(nextPlayerId++, connection);
-            Player.PlayerToConnectionMap.Add(p.PlayerID, connection);
-            return p;
-        }
 
         /// <summary>
         /// Lookup function
@@ -64,18 +47,27 @@ namespace OceanMars.Common.NetCode
 
         #region Members
 
+        /// <summary>
+        /// The numerical ID of the player.
+        /// </summary>
         public int PlayerID
         {
             get;
             private set;
         }
 
+        /// <summary>
+        /// The internet connection ID associated with the player.
+        /// </summary>
         public ConnectionID ConnectionID
         {
             get;
             private set;
         }
 
+        /// <summary>
+        /// The character selection choice the player has made.
+        /// </summary>
         public int CharacterSelection
         {
             get;
@@ -85,12 +77,18 @@ namespace OceanMars.Common.NetCode
         #endregion
 
         /// <summary>
-        /// Constructor
+        /// Create a new Player, register it in the dictionary, and add it to a game server.
         /// </summary>
-        private Player(int playerID, ConnectionID connection)
+        /// <param name="playerID">The ID to assign to the player.</param>
+        /// <param name="connection">The connection this player is associated with.</param>
+        /// <param name="gameServer">The game server that this player will be registered under.</param>
+        public Player(int playerID, ConnectionID connection, GameServer gameServer)
         {
-            this.PlayerID = playerID;
-            this.ConnectionID = connection;
+            PlayerID = playerID;
+            ConnectionID = connection;
+            Player.PlayerToConnectionMap.Add(PlayerID, connection);
+            gameServer.RegisterPlayer(this);
+            return;
         }
 
         /// <summary>

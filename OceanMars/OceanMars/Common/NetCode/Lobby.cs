@@ -14,61 +14,79 @@ namespace OceanMars.Common.NetCode
     /// </summary>
     public class Lobby
     {
+
+        const int MAX_PLAYERS = 8; // Maximum number of players allowed in a lobby
+
         /// <summary>
-        /// Reference to the upstairs gameserver
+        /// The stack of IDs that are available to joining players.
         /// </summary>
-        private GameServer MainGameServer;
+        Stack<int> availableIDs; 
+
+        /// <summary>
+        /// Reference to the game server associated with this lobby. gameserver
+        /// </summary>
+        public GameServer GameServer
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Lobby constructor
         /// </summary>
-        public Lobby(GameServer MainGameServer)
+        /// <param name="gameServer">The game server that this Lobby is associated with.</param>
+        public Lobby(GameServer gameServer)
         {
-            this.MainGameServer = MainGameServer;
+            availableIDs = new Stack<int>();
+            for (int i = MAX_PLAYERS - 1; i > 0; i++) // Add id's to the players
+            {
+                availableIDs.Push(i);
+            }
+            GameServer = gameServer;
+            return;
         }
 
         /// <summary>
-        /// Update hanlder from Network Layer
-        /// This is only invoked until we pass control back to the Gameserver
+        /// Update hanlder from the network layer. This is only invoked until control passes back to the game server.
         /// </summary>
-        /// <param name="data"></param>
-        public void UpdateGameState(GameData data)
+        /// <param name="gameData">Game data being used to update the state of the game.</param>
+        public void UpdateGameState(GameData gameData)
         {
-            switch (data.Type)
+            switch (gameData.Type)
             {
                 case GameData.GameDataType.Connect:
-                    onPlayerConnect(data);
+                    OnPlayerConnect(gameData);
                     break;
                 case GameData.GameDataType.SelectCharacter:
-                    OnSelectCharacter(data);
+                    OnSelectCharacter(gameData);
                     break;
             }
             return;
         }
 
         /// <summary>
-        /// A Player has joined, set them up in the system
+        /// A Player has joined, set them up in the system.
         /// </summary>
-        /// <param name="data"></param>
-        private void onPlayerConnect(GameData data)
+        /// <param name="gameData">The game data related to the character joining the session.</param>
+        private void OnPlayerConnect(GameData gameData)
         {
-            Player newPlayer = Player.CreateNewPlayer(data.ConnectionInfo);
-            MainGameServer.Players.Add(newPlayer);
+            Player newPlayer = new Player(availableIDs.Pop(),gameData.ConnectionInfo, GameServer);
             GameData response = new GameData(GameData.GameDataType.Connect, newPlayer.PlayerID);
-            MainGameServer.GameNetworkServer.SignalGameData(response, newPlayer.ConnectionID);
+            GameServer.GameNetworkServer.SignalGameData(response, newPlayer.ConnectionID);
             return;
         }
 
         /// <summary>
         /// A player has changed their character selection.
         /// </summary>
-        /// <param name="gameData">The gamedata related to character selection.</param>
+        /// <param name="gameData">The game data related to character selection.</param>
         private void OnSelectCharacter(GameData gameData)
         {
-            Player player = MainGameServer.Players[Player.ConnectionToPlayer(gameData.ConnectionInfo)];
+            Player player = GameServer.Players[Player.ConnectionToPlayer(gameData.ConnectionInfo)];
             player.CharacterSelection = gameData.EventDetail;
-            MainGameServer.GameNetworkServer.BroadCastGameData(new GameData(GameData.GameDataType.SelectCharacter, player.PlayerID,gameData.EventDetail));
+            GameServer.GameNetworkServer.BroadCastGameData(new GameData(GameData.GameDataType.SelectCharacter, player.PlayerID,gameData.EventDetail));
             return;
         }
+
     }
 }
