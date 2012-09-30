@@ -217,7 +217,9 @@ namespace OceanMars.Common
             SliderEntity wall = getCollidedWall();
             if (wall != null)
             {
-                System.Diagnostics.Debug.WriteLine(wall.id);
+                //TODO: how the fuck do we remove a sprite
+                state.entities.Remove(wall.id);                
+                wall.parent.children.Remove(wall);
             }
         }
     }
