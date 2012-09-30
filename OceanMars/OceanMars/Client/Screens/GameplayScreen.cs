@@ -146,7 +146,7 @@ namespace SkyCrane.Screens
                 Vector2 movement = Vector2.Zero;
 
                 if (stillJumping &&
-                    (gamePadState.Buttons.A == ButtonState.Released || keyboardState.IsKeyDown(Keys.Space)))
+                    (keyboardState.IsKeyUp(Keys.Space) && gamePadState.Buttons.A == ButtonState.Released))
                     stillJumping = false;
 
                 if (keyboardState.IsKeyDown(Keys.Left))
@@ -164,6 +164,7 @@ namespace SkyCrane.Screens
                 if (keyboardState.IsKeyDown(Keys.Space) ||
                     gamePadState.Buttons.A == ButtonState.Pressed)
                 {
+                    System.Diagnostics.Debug.WriteLine("holding");
                     if (!context.avatar.inAir ||
                         (context.avatar.inAir &&
                          stillJumping &&

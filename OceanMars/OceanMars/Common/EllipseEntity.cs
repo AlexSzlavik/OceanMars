@@ -254,7 +254,6 @@ namespace OceanMars.Common
                     velocity = velocity + shortestSliderNormal - shortestSliderIntersectionPoint;
 
                     velocity = slider == null ? velocity : slider.applyFriction(velocity);
-                    System.Diagnostics.Debug.WriteLine(velocity);
 
                 }
                 else
