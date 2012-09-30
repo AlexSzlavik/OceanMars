@@ -25,7 +25,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Reference to the game server associated with this lobby. gameserver
         /// </summary>
-        public GameServer GameServer
+        public GameClient GameClient
         {
             get;
             private set;
@@ -35,14 +35,14 @@ namespace OceanMars.Common.NetCode
         /// Lobby constructor
         /// </summary>
         /// <param name="gameServer">The game server that this Lobby is associated with.</param>
-        public Lobby(GameServer gameServer)
+        public Lobby(GameClient gameServer)
         {
             availableIDs = new Stack<int>();
             for (int i = MAX_PLAYERS - 1; i > 0; i--) // Add id's to the players
             {
                 availableIDs.Push(i);
             }
-            GameServer = gameServer;
+            GameClient = gameServer;
             return;
         }
 
@@ -52,17 +52,39 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">Game data being used to update the state of the game.</param>
         public void UpdateGameState(GameData gameData)
         {
-            switch (gameData.Type)
+            if (GameClient.IsHosting)
             {
-                case GameData.GameDataType.Connect:
-                    OnPlayerConnect(gameData);
-                    break;
-                case GameData.GameDataType.SelectCharacter:
-                    OnSelectCharacter(gameData);
-                    break;
-                case GameData.GameDataType.LockCharacter:
-                    onCharacterLock(gameData);
-                    break;
+                switch (gameData.Type)
+                {
+                    case GameData.GameDataType.Connect:
+                        OnPlayerConnectServer(gameData);
+                        break;
+                    case GameData.GameDataType.SelectCharacter:
+                        OnSelectCharacterServer(gameData);
+                        break;
+                    case GameData.GameDataType.LockCharacter:
+                        OnCharacterLockServer(gameData);
+                        break;
+                    default:
+                        throw new ArgumentException();
+                }
+            }
+            else
+            {
+                switch (gameData.Type)
+                {
+                    case GameData.GameDataType.Connect:
+                        OnPlayerConnectClient(gameData);
+                        break;
+                    case GameData.GameDataType.SelectCharacter:
+                        OnSelectCharacterClient(gameData);
+                        break;
+                    case GameData.GameDataType.LockCharacter:
+                        OnCharacterLockClient(gameData);
+                        break;
+                    default:
+                        throw new ArgumentException();
+                }
             }
             return;
         }
@@ -71,23 +93,31 @@ namespace OceanMars.Common.NetCode
         /// A Player has joined, set them up in the system.
         /// </summary>
         /// <param name="gameData">The game data related to the character joining the session.</param>
-        private void OnPlayerConnect(GameData gameData)
+        private void OnPlayerConnectServer(GameData gameData)
         {
+            GameData response;
+            Player player = GameClient.ConnectionIDToPlayer(gameData.ConnectionInfo);
             switch ((GameData.ConnectionDetails)gameData.EventDetail)
             {
                 case GameData.ConnectionDetails.IdReqest:
-                    if (Player.ConnectionIDToPlayerID(gameData.ConnectionInfo) == -1)
+                    if (player == null) // If this is a new player, assign them a new ID, otherwise just resend the old id
                     {
-                        Player newPlayer = new Player(availableIDs.Pop(),gameData.ConnectionInfo, GameServer);
-                        GameData response = new GameData(GameData.GameDataType.Connect, newPlayer.PlayerID);
-                        GameServer.GameNetworkServer.SignalGameData(response, newPlayer.ConnectionID);
+                        player = new Player(availableIDs.Pop(), gameData.ConnectionInfo, GameClient);
                     }
-                    break;
-                case GameData.ConnectionDetails.Connected:
+                    response = new GameData(GameData.GameDataType.Connect, player.PlayerID);
+                    GameClient.GameNetworkServer.SignalGameData(response, gameData.ConnectionInfo);
+                    // TODO: Re-broadcast changes to clients
                     break;
                 case GameData.ConnectionDetails.Disconnected:
-                    break;
                 case GameData.ConnectionDetails.Dropped:
+                    if (player != null) // This is a known player based on their connection, so we can drop them
+                    {
+                        availableIDs.Push(player.PlayerID);
+                        GameClient.UnregisterPlayer(player);
+
+                        // TODO: Re-broadcast changes to clients
+                        
+                    }
                     break;
                 default:
                     throw new ArgumentException();
@@ -96,26 +126,56 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
+        /// A Player has joined, set them up in the system.
+        /// </summary>
+        /// <param name="gameData">The game data related to the character joining the session.</param>
+        private void OnPlayerConnectClient(GameData gameData)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// A player has changed their character selection.
         /// </summary>
         /// <param name="gameData">The game data related to character selection.</param>
-        private void OnSelectCharacter(GameData gameData)
+        private void OnSelectCharacterServer(GameData gameData)
         {
-            Player player = GameServer.Players[Player.ConnectionIDToPlayerID(gameData.ConnectionInfo)];
+            Player player = GameClient.ConnectionIDToPlayer(gameData.ConnectionInfo);
             player.CharacterSelection = gameData.EventDetail;
-            GameServer.GameNetworkServer.BroadCastGameData(new GameData(GameData.GameDataType.SelectCharacter, player.PlayerID,gameData.EventDetail));
+            GameClient.GameNetworkServer.BroadCastGameData(new GameData(GameData.GameDataType.SelectCharacter, player.PlayerID,gameData.EventDetail));
+            return;
+        }
+
+        /// <summary>
+        /// A player has changed their character selection.
+        /// </summary>
+        /// <param name="gameData">The game data related to character selection.</param>
+        private void OnSelectCharacterClient(GameData gameData)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Hanldes the character lock request
+        /// </summary>
+        /// <param name="gameData">The game data related to character locking.</param>
+        private void OnCharacterLockServer(GameData gameData)
+        {
+            Player player = GameClient.ConnectionIDToPlayer(gameData.ConnectionInfo);
+            player.CharacterLocked = true;
+            GameClient.GameNetworkServer.BroadCastGameData(new GameData(GameData.GameDataType.LockCharacter,player.PlayerID));
             return;
         }
 
         /// <summary>
         /// Hanldes the character lock request
         /// </summary>
-        /// <param name="gameData"></param>
-        private void onCharacterLock(GameData gameData)
+        /// <param name="gameData">The game data related to character locking.</param>
+        private void OnCharacterLockClient(GameData gameData)
         {
-            Player player = GameServer.Players[Player.ConnectionIDToPlayerID(gameData.ConnectionInfo)];
-            player.CharachterLocked = true;
-            GameServer.GameNetworkServer.BroadCastGameData(new GameData(GameData.GameDataType.LockCharacter,player.PlayerID));
+            Player player = GameClient.ConnectionIDToPlayer(gameData.ConnectionInfo);
+            player.CharacterLocked = true;
+            GameClient.GameNetworkServer.BroadCastGameData(new GameData(GameData.GameDataType.LockCharacter, player.PlayerID));
             return;
         }
     }

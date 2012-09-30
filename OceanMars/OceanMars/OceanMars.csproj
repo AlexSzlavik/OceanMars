@@ -124,7 +124,7 @@
     <Compile Include="Common\NetCode\Lobby.cs" />
     <Compile Include="Common\NetCode\GameServerStateMachine.cs" />
     <Compile Include="Common\NetCode\GameData.cs" />
-    <Compile Include="Common\NetCode\GameServer.cs" />
+    <Compile Include="Common\NetCode\GameClient.cs" />
     <Compile Include="Common\NetCode\NetworkClient.cs" />
     <Compile Include="Common\NetCode\IMarshable.cs" />
     <Compile Include="Common\NetCode\NetcodeTest.cs" />
