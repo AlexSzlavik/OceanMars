@@ -70,7 +70,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">The game data related to the character joining the session.</param>
         private void OnPlayerConnect(GameData gameData)
         {
-            if (Player.ConnectionToPlayer(gameData.ConnectionInfo) == -1)
+            if (Player.ConnectionIDToPlayerID(gameData.ConnectionInfo) == -1)
             {
                 Player newPlayer = new Player(availableIDs.Pop(),gameData.ConnectionInfo, GameServer);
                 GameData response = new GameData(GameData.GameDataType.Connect, newPlayer.PlayerID);
@@ -85,7 +85,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">The game data related to character selection.</param>
         private void OnSelectCharacter(GameData gameData)
         {
-            Player player = GameServer.Players[Player.ConnectionToPlayer(gameData.ConnectionInfo)];
+            Player player = GameServer.Players[Player.ConnectionIDToPlayerID(gameData.ConnectionInfo)];
             player.CharacterSelection = gameData.EventDetail;
             GameServer.GameNetworkServer.BroadCastGameData(new GameData(GameData.GameDataType.SelectCharacter, player.PlayerID,gameData.EventDetail));
             return;
