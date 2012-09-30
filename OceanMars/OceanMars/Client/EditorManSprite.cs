@@ -10,7 +10,7 @@ namespace OceanMars.Client
     class EditorManSprite : Sprite
     {
         public EditorManSprite(View context, EditorMan tm) :
-            base(context,  tm, new Vector2(30, 30), 30, 10, "whitesquare") {
+            base(context,  tm, new Vector2(21, 21), 21, 10, "whitecrosshair") {
         }
     }
 }

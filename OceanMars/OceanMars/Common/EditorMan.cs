@@ -9,7 +9,7 @@ namespace OceanMars.Common
 {
     class EditorMan : FreeEntity
     {
-        public EditorMan(Entity parent) : base(new Vector2(30, 30), parent) {
+        public EditorMan(Entity parent) : base(new Vector2(21, 21), parent) {
         }
     }
 }

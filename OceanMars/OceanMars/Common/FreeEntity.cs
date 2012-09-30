@@ -15,7 +15,7 @@ namespace OceanMars.Common
         public FreeEntity(Vector2 size, Entity parent) : base(size, parent)
         {
             // Defaults
-            friction = 0.85f;
+            friction = 0.55f;
             frictionThreshold = 0.01f;
         }
 
@@ -23,6 +23,16 @@ namespace OceanMars.Common
         {
             velocity = applyAirFriction(velocity);
             transform = Matrix.CreateTranslation(new Vector3(velocity.X, velocity.Y, 0)) * transform;
+        }
+
+        public void setBoostOn()
+        {
+            friction = 0.9f;
+        }
+
+        public void setBoostOff()
+        {
+            friction = 0.5f;
         }
 
         public Vector2 applyAirFriction(Vector2 velocity)

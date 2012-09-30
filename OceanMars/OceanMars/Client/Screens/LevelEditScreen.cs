@@ -49,7 +49,7 @@ namespace OceanMars.Client.Screens
             }
 
             context.textureDict.Add("defaultlevel", content.Load<Texture2D>("Sprites/scenery"));
-            context.textureDict.Add("whitesquare", content.Load<Texture2D>("Sprites/30x30whitesquare"));
+            context.textureDict.Add("whitecrosshair", content.Load<Texture2D>("Sprites/21x21crosshair"));
             context.textureDict.Add("blacksquare", content.Load<Texture2D>("Sprites/1x1blacksquare"));
 
             // After loading content, instantiate sprites
@@ -139,6 +139,16 @@ namespace OceanMars.Client.Screens
 
                 if (keyboardState.IsKeyDown(Keys.Down))
                     movement.Y++;
+
+                if (keyboardState.IsKeyDown(Keys.B) || (gamePadState.Buttons.B == ButtonState.Pressed))
+                {
+                    ((FreeEntity)context.avatar).setBoostOn();
+                }
+
+                if (keyboardState.IsKeyUp(Keys.B) && (gamePadState.Buttons.B == ButtonState.Released))
+                {
+                    ((FreeEntity)context.avatar).setBoostOff();
+                }
 
 
                 Vector2 thumbstick = gamePadState.ThumbSticks.Left;
