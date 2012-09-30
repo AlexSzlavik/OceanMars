@@ -13,6 +13,7 @@ using System.Text;
 using Microsoft.Xna.Framework.Audio;
 using OceanMars.Common.NetCode;
 using SkyCrane.Screens;
+using OceanMars.Screens;
 #endregion
 
 namespace OceanMars.Client.Screens
@@ -220,7 +221,7 @@ namespace OceanMars.Client.Screens
 
             GameClient gc = new GameClient();
             gc.ConnectToGame(hostAddressString, port);
-            ScreenManager.AddScreen(new GameplayScreen(gc));
+            ScreenManager.AddScreen(new LobbyScreen(gc));
             return;
         }
 

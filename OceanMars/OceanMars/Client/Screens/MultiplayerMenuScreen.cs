@@ -11,6 +11,8 @@
 using Microsoft.Xna.Framework;
 using OceanMars.Common.NetCode;
 using SkyCrane.Screens;
+using System.Threading;
+using OceanMars.Screens;
 #endregion
 
 namespace OceanMars.Client.Screens
@@ -56,9 +58,8 @@ namespace OceanMars.Client.Screens
         {
             GameServer gs = new GameServer(9999);
             GameClient gc = new GameClient();
-            gc.ConnectToGame("localhost", 9999);
-            gc.setupGameState(0, gc.LocalPlayer.PlayerID);
-            ScreenManager.AddScreen(new GameplayScreen(gc));
+            gc.ConnectToGame("127.0.0.1", 9999);
+            ScreenManager.AddScreen(new LobbyScreen(gc, gs));
 
             return;
         }
