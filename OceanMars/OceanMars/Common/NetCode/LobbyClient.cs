@@ -39,7 +39,23 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">The game data related to the character joining the session.</param>
         protected override void OnPlayerConnect(GameData gameData)
         {
-            throw new NotImplementedException();
+            GameData response;
+            switch ((GameData.ConnectionDetails)gameData.EventDetail)
+            {
+                case GameData.ConnectionDetails.IdReqest:
+                    Game.LocalPlayer = new Player(null, Game, gameData.PlayerID);
+                    break;
+                case GameData.ConnectionDetails.Connected: // Register a new player on a client
+                    Game.RegisterPlayer(new Player(null, Game, gameData.PlayerID));
+                    break;
+                case GameData.ConnectionDetails.Disconnected: // Drop a connected player from the client
+                case GameData.ConnectionDetails.Dropped:
+                        Game.UnregisterPlayer(Game.GetPlayer(gameData.PlayerID));
+                    break;
+                default:
+                    throw new ArgumentException();
+            }
+            return;
         }
 
         /// <summary>

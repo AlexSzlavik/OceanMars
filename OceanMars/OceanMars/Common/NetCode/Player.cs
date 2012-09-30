@@ -5,8 +5,6 @@ namespace OceanMars.Common.NetCode
     public class Player
     {
 
-        #region Members
-
         /// <summary>
         /// The numerical ID of the player.
         /// </summary>
@@ -35,7 +33,7 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Boolean to check whether this players Selection is locked
+        /// Boolean to check whether this player's selection is locked.
         /// </summary>
         public bool CharacterLocked
         {
@@ -43,19 +41,26 @@ namespace OceanMars.Common.NetCode
             set;
         }
 
-        #endregion
-
         /// <summary>
-        /// Create a new Player, register it in the dictionary, and add it to a game server.
+        /// Create a new player, register it, and assign an ID.
         /// </summary>
         /// <param name="connection">The connection this player is associated with.</param>
         /// <param name="gameBase">The game server that this player will be registered under.</param>
-        public Player(ConnectionID connection, GameBase gameBase)
+        /// <param name="playerID">PlayerID to pass in. This only needs to be defined by clients.</param>
+        public Player(ConnectionID connection, GameBase gameBase, int playerID = -1)
         {
             ConnectionID = connection;
             CharacterSelection = -1;
             CharacterLocked = false;
-            PlayerID = gameBase.RegisterPlayer(this);
+            if (playerID < 0)
+            {
+                PlayerID = gameBase.RegisterPlayer(this);
+            }
+            else
+            {
+                PlayerID = playerID;
+                gameBase.RegisterPlayer(this);
+            }
             return;
         }
 
