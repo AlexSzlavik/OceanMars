@@ -14,10 +14,7 @@ namespace OceanMars.Common
         {
             player = new EditorMan(root);
 
-            TestWall w = new TestWall (root, new Vector2(-100, -50), new Vector2(100, -50));
-
             root.addChild(player);
-            root.addChild(w);
         }
     }
 }

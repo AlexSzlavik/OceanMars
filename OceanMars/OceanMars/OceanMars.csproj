@@ -61,7 +61,7 @@
     <XnaCompressContent>true</XnaCompressContent>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>OceanMars.Program</StartupObject>
+    <StartupObject>OceanMars.Common.NetCode.NetTest</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>C264B4564EC9FC0DE0865B4433BF022E50CC9BE7</ManifestCertificateThumbprint>
@@ -126,12 +126,18 @@
     <Compile Include="Common\Level.cs" />
     <Compile Include="Common\LevelEditorState.cs" />
     <Compile Include="Common\LevelPack.cs" />
-    <Compile Include="Common\NetCode\Lobby.cs" />
+    <Compile Include="Common\NetCode\ConnectionID.cs" />
+    <Compile Include="Common\NetCode\GameBase.cs" />
+    <Compile Include="Common\NetCode\GameServer.cs" />
+    <Compile Include="Common\NetCode\LobbyBase.cs" />
     <Compile Include="Common\NetCode\GameServerStateMachine.cs" />
     <Compile Include="Common\NetCode\GameData.cs" />
-    <Compile Include="Common\NetCode\GameServer.cs" />
+    <Compile Include="Common\NetCode\GameClient.cs" />
+    <Compile Include="Common\NetCode\LobbyClient.cs" />
+    <Compile Include="Common\NetCode\LobbyServer.cs" />
+    <Compile Include="Common\NetCode\NetworkBase.cs" />
     <Compile Include="Common\NetCode\NetworkClient.cs" />
-    <Compile Include="Common\NetCode\IMarshable.cs" />
+    <Compile Include="Common\NetCode\IMarshallable.cs" />
     <Compile Include="Common\NetCode\NetcodeTest.cs" />
     <Compile Include="Common\NetCode\NetworkStateMachine.cs" />
     <Compile Include="Common\NetCode\NetworkWorker.cs" />
