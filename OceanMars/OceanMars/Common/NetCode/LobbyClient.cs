@@ -76,5 +76,43 @@ namespace OceanMars.Common.NetCode
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Join the game lobby
+        /// </summary>
+        public void JoinLobby()
+        {
+            //Do we want to actually join the lobby on top of joinging the Server?
+            GameData changeRequest = new GameData(GameData.GameDataType.Connect, 0, (int)GameData.ConnectionDetails.IdReqest);
+        }
+
+        /// <summary>
+        /// The uesr makes a change to the character selection
+        /// </summary>
+        /// <param name="character"></param>
+        public void SelectCharacter(int character)
+        {
+            GameData changeRequest = new GameData(GameData.GameDataType.SelectCharacter, Game.LocalPlayer.PlayerID, character);
+            Game.Network.SendGameData(changeRequest);
+        }
+
+        /// <summary>
+        /// The uesr makes a change to the character selection
+        /// </summary>
+        /// <param name="character"></param>
+        public void LockCharacter()
+        {
+            GameData changeRequest = new GameData(GameData.GameDataType.LockCharacter, Game.LocalPlayer.PlayerID);
+            Game.Network.SendGameData(changeRequest);
+        }
+
+        /// <summary>
+        /// The Host requests the game to start
+        /// </summary>
+        /// <param name="character"></param>
+        public void StartGame()
+        {
+            GameData changeRequest = new GameData(GameData.GameDataType.GameStart,Game.LocalPlayer.PlayerID);
+            Game.Network.SendGameData(changeRequest);
+        }
     }
 }

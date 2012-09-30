@@ -98,6 +98,17 @@ namespace OceanMars.Common.NetCode
             GameStatesToSend.Clear();
         }
 
+        /// <summary>
+        /// User Level connection method
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        public void ConnectToGame(String host, int port)
+        {
+            Network.Connect(host, port);
+            Lobby.JoinLobby();
+        }
+
         public override void commitGameStates()
         {
             foreach (GameData gs in GameStatesToCommit)
