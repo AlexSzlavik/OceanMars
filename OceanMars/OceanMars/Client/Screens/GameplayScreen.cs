@@ -164,7 +164,6 @@ namespace SkyCrane.Screens
                 if (keyboardState.IsKeyDown(Keys.Space) ||
                     gamePadState.Buttons.A == ButtonState.Pressed)
                 {
-                    System.Diagnostics.Debug.WriteLine("holding");
                     if (!context.avatar.inAir ||
                         (context.avatar.inAir &&
                          stillJumping &&

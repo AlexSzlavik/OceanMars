@@ -151,20 +151,20 @@ namespace OceanMars.Common
             //Assumes that the state checks velocity to see if anything is actually moving
             //Assumes that the state checks AABBs to see if testing collisions makes sense
 
-            Vector2 normalizedVelocity = new Vector2(0, 0);
-            Vector2 shortestSliderNormal = new Vector2(0, 0);
-            Vector2 shortestSliderIntersectionPoint = new Vector2(0, 0);
-            float distanceToNearest = -1;
-            SliderEntity slider = null;
-
             while (velocity.Length() >= FUZZY_EPSILON)
             {
+                Vector2 normalizedVelocity = new Vector2(0, 0);
+                SliderEntity shortestSlider = null;
+                Vector2 shortestSliderNormal = new Vector2(0, 0);
+                Vector2 shortestSliderIntersectionPoint = new Vector2(0, 0);
+                float distanceToNearest = -1;
                 bool hasCollided = false;
+
                 foreach (Entity entity in entities)
                 {
                     if (entity is SliderEntity)
                     {
-                        slider = (SliderEntity)entity;
+                        SliderEntity slider = (SliderEntity)entity;
                         Vector2 lineIntersectionPoint = new Vector2(0, 0);
                         Matrix transformSliderToLocal = slider.worldTransform * inverseWorldTransform;
 
@@ -179,6 +179,11 @@ namespace OceanMars.Common
                         //TODO: Unit normal
                         Vector2 sliderNormal = Vector2.Transform((sliderEndPoints[1] - sliderEndPoints[0]),
                             Matrix.CreateRotationZ((float)(-Math.PI / 2.0f)));
+
+                        //if we're moving in the same direction as the normal, we shouldn't collide, so keep going
+                        if ((sliderNormal.Y < 0) == (velocity.Y < 0))
+                            continue;
+
                         sliderNormal.Normalize();
 
                         //Calculate the ellipse intersection point
@@ -220,15 +225,10 @@ namespace OceanMars.Common
                         {
                             distanceToNearest = t;
                             hasCollided = true;
+                            shortestSlider = slider;
                             shortestSliderNormal = sliderNormal;
                             shortestSliderIntersectionPoint = lineIntersectionPoint;
 
-                            //TODO: SHOULD PROBABLY MOVE; MAKE A CONSTANT VAR
-                            //test if we're still jumping
-                            if (Vector2.Dot(sliderNormal, new Vector2(1, 0)) < 0.5f)
-                            {
-                                inAir = false;
-                            }
                         }
                     }
                     else //entity is EllipseEntity
@@ -253,7 +253,14 @@ namespace OceanMars.Common
                     shortestSliderNormal = shortestSliderNormal / shortestSliderNormal.Length() * t;
                     velocity = velocity + shortestSliderNormal - shortestSliderIntersectionPoint;
 
-                    velocity = slider == null ? velocity : slider.applyFriction(velocity);
+                    velocity = shortestSlider == null ? velocity : shortestSlider.applyFriction(velocity);
+
+                    //TODO: SHOULD PROBABLY MOVE; MAKE A CONSTANT VAR
+                    //test if we're still jumping
+                    if (Vector2.Dot(shortestSliderNormal, new Vector2(1, 0)) < 0.5f)
+                    {
+                        inAir = false;
+                    }
 
                 }
                 else
