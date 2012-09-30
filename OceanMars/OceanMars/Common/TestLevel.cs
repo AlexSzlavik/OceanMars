@@ -21,6 +21,17 @@ namespace OceanMars.Common
             TestWall w9 = new TestWall(this, new Vector2(800, 600), new Vector2(400, 600));
             TestWall w10 = new TestWall(this, new Vector2(-200, -50), new Vector2(200, -20));
 
+            w1.name = "W1";
+            w2.name = "W2";
+            w3.name = "W3";
+            w4.name = "W4";
+            w5.name = "W5";
+            w6.name = "W6";
+            w7.name = "W7";
+            w8.name = "W8";
+            w9.name = "W9";
+            w10.name = "W10";
+
             this.addChild(w1);
             this.addChild(w2);
             this.addChild(w3);

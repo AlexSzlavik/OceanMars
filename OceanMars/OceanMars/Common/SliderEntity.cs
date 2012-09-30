@@ -11,6 +11,7 @@ namespace OceanMars.Common
         public Vector2[] endPoints;
 
         public float friction;
+        public String name = "ill defined";
 
         public float frictionThreshold;
 

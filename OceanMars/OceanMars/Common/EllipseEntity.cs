@@ -180,11 +180,15 @@ namespace OceanMars.Common
                         Vector2 sliderNormal = Vector2.Transform((sliderEndPoints[1] - sliderEndPoints[0]),
                             Matrix.CreateRotationZ((float)(-Math.PI / 2.0f)));
 
+                        // don't collide with planes parallel to movement
+                        double parallel = Vector2.Dot(sliderNormal, velocity);
+                        if (Math.Abs(parallel) < FUZZY_EPSILON) continue;
+
                         //TODO: Edge case vertical lines
                         //if we're moving in the same direction as the normal, we shouldn't collide, so keep going
                         if (sliderNormal.Y != 0)
                         {
-                            if ((sliderNormal.Y < 0) == (velocity.Y < 0))
+                            if (sliderNormal.Y < 0 &&  velocity.Y < 0)
                                 continue;
                         }
 
@@ -227,6 +231,9 @@ namespace OceanMars.Common
                         if (t >= 0 && t <= velocity.Length() &&
                             (t < distanceToNearest || !hasCollided))
                         {
+                            //System.Diagnostics.Debug.WriteLine("Collided w velocity: " + velocity);
+                            //if (slider != null) System.Diagnostics.Debug.WriteLine(slider.name);
+
                             distanceToNearest = t;
                             hasCollided = true;
                             shortestSlider = slider;
