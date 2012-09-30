@@ -196,6 +196,7 @@
   <ItemGroup>
     <None Include="Levels\testLevel.lvl">
       <Name>testLevel</Name>
+      <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />
