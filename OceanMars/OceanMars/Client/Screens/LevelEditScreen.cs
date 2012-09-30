@@ -74,6 +74,11 @@ namespace OceanMars.Client.Screens
                     Sprite s = new TestWallSprite(context, (TestWall)e);
                     context.sprites.Add(id, s);
                 }
+                else if (e is SpawnPointEntity)
+                {
+                    Sprite s = new SpawnPointSprite(context, (SpawnPointEntity)e);
+                    context.sprites.Add(id, s);
+                }
             }
 
             return;

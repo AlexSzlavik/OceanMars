@@ -14,7 +14,7 @@ namespace OceanMars.Common
 
         public Level(Entity parent, List<Vector2[]> vectorList) : base (new Vector2(0, 0), parent)
         {
-            constructWalls(vectorList);
+            constructLevel(vectorList);
         }
 
         public Level(Entity parent, string filePath)
@@ -28,10 +28,10 @@ namespace OceanMars.Common
             textReader.Close();
 
 
-            constructWalls(vectorList);
+            constructLevel(vectorList);
         }
 
-        private void constructWalls(List<Vector2[]> vectorList)
+        private void constructLevel(List<Vector2[]> vectorList)
         {
             TestWall w = null;
             SpawnPointEntity s = null;

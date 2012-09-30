@@ -15,10 +15,12 @@ namespace OceanMars.Common
         private Vector2? point1 = null;
         private Entity parent = null;
         private List<Vector2[]> walls = null;
+        private List<Vector2> spawns = null;
 
         public EditorMan(Entity parent) : base(new Vector2(21, 21), parent) {
             this.parent = parent;
             walls = new List<Vector2[]>();
+            spawns = new List<Vector2>();
         }
 
         // The user has choosen to create a point on the map
@@ -60,7 +62,22 @@ namespace OceanMars.Common
             XmlSerializer serializer = new XmlSerializer(typeof(List<Vector2[]>));
 
             TextWriter textWriter = new StreamWriter(filePath);
-            serializer.Serialize(textWriter, walls);
+
+            // Create a list containing all of the spawn and wall details
+            List<Vector2[]> outList = new List<Vector2[]>();
+            Vector2[] spawnVectors = new Vector2[spawns.Count];
+            for (int i = 0; i < spawns.Count; i++)
+            {
+                spawnVectors[i] = spawns[i];
+            }
+            outList.Add(spawnVectors);
+            foreach (Vector2[] v in walls)
+            {
+                outList.Add(v);
+            }
+
+            // Write out the list and close the file
+            serializer.Serialize(textWriter, outList);
             textWriter.Close();
 
         }
@@ -70,13 +87,28 @@ namespace OceanMars.Common
             XmlSerializer deserializer = new XmlSerializer(typeof(List<Vector2[]>));
 
             TextReader textReader = new StreamReader(filePath);
-            walls = (List<Vector2[]>)deserializer.Deserialize(textReader);
+            List<Vector2[]> level = (List<Vector2[]>)deserializer.Deserialize(textReader);
             textReader.Close();
 
             TestWall w = null;
-            foreach (Vector2[] v in walls)
+            SpawnPointEntity s = null;
+            Vector2[] v;
+
+            // First, create the set of spawn points
+            v = level[0];
+            for (int i = 0; i < v.Length; i++)
             {
-                w = new TestWall(this, v[0], v[1]);
+                spawns.Add(v[i]);
+                s = new SpawnPointEntity(root, v[i]);
+                root.addChild(s);
+            }
+
+            // Next, create the set of walls
+            for (int i = 1; i < level.Count; i++)
+            {
+                v = level[i];
+                walls.Add(v);
+                w = new TestWall(root, v[0], v[1]);
                 root.addChild(w);
             }
         }

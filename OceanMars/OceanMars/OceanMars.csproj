@@ -61,7 +61,7 @@
     <XnaCompressContent>true</XnaCompressContent>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>OceanMars.Common.NetCode.NetTest</StartupObject>
+    <StartupObject>OceanMars.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>C264B4564EC9FC0DE0865B4433BF022E50CC9BE7</ManifestCertificateThumbprint>
