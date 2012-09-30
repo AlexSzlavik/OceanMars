@@ -152,7 +152,7 @@ namespace SkyCrane.Screens
             else
             {
                 Vector2 movement = Vector2.Zero;
-                float movementSpeed = context.avatar.inAir ? 0.25f : 1.0f;
+                float movementSpeed = context.avatar.inAir ? 0.25f : 2.5f;
 
                 stillHoldingJump |= context.avatar.inAir;
 
@@ -211,8 +211,8 @@ namespace SkyCrane.Screens
                 movement.X += thumbstick.X * movementSpeed;
                 movement.Y -= thumbstick.Y * movementSpeed;
 
-                if (movement.Length() > 1)
-                    movement.Normalize();
+                //if (movement.Length() > 1)
+                //    movement.Normalize();
 
                 context.avatar.velocity += 1 * movement;
             }
