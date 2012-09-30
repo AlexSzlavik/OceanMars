@@ -9,7 +9,7 @@ namespace OceanMars.Common.NetCode
     public class TransformData : IMarshallable
     {
         public int EntityID;
-        public float [] Matrix = new float[16]; 
+        public Matrix matrix; 
 
         /// <summary>
         /// Convinience Constructor to Marshal Matrix

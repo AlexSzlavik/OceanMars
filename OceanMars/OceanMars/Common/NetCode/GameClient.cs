@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace OceanMars.Common.NetCode
 {
@@ -64,13 +65,11 @@ namespace OceanMars.Common.NetCode
             return player.PlayerID;
         }
 
-        /// <summary>
-        /// Update the state of the game based on received game data.
-        /// </summary>
-        /// <param name="gameData">The game data to use to update the game.</param>
-        protected override void UpdateGameState(GameData gameData)
+        public override void sendGameStates()
         {
-            throw new NotImplementedException();
+            List<GameData> lgd = new List<GameData>(GameStatesToSend.Values);
+            Network.SendGameData(lgd);
+            GameStatesToSend.Clear();
         }
 
     }

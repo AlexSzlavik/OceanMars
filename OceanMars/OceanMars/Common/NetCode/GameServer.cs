@@ -9,7 +9,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// Abstraction of a game server that rests on top of the network stack.
     /// </summary>
-    public class GameServer : GameBase
+    public class GameServer : GameBase, TransformChangeListener, IStatePhaseListener
     {
 
         /// <summary>
@@ -153,13 +153,25 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
-        /// <summary>
-        /// Update the state of the game based on received game data.
-        /// </summary>
-        /// <param name="gameData">The game data to use to update the game.</param>
         protected override void UpdateGameState(GameData gameData)
         {
-            throw new NotImplementedException();
+            // Should forward to other machines (not the one received from)
+            for (int i = 0; i < players.Length; i++ )
+            {
+                if (i == gameData.PlayerID) continue;
+                Network.SignalGameData(gameData, PlayerToConnectionID(players[i]));
+
+            }
+        }
+
+        public override void sendGameStates()
+        {
+            List<GameData> lgd = new List<GameData>(GameStatesToSend.Values);
+            foreach(Player p in players) {
+                Network.SignalGameData(lgd, PlayerToConnectionID(p));
+            }
+            
+            GameStatesToSend.Clear();
         }
 
     }
