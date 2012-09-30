@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfArrayOfVector2 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <ArrayOfVector2>
+    <Vector2>
+      <X>8.976269</X>
+      <Y>-39.0418243</Y>
+    </Vector2>
+    <Vector2>
+      <X>108.56456</X>
+      <Y>-39.00744</Y>
+    </Vector2>
+  </ArrayOfVector2>
+  <ArrayOfVector2>
+    <Vector2>
+      <X>0</X>
+      <Y>-3.96966934E-05</Y>
+    </Vector2>
+    <Vector2>
+      <X>77.9545441</X>
+      <Y>-2.27471972</Y>
+    </Vector2>
+  </ArrayOfVector2>
+</ArrayOfArrayOfVector2>
