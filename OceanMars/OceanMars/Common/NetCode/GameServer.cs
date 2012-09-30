@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace OceanMars.Common.NetCode
 {
@@ -159,7 +160,9 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">The game data to use to update the game.</param>
         protected override void UpdateGameState(GameData gameData)
         {
-            throw new NotImplementedException();
+            if (gameData.Type == GameData.GameDataType.Movement)
+                Debug.WriteLine(String.Format("Matrix: {0}",gameData.TransformData.Matrix[2]));
+            //throw new NotImplementedException();
         }
 
     }
