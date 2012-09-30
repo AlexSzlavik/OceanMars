@@ -50,12 +50,15 @@ namespace OceanMars.Common.NetCode
         /// A Player has joined, set them up in the system
         /// </summary>
         /// <param name="data"></param>
-        private void onPlayerConnect(GameData data)
+        private void onPlayerConnect(GameData data )
         {
-            Player newPlayer = Player.CreateNewPlayer(data.ConnectionInfo);
-            MainGameServer.Players.Add(newPlayer);
-            GameData response = new GameData(GameData.GameDataType.Connect, newPlayer.PlayerID);
-            MainGameServer.GameNetworkServer.SignalGameData(response, newPlayer.ConnectionID);
+            if (Player.ConnectionToPlayer(data.ConnectionInfo) == -1)
+            {
+                Player newPlayer = Player.CreateNewPlayer(data.ConnectionInfo);
+                MainGameServer.Players.Add(newPlayer);
+                GameData response = new GameData(GameData.GameDataType.Connect, newPlayer.PlayerID);
+                MainGameServer.GameNetworkServer.SignalGameData(response, newPlayer.ConnectionID);
+            }
             return;
         }
 
