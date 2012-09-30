@@ -18,32 +18,20 @@ namespace OceanMars.Common
             : base(new Vector2(0, 0), parent)
         {
             // Collect the set of .xml files
-            //string[] filePaths = System.IO.Directory.GetFiles(@"c:\MyDir\");
-            string filePath = @"../../../../OceanMarsContent/Levels/testLevel.lvl";
+            string[] filePaths = System.IO.Directory.GetFiles(@"../../../../OceanMarsContent/Levels/");
 
-            // Parse each .xml file and create a Level Entity
-            XmlSerializer deserializer = new XmlSerializer(typeof(List<Vector2[]>));
-
-            /*List<Vector2[]> testList = new List<Vector2[]>();
-            for (int i = 0; i < 2; i++)
+            foreach (string filePath in filePaths)
             {
-                testList.Add(new Vector2[2]);
-                for (int j = 0; j < 2; j++)
-                {
-                    testList[i][j] = new Vector2(i, j);
-                }
+                // Parse each .xml file and create a Level Entity
+                XmlSerializer deserializer = new XmlSerializer(typeof(List<Vector2[]>));
+
+                TextReader textReader = new StreamReader(filePath);
+                List<Vector2[]> vectorList;
+                vectorList = (List<Vector2[]>)deserializer.Deserialize(textReader);
+                textReader.Close();
+
+                levelList.Add(new Level(this, vectorList));
             }
-
-            TextWriter textWriter = new StreamWriter(filePath);
-            deserializer.Serialize(textWriter, testList); */
-
-
-            TextReader textReader = new StreamReader(filePath);
-            List<Vector2[]> vectorList;
-            vectorList = (List<Vector2[]>)deserializer.Deserialize(textReader);
-            textReader.Close();
-
-            levelList.Add(new Level(this, vectorList));
 
             // Add each level to the scene graph
             foreach (Level l in levelList)
