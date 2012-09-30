@@ -104,6 +104,12 @@ namespace OceanMars.Common.NetCode
             set;
         }
 
+        public ConnectionID ConnectionInfo
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Create a new piece of GameData from a byte array representation.
         /// </summary>

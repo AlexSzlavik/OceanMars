@@ -11,7 +11,8 @@ namespace OceanMars.Common.NetCode
         //public static RawClient c1 = new RawClient();
         //public static RawClient c2 = new RawClient();
         //public static RawClient c3 = new RawClient();
-        public static NetworkServer s;
+        //public static NetworkServer s;
+        public static GameServer gs;
         //Netcode testing suite... or just a template
         public static void Main(string[] args)
         {
@@ -27,7 +28,8 @@ namespace OceanMars.Common.NetCode
 
             try
             {
-                s = new NetworkServer(9999);
+                //s = new NetworkServer(9999);
+                gs = new GameServer(9999);
             }
             catch (Exception error)
             {
@@ -89,7 +91,7 @@ namespace OceanMars.Common.NetCode
             //Debug.WriteLine("Ping for 2: {0}", c1.getPing());
             //Debug.WriteLine("Ping for 3: {0}", c2.getPing());
             //Debug.WriteLine("Ping for 4: {0}", c3.getPing());
-            Debug.WriteLine("Server packets received: {0}", s.getStats().rcvdPkts);
+            //Debug.WriteLine("Server packets received: {0}", s.getStats().rcvdPkts);
         }
 
         //public void exit()
