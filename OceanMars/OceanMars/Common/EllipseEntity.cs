@@ -197,6 +197,11 @@ namespace OceanMars.Common
                         float t = 0;
                         //is the plane embedded in ellipse?
                         float distance = intersect(sliderEndPoints[0], sliderNormal, new Vector2(0, 0), -sliderNormal);
+
+                        // Check if we are even within range of hitting a damn thing
+                        if (distance < 0) continue;
+                        if (distance > (velocity.Length() + ellipseRadiusVector.Length())) continue;
+
                         if (Math.Abs(distance) <= ellipseRadiusVector.Length())
                         {
                             lineIntersectionPoint = -sliderNormal * distance;

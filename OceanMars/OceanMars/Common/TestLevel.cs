@@ -14,7 +14,7 @@ namespace OceanMars.Common
             TestWall w2 = new TestWall(this, new Vector2(-1000, 500), new Vector2(-700, -50));
             TestWall w3 = new TestWall(this, new Vector2(-700, -50), new Vector2(500, -50));
             TestWall w4 = new TestWall(this, new Vector2(500, -50), new Vector2(1000, 100));
-            TestWall w5 = new TestWall(this, new Vector2(1000, 100), new Vector2(1000, 1000));
+            TestWall w5 = new TestWall(this, new Vector2(1000, 1000), new Vector2(1000, 100));
             TestWall w6 = new TestWall(this, new Vector2(100, 200), new Vector2(-200, 200));
             TestWall w7 = new TestWall(this, new Vector2(200, 400), new Vector2(400, 400));
             TestWall w8 = new TestWall(this, new Vector2(400, 400), new Vector2(400, 600));
