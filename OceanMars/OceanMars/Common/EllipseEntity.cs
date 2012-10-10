@@ -181,8 +181,6 @@ namespace OceanMars.Common
                         Vector2.Transform(slider.endPoints[1], transformSliderToLocal)
                                                 };
 
-                        //System.Diagnostics.Debug.WriteLine(sliderEndPoints[0].X + "," + sliderEndPoints[0].Y + "\n" + sliderEndPoints[1].X + "," + sliderEndPoints[1].Y + "\n");
-
                         //TODO: Unit normal
                         Vector2 sliderNormal = Vector2.Transform((sliderEndPoints[1] - sliderEndPoints[0]),
                             Matrix.CreateRotationZ((float)(-Math.PI / 2.0f)));
@@ -266,7 +264,11 @@ namespace OceanMars.Common
                     //test if we're still jumping
                     if (Math.Abs(Vector2.Dot(shortestSliderNormal, new Vector2(1, 0))) < 0.9f)
                     {
-                        inAir = false;
+                        groundState = Entity.GroundState.GROUND;
+                    }
+                    else if (groundState == Entity.GroundState.AIR)
+                    {
+                        groundState = Entity.GroundState.WALL;
                     }
 
                     Vector3 newSource = new Vector3(truncatedVelocity.X,
@@ -276,10 +278,10 @@ namespace OceanMars.Common
                     //new Vector2(newSource.X, newSource.Y)
                     float t = intersect(shortestSliderIntersectionPoint, shortestSliderNormal,
                                                         velocity, shortestSliderNormal);
-                    shortestSliderNormal = shortestSliderNormal / shortestSliderNormal.Length() * t;
+                    shortestSliderNormal *= t;
                     velocity = velocity + shortestSliderNormal - shortestSliderIntersectionPoint;
 
-                    velocity = shortestSlider == null ? velocity : shortestSlider.applyFriction(velocity);
+                    //velocity = shortestSlider == null ? velocity : shortestSlider.applyFriction(velocity);
 
                     
                 }
@@ -290,7 +292,7 @@ namespace OceanMars.Common
                 }
             }
             if (!hasCollidedOnce)
-                inAir = true;
+                groundState = Entity.GroundState.AIR;
         }
     }
 }

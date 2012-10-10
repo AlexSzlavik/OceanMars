@@ -38,9 +38,10 @@ namespace SkyCrane.Screens
         ContentManager content;
         ServerlessState state = new ServerlessState(); // TODO: need to instantiate this from server connection in some way, and player
         View context;
-        bool stillJumping = false;
-        bool stillHoldingJump = false;
-        bool firstRelease = false;
+        private bool stillJumping = false;
+        private bool stillHoldingJump = false;
+        private bool firstRelease = false;
+        private Vector2 GRAVITY = new Vector2(0, 2.0f);
 
         #endregion
 
@@ -151,13 +152,26 @@ namespace SkyCrane.Screens
             }
             else
             {
-                Vector2 movement = Vector2.Zero;
-                float movementSpeed = context.avatar.inAir ? 0.25f : 2.5f;
+                //if the game is not paused, handle user input
 
-                stillHoldingJump |= context.avatar.inAir;
+                #region Handle Jump Input
+
+                Vector2 movement = Vector2.Zero;
+                float movementSpeed = context.avatar.movementSpeed;
+                if (context.avatar.groundState == Entity.GroundState.AIR)
+                    movementSpeed /= 10.0f;
+
+                context.avatar.velocity += context.avatar.groundState == Entity.GroundState.AIR ? GRAVITY : GRAVITY / 2.0f;
+
+                //stillHoldingJump makes sure that, once our character hits the ground, he doesn't jump
+                //again until we let go of the jump button and press it again
+                stillHoldingJump |= context.avatar.groundState == Entity.GroundState.AIR;
 
                 if (stillHoldingJump &&
                     (keyboardState.IsKeyUp(Keys.Space) && gamePadState.Buttons.A == ButtonState.Released))
+                    //don't interpret the first key press as actually pressed, so that coming in from
+                    //the menu doesn't make us jump
+                    //NOTE: Feels VERY hacky, is there a better way?
                     if (firstRelease == false)
                     {
                         firstRelease = true;
@@ -167,54 +181,51 @@ namespace SkyCrane.Screens
                         stillHoldingJump = false;
                     }
 
+                if (keyboardState.IsKeyDown(Keys.Space) ||
+                    gamePadState.Buttons.A == ButtonState.Pressed)
+                {
+                    if (firstRelease == true)
+                    {
+                        if (((context.avatar.groundState == Entity.GroundState.GROUND ||
+                              context.avatar.groundState == Entity.GroundState.WALL) &&
+                             !stillHoldingJump) ||
+                            (context.avatar.groundState == Entity.GroundState.AIR &&
+                             stillJumping &&
+                             Math.Abs(context.avatar.velocity.Y) < context.avatar.maxVelocity))
+                        {
+                            if (context.avatar.groundState == Entity.GroundState.WALL)
+                                movementSpeed *= -5;
+                            context.avatar.velocity.Y -= context.avatar.jumpAcceleration;
+                            context.avatar.groundState = Entity.GroundState.AIR;
+                            stillJumping = true;
+                            stillHoldingJump = true;
+                        }
+                        else
+                        {
+                            //stillJumping makes sure we cannot jump infinitely
+                            stillJumping = false;
+                        }
+                    }
+                }
+
+                #endregion
+
+                #region Handle Left/Right Movement
+
                 if (keyboardState.IsKeyDown(Keys.Left))
                     movement.X -= movementSpeed;
 
                 if (keyboardState.IsKeyDown(Keys.Right))
                     movement.X += movementSpeed;
 
-                //TODO: SLIDING VELOCITY CURRENTLY AFFECTS JUMP HEIGHT; IT SHOULDN'T
-
-                //if (keyboardState.IsKeyDown(Keys.Up))
-                //    movement.Y--;
-
-                //if (keyboardState.IsKeyDown(Keys.Down))
-                //    movement.Y++;
-
-                if (keyboardState.IsKeyDown(Keys.Space) ||
-                    gamePadState.Buttons.A == ButtonState.Pressed)
-                {
-                    if (firstRelease == true)
-                    {
-                        if ((!context.avatar.inAir &&
-                             !stillHoldingJump) ||
-                            (context.avatar.inAir &&
-                             stillJumping &&
-                             stillHoldingJump &&
-                             Math.Abs(context.avatar.velocity.Y) < context.avatar.maxVelocity))
-                        {
-                            context.avatar.velocity.Y -= context.avatar.jumpAcceleration;
-                            context.avatar.inAir = true;
-                            stillJumping = true;
-                            stillHoldingJump = true;
-                        }
-                        else
-                        {
-                            stillJumping = false;
-                        }
-                    }
-                }
-
-
                 Vector2 thumbstick = gamePadState.ThumbSticks.Left;
 
                 movement.X += thumbstick.X * movementSpeed;
                 movement.Y -= thumbstick.Y * movementSpeed;
 
-                //if (movement.Length() > 1)
-                //    movement.Normalize();
-
                 context.avatar.velocity += 1 * movement;
+
+                #endregion
             }
         }
 

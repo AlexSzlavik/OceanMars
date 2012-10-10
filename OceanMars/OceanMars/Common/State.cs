@@ -10,8 +10,6 @@ namespace OceanMars.Common
     {
         public enum PHASE { READY_FOR_CHANGES, PROCESSING_FRAME, FINISHED_FRAME }
 
-        private static Vector2 GRAVITY = new Vector2(0, 2.0f);
-
         private List<IStatePhaseListener> spListeners = new List<IStatePhaseListener>();
         private List<TransformChangeListener> scListeners = new List<TransformChangeListener>();
 
@@ -54,7 +52,8 @@ namespace OceanMars.Common
                 {
 
                     EllipseEntity ellipseEntity = (EllipseEntity)child;
-                    ellipseEntity.velocity += GRAVITY;
+                    //MOVING TO GAMEPLAY SCREEN (DON'T SEE A REASON FOR IT HERE)
+                    //ellipseEntity.velocity += GRAVITY;
                     ellipseEntity.testCollision(entities.Values.ToList()); // TODO: using ToList may be inefficient
                 }
                 else if (child is FreeEntity)

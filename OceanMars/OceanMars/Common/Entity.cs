@@ -9,6 +9,20 @@ namespace OceanMars.Common
 {
     public class Entity
     {
+        public Vector2 velocity;
+        public float movementSpeed = 2.5f;
+        public float jumpAcceleration = 10.0f;
+        public float maxVelocity = 35.0f;
+        public enum GroundState
+        {
+            GROUND,
+            AIR,
+            WALL
+            //WATER
+            //LAVA
+        }
+        public GroundState groundState;
+
         public static int next_id = 0;
 
         public int id;
@@ -26,6 +40,7 @@ namespace OceanMars.Common
             this.collisionBox = collisionBox;
             this.id = next_id++;
             this.parent = parent;
+            groundState = GroundState.GROUND;
         }
 
         // When changed, will invalidate world transform matrix and all children
@@ -51,11 +66,6 @@ namespace OceanMars.Common
                 if(owned) notifyTransformChange(); // Only notify of things we have jurisdiction over
             }
         }
-
-        public Vector2 velocity;
-        public float jumpAcceleration = 10.0f;
-        public float maxVelocity = 35.0f;
-        public bool inAir = false;
 
         // Handles caching of world transform matrix to avoid redundant work
         private Matrix worldTransformBack = Matrix.Identity;
