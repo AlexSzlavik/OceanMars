@@ -10,7 +10,7 @@ namespace OceanMars.Client
     class TestManSprite : Sprite
     {
         public TestManSprite(View context, TestMan tm) :
-            base(context,  tm, new Vector2(30, 30), 30, 10, "whitesquare") {
+            base(context,  tm, new Vector2(36, 36), 36, 10, "SonicWalking") {
         }
     }
 }
