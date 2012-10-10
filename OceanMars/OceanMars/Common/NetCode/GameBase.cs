@@ -9,10 +9,21 @@ namespace OceanMars.Common.NetCode
     /// </summary>
     public abstract class GameBase : TransformChangeListener, IStatePhaseListener
     {
-        public const int MAX_PLAYERS = 8; // Maximum number of players allowed in a lobby
 
-        public List<GameData> GameStatesToCommit = new List<GameData>();
-        public Dictionary<int, GameData> GameStatesToSend = new Dictionary<int, GameData>();
+        /// <summary>
+        /// Maximum number of players in a game.
+        /// </summary>
+        public const int MAX_PLAYERS = 8;
+
+        /// <summary>
+        /// Game states that have been received an not yet committed to the overall game state.
+        /// </summary>
+        protected List<GameData> gameStatesToCommit;
+
+        /// <summary>
+        /// Game states that must be sent out.
+        /// </summary>
+        protected Dictionary<int, GameData> gameStatesToSend;
 
         /// <summary>
         /// The hierarchical tree that represents the state of the game.
@@ -81,6 +92,8 @@ namespace OceanMars.Common.NetCode
         /// <param name="port">The port to open the GameNetworkServer on.</param>
         protected GameBase(NetworkBase network)
         {
+            gameStatesToCommit = new List<GameData>();
+            gameStatesToSend = new Dictionary<int, GameData>();
             players = new Player[MAX_PLAYERS]; // Defaults to null elements (unlike C, you don't have to set the elements)
             GameState = new State();
             Network = network;
@@ -101,16 +114,28 @@ namespace OceanMars.Common.NetCode
             return players[playerID];
         }
 
-        public virtual void handleTransformChange(Entity e)
+        /// <summary>
+        /// Update an entity based on a transform.
+        /// </summary>
+        /// <param name="entity">The entity to update.</param>
+        public virtual void HandleTransformChange(Entity entity)
         {
             // Generate a transform change packet, put it on stack
-            TransformData td = new TransformData(e.id, e.transform);
-            GameData gd = new GameData(GameData.GameDataType.Movement, transformData: td);
-            GameStatesToSend.Add(e.id, gd);
+            TransformData transformData = new TransformData(entity.id, entity.transform);
+            GameData gameData = new GameData(GameData.GameDataType.Movement, transformData: transformData);
+            gameStatesToSend.Add(entity.id, gameData);
+            return;
         }
 
-        public abstract void sendGameStates();
-        public abstract void commitGameStates();
+        /// <summary>
+        /// Send out game state updates.
+        /// </summary>
+        public abstract void SendGameStates();
+
+        /// <summary>
+        /// Commit game states over top of the current state.
+        /// </summary>
+        public abstract void CommitGameStates();
 
         /// <summary>
         /// Update the game state based on incoming game data.
@@ -118,19 +143,25 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">Received game data that should inform us about changing state, requests, etc.</param>
         protected virtual void UpdateGameState(GameData gameData)
         {
-            GameStatesToCommit.Add(gameData);
+            gameStatesToCommit.Add(gameData);
+            return;
         }
 
-        public void handleStatePhaseChange(State.PHASE phase)
+        /// <summary>
+        /// Handle changes to the phase of the world state.
+        /// </summary>
+        /// <param name="phase">The phase that we are transitioning into.</param>
+        public void HandleStatePhaseChange(State.PHASE phase)
         {
             if (phase == State.PHASE.READY_FOR_CHANGES)
             {
-                commitGameStates();
+                CommitGameStates();
             }
             else if (phase == State.PHASE.FINISHED_FRAME)
             {
-                sendGameStates();
+                SendGameStates();
             }
+            return;
         }
 
     }

@@ -28,7 +28,7 @@ namespace OceanMars.Common
                 phaseBack = value;
                 foreach (IStatePhaseListener spl in spListeners)
                 {
-                    spl.handleStatePhaseChange(phaseBack);
+                    spl.HandleStatePhaseChange(phaseBack);
                 }
             }
         }
@@ -65,11 +65,11 @@ namespace OceanMars.Common
             }
         }
 
-        public void handleTransformChange(Entity e)
+        public void HandleTransformChange(Entity e)
         {
             foreach (TransformChangeListener scl in scListeners)
             {
-                scl.handleTransformChange(e);
+                scl.HandleTransformChange(e);
             }
         }
 

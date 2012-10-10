@@ -88,11 +88,11 @@ namespace OceanMars.Common.NetCode
             return player.PlayerID;
         }
 
-        public override void sendGameStates()
+        public override void SendGameStates()
         {
-            List<GameData> lgd = new List<GameData>(GameStatesToSend.Values);
+            List<GameData> lgd = new List<GameData>(gameStatesToSend.Values);
             Network.SendGameData(lgd);
-            GameStatesToSend.Clear();
+            gameStatesToSend.Clear();
         }
 
         /// <summary>
@@ -106,9 +106,9 @@ namespace OceanMars.Common.NetCode
             Lobby.JoinLobby();
         }
 
-        public override void commitGameStates()
+        public override void CommitGameStates()
         {
-            foreach (GameData gs in GameStatesToCommit)
+            foreach (GameData gs in gameStatesToCommit)
             {
                 if (gs.Type == GameData.GameDataType.Movement)
                 {
@@ -127,7 +127,7 @@ namespace OceanMars.Common.NetCode
                 }
             }
 
-            GameStatesToCommit.Clear();
+            gameStatesToCommit.Clear();
         }
     }
 

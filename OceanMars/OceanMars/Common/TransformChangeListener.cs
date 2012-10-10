@@ -7,6 +7,6 @@ namespace OceanMars.Common
 {
     public interface TransformChangeListener
     {
-        void handleTransformChange(Entity e);
+        void HandleTransformChange(Entity e);
     }
 }
