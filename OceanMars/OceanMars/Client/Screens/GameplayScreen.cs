@@ -216,7 +216,7 @@ namespace SkyCrane.Screens
                 #region Handle Left/Right Movement
 
                 bool sliding = (keyboardState.IsKeyDown(Keys.LeftShift) ||
-                                                 gamePadState.Buttons.B == ButtonState.Pressed);
+                                gamePadState.Buttons.B == ButtonState.Pressed);
 
                 if (!sliding)
                 {
@@ -230,6 +230,10 @@ namespace SkyCrane.Screens
 
                     if (thumbstick.X != 0)
                         context.avatar.acceleration.X = thumbstick.X * movementAcceleration;
+
+                    if (keyboardState.IsKeyDown(Keys.LeftControl) ||
+                        gamePadState.Buttons.RightShoulder == ButtonState.Pressed)
+                        context.avatar.acceleration.X *= 2.0f;
 
                 }
 
