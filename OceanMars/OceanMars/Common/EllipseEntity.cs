@@ -240,7 +240,6 @@ namespace OceanMars.Common
                             (t < distanceToNearest || !hasCollided))
                         {
                             distanceToNearest = t;
-                            hasCollidedOnce = true;
                             hasCollided = true;
                             shortestSlider = slider;
                             shortestSliderNormal = sliderNormal;
@@ -259,18 +258,7 @@ namespace OceanMars.Common
 
                     Vector2 truncatedVelocity = new Vector2(dist * normalizedVelocity.X,
                                                             dist * normalizedVelocity.Y);
-
-                    //TODO: SHOULD PROBABLY MOVE; MAKE A CONSTANT VAR
-                    //test if we're still jumping
-                    if (Math.Abs(Vector2.Dot(shortestSliderNormal, new Vector2(1, 0))) < 0.9f)
-                    {
-                        groundState = Entity.GroundState.GROUND;
-                    }
-                    else if (groundState == Entity.GroundState.AIR)
-                    {
-                        groundState = Entity.GroundState.WALL;
-                    }
-
+                    
                     Vector3 newSource = new Vector3(truncatedVelocity.X,
                                                     truncatedVelocity.Y, 0);
                     transform = transform * Matrix.CreateTranslation(newSource);
@@ -281,7 +269,24 @@ namespace OceanMars.Common
                     shortestSliderNormal *= t;
                     velocity = velocity + shortestSliderNormal - shortestSliderIntersectionPoint;
 
-                    //velocity = shortestSlider == null ? velocity : shortestSlider.applyFriction(velocity);
+                    velocity = shortestSlider.applyFriction(velocity);
+
+                    //TODO: SHOULD PROBABLY MOVE; MAKE A CONSTANT VAR
+                    //test if we're still jumping
+                    if (Math.Abs(Vector2.Dot(Vector2.Normalize(shortestSliderNormal), new Vector2(1, 0))) < 0.9f)
+                    {
+                        groundState = Entity.GroundState.GROUND;
+                        if (shortestSlider.staticFriction >= Vector2.Dot(Vector2.Normalize(velocity), acceleration))
+                        {
+                            velocity = Vector2.Zero;
+                        }
+                    }
+                    else if (groundState == Entity.GroundState.AIR)
+                    {
+                        groundState = Entity.GroundState.WALL;
+                    }
+
+                    hasCollidedOnce = true;
 
                     
                 }

@@ -41,7 +41,7 @@ namespace SkyCrane.Screens
         private bool stillJumping = false;
         private bool stillHoldingJump = false;
         private bool firstRelease = false;
-        private Vector2 GRAVITY = new Vector2(0, 2.0f);
+        private float GRAVITY = 2.0f;
 
         #endregion
 
@@ -158,11 +158,13 @@ namespace SkyCrane.Screens
                 #region Handle Jump Input
 
                 Vector2 movement = Vector2.Zero;
-                float movementSpeed = context.avatar.movementSpeed;
+                float movementAcceleration = context.avatar.movementAcceleration;
                 if (context.avatar.groundState == Entity.GroundState.AIR)
-                    movementSpeed /= 10.0f;
+                    movementAcceleration /= 10.0f;
 
-                context.avatar.velocity += context.avatar.groundState == Entity.GroundState.AIR ? GRAVITY : GRAVITY / 2.0f;
+                context.avatar.acceleration = Vector2.Zero;
+
+                context.avatar.acceleration.Y = context.avatar.groundState == Entity.GroundState.WALL ? GRAVITY / 2.0f : GRAVITY;
 
                 //stillHoldingJump makes sure that, once our character hits the ground, he doesn't jump
                 //again until we let go of the jump button and press it again
@@ -195,8 +197,8 @@ namespace SkyCrane.Screens
                              Math.Abs(context.avatar.velocity.Y) < context.avatar.maxVelocity))
                         {
                             if (context.avatar.groundState == Entity.GroundState.WALL)
-                                movementSpeed *= -5;
-                            context.avatar.velocity.Y -= context.avatar.jumpAcceleration;
+                                movementAcceleration *= -5;
+                            context.avatar.acceleration.Y -= context.avatar.jumpAcceleration;
                             context.avatar.groundState = Entity.GroundState.AIR;
                             stillJumping = true;
                             stillHoldingJump = true;
@@ -214,17 +216,17 @@ namespace SkyCrane.Screens
                 #region Handle Left/Right Movement
 
                 if (keyboardState.IsKeyDown(Keys.Left))
-                    movement.X -= movementSpeed;
+                    context.avatar.acceleration.X = -movementAcceleration;
 
                 if (keyboardState.IsKeyDown(Keys.Right))
-                    movement.X += movementSpeed;
+                    context.avatar.acceleration.X = movementAcceleration;
 
                 Vector2 thumbstick = gamePadState.ThumbSticks.Left;
 
-                movement.X += thumbstick.X * movementSpeed;
-                movement.Y -= thumbstick.Y * movementSpeed;
+                if (thumbstick.X != 0)
+                    context.avatar.acceleration.X = thumbstick.X * movementAcceleration;
 
-                context.avatar.velocity += 1 * movement;
+                context.avatar.velocity += context.avatar.acceleration;
 
                 #endregion
             }

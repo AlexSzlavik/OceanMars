@@ -10,7 +10,8 @@ namespace OceanMars.Common
     public class Entity
     {
         public Vector2 velocity;
-        public float movementSpeed = 2.5f;
+        public Vector2 acceleration;
+        public float movementAcceleration = 5.0f;
         public float jumpAcceleration = 10.0f;
         public float maxVelocity = 35.0f;
         public enum GroundState

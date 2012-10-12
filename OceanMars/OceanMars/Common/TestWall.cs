@@ -14,7 +14,8 @@ namespace OceanMars.Common
                 double angle = 0;
                 Vector2 centre = new Vector2 (0, 0);
 
-                friction = 0.90f;
+                friction = 0.9f;
+                staticFriction = (float)Math.Sin(MathHelper.ToRadians(45)) * 2.0f;
 
                 // Calculate the distance between two points for scale
                 length = Math.Sqrt(Math.Pow((point2.Y - point1.Y), 2) + Math.Pow((point2.X - point1.X), 2));
