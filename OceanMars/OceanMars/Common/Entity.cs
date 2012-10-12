@@ -11,6 +11,7 @@ namespace OceanMars.Common
     {
         public Vector2 velocity;
         public Vector2 acceleration;
+        public bool ignoreFriction = false; //better place to put this? maybe a physics entity needed?
         public float movementAcceleration = 5.0f;
         public float jumpAcceleration = 10.0f;
         public float maxVelocity = 35.0f;

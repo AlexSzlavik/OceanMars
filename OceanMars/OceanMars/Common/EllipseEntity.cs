@@ -269,17 +269,17 @@ namespace OceanMars.Common
                     shortestSliderNormal *= t;
                     velocity = velocity + shortestSliderNormal - shortestSliderIntersectionPoint;
 
-                    velocity = shortestSlider.applyFriction(velocity);
+                    if (!ignoreFriction)
+                        velocity = shortestSlider.applyFriction(velocity);
 
                     //TODO: SHOULD PROBABLY MOVE; MAKE A CONSTANT VAR
                     //test if we're still jumping
                     if (Math.Abs(Vector2.Dot(Vector2.Normalize(shortestSliderNormal), new Vector2(1, 0))) < 0.9f)
                     {
                         groundState = Entity.GroundState.GROUND;
-                        if (shortestSlider.staticFriction >= Vector2.Dot(Vector2.Normalize(velocity), acceleration))
-                        {
+                        if (!ignoreFriction && 
+                            shortestSlider.staticFriction >= Vector2.Dot(Vector2.Normalize(velocity), acceleration))
                             velocity = Vector2.Zero;
-                        }
                     }
                     else if (groundState == Entity.GroundState.AIR)
                     {

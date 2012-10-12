@@ -215,18 +215,26 @@ namespace SkyCrane.Screens
 
                 #region Handle Left/Right Movement
 
-                if (keyboardState.IsKeyDown(Keys.Left))
-                    context.avatar.acceleration.X = -movementAcceleration;
+                bool sliding = (keyboardState.IsKeyDown(Keys.LeftShift) ||
+                                                 gamePadState.Buttons.B == ButtonState.Pressed);
 
-                if (keyboardState.IsKeyDown(Keys.Right))
-                    context.avatar.acceleration.X = movementAcceleration;
+                if (!sliding)
+                {
+                    if (keyboardState.IsKeyDown(Keys.Left))
+                        context.avatar.acceleration.X = -movementAcceleration;
 
-                Vector2 thumbstick = gamePadState.ThumbSticks.Left;
+                    if (keyboardState.IsKeyDown(Keys.Right))
+                        context.avatar.acceleration.X = movementAcceleration;
 
-                if (thumbstick.X != 0)
-                    context.avatar.acceleration.X = thumbstick.X * movementAcceleration;
+                    Vector2 thumbstick = gamePadState.ThumbSticks.Left;
+
+                    if (thumbstick.X != 0)
+                        context.avatar.acceleration.X = thumbstick.X * movementAcceleration;
+
+                }
 
                 context.avatar.velocity += context.avatar.acceleration;
+                context.avatar.ignoreFriction = sliding;
 
                 #endregion
             }
