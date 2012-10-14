@@ -82,7 +82,7 @@ namespace OceanMars.Common.NetCode
                 SyncPacket ps = new SyncPacket(ep);
                 this.networkWorker.SendPacket(ps);
                 this.serverStats.sentPkts++;
-                connections[ep].changeState(NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING);
+                connections[ep].ChangeState(NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING);
                 if (connections[ep].MissedSyncs >= MAX_MISSED_SYNCS)
                 {
                     rmList.Add(connections[ep]);
@@ -90,7 +90,7 @@ namespace OceanMars.Common.NetCode
             }
             for (int i = 0; i < rmList.Count; i++)
             {
-                connections.Remove(rmList[i].endpt);
+                connections.Remove(rmList[i].IPEndPoint);
             }
             return;
         }
@@ -146,7 +146,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="packet"></param>
         private void OnSync(NetworkPacket packet)
         {
-            connections[packet.Destination].changeState(NetworkStateMachine.TransitionEvent.SERVERSYNC);
+            connections[packet.Destination].ChangeState(NetworkStateMachine.TransitionEvent.SERVERSYNC);
             return;
         }
 
@@ -256,7 +256,7 @@ namespace OceanMars.Common.NetCode
 
         public void SignalGameData(GameData gameData, ConnectionID connectionID)
         {
-            networkWorker.SendPacket(new GameDataPacket(connectionID.endpt, gameData));
+            networkWorker.SendPacket(new GameDataPacket(connectionID.IPEndPoint, gameData));
             return;
         }
 
