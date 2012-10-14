@@ -88,11 +88,14 @@ namespace OceanMars.Common.NetCode
             return player.PlayerID;
         }
 
+        /// <summary>
+        /// Send any built of game state changes over the network.
+        /// </summary>
         public override void SendGameStates()
         {
-            List<GameData> lgd = new List<GameData>(gameStatesToSend.Values);
-            Network.SendGameData(lgd);
+            Network.SendGameData(gameStatesToSend);
             gameStatesToSend.Clear();
+            return;
         }
 
         /// <summary>

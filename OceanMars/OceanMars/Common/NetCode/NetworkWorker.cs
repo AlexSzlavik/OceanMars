@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Diagnostics;
 
 namespace OceanMars.Common.NetCode
 {
@@ -135,6 +136,7 @@ namespace OceanMars.Common.NetCode
                     }
                     catch (ObjectDisposedException exception)
                     {
+                        Debug.WriteLine("Object has been disposed: {0}", new Object[] { exception.Message });
                     }
                 }
             }

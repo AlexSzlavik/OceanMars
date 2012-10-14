@@ -190,29 +190,36 @@ namespace OceanMars.Common.NetCode
             }
         }
 
+        /// <summary>
+        /// Send new game state information to all players.
+        /// </summary>
         public override void SendGameStates()
         {
-            List<GameData> lgd = new List<GameData>(gameStatesToSend.Values);
-            foreach(Player p in players) {
-                Network.SignalGameData(lgd, PlayerToConnectionID(p));
+            for (int i = 0; i < players.Length; i += 1)
+            {
+                Network.SignalGameData(gameStatesToSend, PlayerToConnectionID(players[i]));
             }
-            
             gameStatesToSend.Clear();
+            return;
         }
 
+        /// <summary>
+        /// Commit the game state data into the state of the world.
+        /// </summary>
         public override void CommitGameStates()
         {
-            foreach (GameData gs in gameStatesToCommit)
+            for (int i = 0; i < gameStatesToCommit.Count; i += 1)
             {
-                if (gs.Type == GameData.GameDataType.Movement)
+                GameData currentData = gameStatesToCommit[i];
+                switch (currentData.Type)
                 {
-                    int id = gs.TransformData.EntityID;
-                    GameState.entities[id].transform = gs.TransformData.getMatrix();
-                }
-                else if (gs.Type == GameData.GameDataType.PlayerTransform)
-                {
-                    int id = gs.TransformData.EntityID;
-                    GameState.entities[id].transform = gs.TransformData.getMatrix();
+                    case GameData.GameDataType.Movement:
+                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.getMatrix();
+                        break;
+                    case GameData.GameDataType.PlayerTransform:
+                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.getMatrix();
+                        break;
+
                 }
             }
         }

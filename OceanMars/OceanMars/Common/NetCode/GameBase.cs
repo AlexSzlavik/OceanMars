@@ -16,14 +16,14 @@ namespace OceanMars.Common.NetCode
         public const int MAX_PLAYERS = 8;
 
         /// <summary>
-        /// Game states that have been received an not yet committed to the overall game state.
+        /// Game states that have been received and not yet committed to the overall game state.
         /// </summary>
         protected List<GameData> gameStatesToCommit;
 
         /// <summary>
-        /// Game states that must be sent out.
+        /// Game states that must be sent out to other games (either the client or the main server).
         /// </summary>
-        protected Dictionary<int, GameData> gameStatesToSend;
+        protected List<GameData> gameStatesToSend;
 
         /// <summary>
         /// The hierarchical tree that represents the state of the game.
@@ -93,7 +93,7 @@ namespace OceanMars.Common.NetCode
         protected GameBase(NetworkBase network)
         {
             gameStatesToCommit = new List<GameData>();
-            gameStatesToSend = new Dictionary<int, GameData>();
+            gameStatesToSend = new List<GameData>();
             players = new Player[MAX_PLAYERS]; // Defaults to null elements (unlike C, you don't have to set the elements)
             GameState = new State();
             Network = network;
@@ -122,8 +122,11 @@ namespace OceanMars.Common.NetCode
         {
             // Generate a transform change packet, put it on stack
             TransformData transformData = new TransformData(entity.id, entity.transform);
-            GameData gameData = new GameData(GameData.GameDataType.Movement, transformData: transformData);
-            gameStatesToSend.Add(entity.id, gameData);
+            
+            // TODO: This likely doesn't work. This neeeds to be fixed (the player ID and event detail might need changing, or we may simply need a new constructor).
+            GameData gameData = new GameData(GameData.GameDataType.Movement, 0, 0, transformData);
+
+            gameStatesToSend.Add(gameData);
             return;
         }
 
@@ -153,13 +156,16 @@ namespace OceanMars.Common.NetCode
         /// <param name="phase">The phase that we are transitioning into.</param>
         public void HandleStatePhaseChange(State.PHASE phase)
         {
-            if (phase == State.PHASE.READY_FOR_CHANGES)
+            switch (phase)
             {
-                CommitGameStates();
-            }
-            else if (phase == State.PHASE.FINISHED_FRAME)
-            {
-                SendGameStates();
+                case State.PHASE.FINISHED_FRAME:
+                    SendGameStates();
+                    break;
+                case State.PHASE.READY_FOR_CHANGES:
+                    CommitGameStates();
+                    break;
+                default:
+                    throw new NotImplementedException("Unhandled state passed to GameBase");
             }
             return;
         }
