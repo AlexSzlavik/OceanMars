@@ -44,6 +44,9 @@ namespace OceanMars.Common.NetCode
                 case GameData.GameDataType.LockCharacter:
                     OnPlayerLockCharacter(gameData);
                     break;
+                case GameData.GameDataType.GameStart:
+                    OnGameStart(gameData);
+                    break;
                 default:
                     throw new ArgumentException();
             }
@@ -67,6 +70,12 @@ namespace OceanMars.Common.NetCode
         /// </summary>
         /// <param name="gameData">The game data related to the player's actions.</param>
         protected abstract void OnPlayerLockCharacter(GameData gameData);
+
+        /// <summary>
+        /// Handles a Game Start Request
+        /// </summary>
+        /// <param name="gameData">The game data related to character locking.</param>
+        protected abstract void OnGameStart(GameData gameData);
    
     }
 

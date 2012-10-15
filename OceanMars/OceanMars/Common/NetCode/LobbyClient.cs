@@ -115,5 +115,15 @@ namespace OceanMars.Common.NetCode
             GameData changeRequest = new GameData(GameData.GameDataType.GameStart,Game.LocalPlayer.PlayerID);
             Game.Network.SendGameData(changeRequest);
         }
+
+        /// <summary>
+        /// Handles a Game Start Request
+        /// </summary>
+        /// <param name="gameData">The game data related to character locking.</param>
+        protected override void OnGameStart(GameData gameData)
+        {
+            Game.startGame();
+            return;
+        }
     }
 }

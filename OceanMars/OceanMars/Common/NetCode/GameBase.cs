@@ -151,5 +151,14 @@ namespace OceanMars.Common.NetCode
             }
         }
 
+        /// <summary>
+        /// Start the game
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        public void startGame()
+        {
+            Network.RegisterGameDataUpdater(this.UpdateGameState);
+        }
     }
 }

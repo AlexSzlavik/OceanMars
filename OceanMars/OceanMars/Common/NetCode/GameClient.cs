@@ -110,6 +110,8 @@ namespace OceanMars.Common.NetCode
             Network.Connect(host, port);
             Lobby.JoinLobby();
         }
+
+
     }
 
 }

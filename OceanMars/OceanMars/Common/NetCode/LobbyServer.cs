@@ -93,5 +93,16 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
+
+        /// <summary>
+        /// Handles a Game Start Request
+        /// </summary>
+        /// <param name="gameData">The game data related to character locking.</param>
+        protected override void OnGameStart (GameData gameData)
+        {
+            Game.Network.BroadCastGameData(new GameData(GameData.GameDataType.GameStart));
+            Game.startGame();
+            return;
+        }
     }
 }
