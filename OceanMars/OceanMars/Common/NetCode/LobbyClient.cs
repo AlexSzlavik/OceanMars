@@ -39,7 +39,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">The game data related to the character joining the session.</param>
         protected override void OnPlayerConnect(GameData gameData)
         {
-            GameData response;
+            // TODO: Add responses to some of these events if necessary
             switch ((GameData.ConnectionDetails)gameData.EventDetail)
             {
                 case GameData.ConnectionDetails.IdReqest:

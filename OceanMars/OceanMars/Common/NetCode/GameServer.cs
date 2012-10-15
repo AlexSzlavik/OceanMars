@@ -16,12 +16,12 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// A mapping between players and connections.
         /// </summary>
-        private Dictionary<Player, ConnectionID> PlayerToConnectionIDMap = new Dictionary<Player, ConnectionID>();
+        private Dictionary<Player, ConnectionID> PlayerToConnectionIDMap;
 
         /// <summary>
         /// A reverse mapping of connections to players
         /// </summary>
-        private Dictionary<ConnectionID, Player> ConnectionIDToPlayerMap = new Dictionary<ConnectionID, Player>();
+        private Dictionary<ConnectionID, Player> ConnectionIDToPlayerMap;
 
         /// <summary>
         /// Retrieve a connection ID from a player.
@@ -123,27 +123,26 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// After choosing the level and number of players, start the game by sending everyone the level and a player ID
         /// </summary>
-        public void setupAndSendGameState(int levelID)
+        public void SetupAndSendGameState(int levelID)
         {
-            Entity root = GameState.root;
-
-            Level level = new Level(root, LevelPack.levels[levelID]);
-            root.addChild(level);
+            Level level = new Level(GameState.root, LevelPack.levels[levelID]);
+            GameState.root.addChild(level);
 
             // Send level and a player ID to each client
-            foreach (Player p in players)
+            for (int i = 0; i < players.Length; i += 1)
             {
-                GameData gameData = new GameData(GameData.GameDataType.InitClientState, p.PlayerID, levelID);
-                Network.SignalGameData(gameData, PlayerToConnectionID(p));
-            }
+                Player player = GetPlayer(i);
+                if (player != null)
+                {
+                    Network.SignalGameData(new GameData(GameData.GameDataType.InitClientState, player.PlayerID, levelID), PlayerToConnectionID(player));
 
-            // Create players in personal state
-            for (int i = 0; i < players.Length; i++)
-            {
-                SpawnPointEntity sp = level.spawnPoints[i];
-                TestMan tm = new TestMan(sp);
-                sp.addChild(tm);
+                    // Create a new testman at the given spawn point for each player
+                    SpawnPointEntity sp = level.spawnPoints[i];
+                    TestMan tm = new TestMan(sp);
+                    sp.addChild(tm);
+                }
             }
+            return;
         }
 
         /// <summary>
@@ -179,15 +178,23 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
+        /// <summary>
+        /// Update the state over the game based on incoming game data.
+        /// </summary>
+        /// <param name="gameData">The received game data.</param>
         protected override void UpdateGameState(GameData gameData)
         {
-            // Should forward to other machines (not the one received from)
-            for (int i = 0; i < players.Length; i++ )
+            for (int i = 0; i < players.Length; i++ ) // Forward the received information to other machines (but not the one received from)
             {
-                if (i == gameData.PlayerID) continue;
+                Player player = GetPlayer(i);
+                if (i == gameData.PlayerID || player == null)
+                {
+                    continue;
+                }
                 Network.SignalGameData(gameData, PlayerToConnectionID(players[i]));
                 gameStatesToCommit.Add(gameData);
             }
+            return;
         }
 
         /// <summary>
@@ -197,7 +204,11 @@ namespace OceanMars.Common.NetCode
         {
             for (int i = 0; i < players.Length; i += 1)
             {
-                Network.SignalGameData(gameStatesToSend, PlayerToConnectionID(players[i]));
+                Player player = GetPlayer(i);
+                if (player != null)
+                {
+                    Network.SignalGameData(gameStatesToSend, PlayerToConnectionID(players[i]));
+                }
             }
             gameStatesToSend.Clear();
             return;
@@ -219,9 +230,11 @@ namespace OceanMars.Common.NetCode
                     case GameData.GameDataType.PlayerTransform:
                         GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.getMatrix();
                         break;
-
+                    default:
+                        throw new NotImplementedException("Unhandled state passed to GameServer");
                 }
             }
+            return;
         }
 
     }

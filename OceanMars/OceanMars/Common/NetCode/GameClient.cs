@@ -74,10 +74,14 @@ namespace OceanMars.Common.NetCode
 
             for (int i = 0; i < players.Length; i++)
             {
-                SpawnPointEntity sp = level.spawnPoints[i];
-                TestMan tm = new TestMan(sp, (i == myPlayerID));
-                playerIDToEntity[i] = tm.id;
-                sp.addChild(tm);
+                Player player = GetPlayer(i);
+                if (player != null)
+                {
+                    SpawnPointEntity sp = level.spawnPoints[i];
+                    TestMan tm = new TestMan(sp, (i == myPlayerID));
+                    playerIDToEntity[i] = tm.id;
+                    sp.addChild(tm);
+                }
             }
             return;
         }
@@ -139,6 +143,7 @@ namespace OceanMars.Common.NetCode
                 }
             }
             gameStatesToCommit.Clear();
+            return;
         }
     }
 
