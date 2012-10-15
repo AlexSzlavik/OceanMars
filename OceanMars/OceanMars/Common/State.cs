@@ -48,6 +48,7 @@ namespace OceanMars.Common
 
         public void nextFrame()
         {
+            phase = PHASE.PROCESSING_FRAME;
             foreach (int id in entities.Keys)
             {
                 Entity child = entities[id];
@@ -68,6 +69,7 @@ namespace OceanMars.Common
                     // Do not do collisions for SliderEntities
                 }
             }
+            phase = PHASE.FINISHED_FRAME;
         }
 
         public void handleTransformChange(Entity e)

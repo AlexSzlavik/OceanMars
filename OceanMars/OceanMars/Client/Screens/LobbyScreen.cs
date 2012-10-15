@@ -117,7 +117,7 @@ namespace OceanMars.Screens
         bool ahack = false;
         public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
-            if (gc.sorryPeter)
+            if (gc.sorryPeter && !ahack)
             {
                 // Poll to see if game has started
                 startGame();
