@@ -70,6 +70,7 @@ namespace OceanMars.Common
                 }
             }
             phase = PHASE.FINISHED_FRAME;
+            phase = PHASE.READY_FOR_CHANGES;
         }
 
         public void handleTransformChange(Entity e)

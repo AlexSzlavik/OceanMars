@@ -149,7 +149,6 @@ namespace OceanMars.Common.NetCode
             else if (phase == State.PHASE.FINISHED_FRAME)
             {
                 sendGameStates();
-                phase = State.PHASE.READY_FOR_CHANGES;
             }
         }
 
