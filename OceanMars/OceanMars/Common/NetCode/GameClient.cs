@@ -72,6 +72,10 @@ namespace OceanMars.Common.NetCode
                 System.Diagnostics.Debug.WriteLine(players[i].PlayerID + " " + myPlayerID);
                 TestMan tm = new TestMan(sp, (players[i].PlayerID == myPlayerID));
 
+                //for complete correctness, we should register ALL entities, not just the player
+                //so, again, one more hackity-hack :)
+                GameState.registerEntity(tm);
+
                 players[i].EntityID = tm.id;
                 sp.addChild(tm);
             }
