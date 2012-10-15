@@ -13,7 +13,7 @@ namespace OceanMars.Common.NetCode
         public bool sorryPeter = false;
 
         public List<GameData> GameStatesToCommit = new List<GameData>();
-        public Dictionary<int, GameData> GameStatesToSend = new Dictionary<int, GameData>();
+        public List<GameData> GameStatesToSend = new List<GameData>();
 
         /// <summary>
         /// The hierarchical tree that represents the state of the game.
@@ -107,7 +107,7 @@ namespace OceanMars.Common.NetCode
             // Generate a transform change packet, put it on stack
             TransformData td = new TransformData(e.id, e.transform);
             GameData gd = new GameData(GameData.GameDataType.Movement, transformData: td);
-            GameStatesToSend.Add(e.id, gd);
+            GameStatesToSend.Add(gd);
         }
 
         public abstract void sendGameStates();

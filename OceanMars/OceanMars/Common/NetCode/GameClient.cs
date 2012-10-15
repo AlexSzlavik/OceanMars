@@ -95,8 +95,7 @@ namespace OceanMars.Common.NetCode
 
         public override void sendGameStates()
         {
-            List<GameData> lgd = new List<GameData>(GameStatesToSend.Values);
-            Network.SendGameData(lgd);
+            Network.SendGameData(GameStatesToSend);
             GameStatesToSend.Clear();
         }
 

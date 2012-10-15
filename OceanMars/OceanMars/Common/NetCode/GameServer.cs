@@ -185,9 +185,8 @@ namespace OceanMars.Common.NetCode
 
         public override void sendGameStates()
         {
-            List<GameData> lgd = new List<GameData>(GameStatesToSend.Values);
             foreach(Player p in players) {
-                Network.SignalGameData(lgd, PlayerToConnectionID(p));
+                Network.SignalGameData(GameStatesToSend, PlayerToConnectionID(p));
             }
             
             GameStatesToSend.Clear();
