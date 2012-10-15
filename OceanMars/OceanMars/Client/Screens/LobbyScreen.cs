@@ -95,7 +95,11 @@ namespace OceanMars.Screens
         void StartGameMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
             // Start the fucking game yo
-            startGame();
+            if (gs != null)
+            {
+                //send game start packet
+                gc.Lobby.SendLaunchPacket();
+            }
 
             return;
         }
@@ -113,7 +117,7 @@ namespace OceanMars.Screens
         bool ahack = false;
         public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
-            if (gs == null && gc.LocalPlayer != null && !ahack)
+            if (gc.sorryPeter)
             {
                 // Poll to see if game has started
                 startGame();

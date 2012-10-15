@@ -10,6 +10,7 @@ namespace OceanMars.Common.NetCode
     public abstract class GameBase : TransformChangeListener, IStatePhaseListener
     {
         public const int MAX_PLAYERS = 8; // Maximum number of players allowed in a lobby
+        public bool sorryPeter = false;
 
         public List<GameData> GameStatesToCommit = new List<GameData>();
         public Dictionary<int, GameData> GameStatesToSend = new Dictionary<int, GameData>();
@@ -159,6 +160,7 @@ namespace OceanMars.Common.NetCode
         public void startGame()
         {
             Network.RegisterGameDataUpdater(this.UpdateGameState);
+            sorryPeter = true;
         }
     }
 }

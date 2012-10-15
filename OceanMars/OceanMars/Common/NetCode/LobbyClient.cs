@@ -125,5 +125,17 @@ namespace OceanMars.Common.NetCode
             Game.startGame();
             return;
         }
+
+        /// <summary>
+        /// Sends a start game request to the server
+        /// NOTE: Only a Client THAT ALSO HAS A SERVER SHOULD BE ABLE TO DO THIS
+        /// Meaning this is a temporary hack too!
+        /// </summary>
+        /// <param name="gameData">The game data related to character locking.</param>
+        public void SendLaunchPacket()
+        {
+            Game.Network.SendGameData(new GameData(GameData.GameDataType.GameStart));
+            return;
+        }
     }
 }
