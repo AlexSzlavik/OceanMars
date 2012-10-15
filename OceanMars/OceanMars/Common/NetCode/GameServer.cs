@@ -134,7 +134,7 @@ namespace OceanMars.Common.NetCode
                 Player player = GetPlayer(i);
                 if (player != null)
                 {
-                    Network.SignalGameData(new GameData(GameData.GameDataType.InitClientState, player.PlayerID, levelID), PlayerToConnectionID(player));
+                    Network.SendGameData(new GameData(GameData.GameDataType.InitClientState, player.PlayerID, levelID), PlayerToConnectionID(player));
 
                     // Create a new testman at the given spawn point for each player
                     SpawnPointEntity sp = level.spawnPoints[i];
@@ -191,7 +191,7 @@ namespace OceanMars.Common.NetCode
                 {
                     continue;
                 }
-                Network.SignalGameData(gameData, PlayerToConnectionID(players[i]));
+                Network.SendGameData(gameData, PlayerToConnectionID(players[i]));
                 gameStatesToCommit.Add(gameData);
             }
             return;
@@ -207,7 +207,7 @@ namespace OceanMars.Common.NetCode
                 Player player = GetPlayer(i);
                 if (player != null)
                 {
-                    Network.SignalGameData(gameStatesToSend, PlayerToConnectionID(players[i]));
+                    Network.SendGameData(gameStatesToSend, PlayerToConnectionID(players[i]));
                 }
             }
             gameStatesToSend.Clear();
@@ -225,10 +225,10 @@ namespace OceanMars.Common.NetCode
                 switch (currentData.Type)
                 {
                     case GameData.GameDataType.Movement:
-                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.getMatrix();
+                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.GetMatrix();
                         break;
                     case GameData.GameDataType.PlayerTransform:
-                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.getMatrix();
+                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.GetMatrix();
                         break;
                     default:
                         throw new NotImplementedException("Unhandled state passed to GameServer");

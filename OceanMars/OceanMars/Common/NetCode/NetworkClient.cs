@@ -16,23 +16,15 @@ namespace OceanMars.Common.NetCode
 
         #region Member Variables
 
-        // Data used to control addressing and threading in the network client
-        private Thread clientThread; // Thread used to host a network client
         private IPEndPoint serverEndPoint; // The address of the server
-
-        // Data used to control the state of the network client
-
 
         // Data used to control ping flow (heartbeats) in the network client
         private Stopwatch pingStopwatch;
         private Timer pingPacketTimer;
         private long lastPing;
 
-        // Semaphore to wait on for the server info to be known
-        private Semaphore serverReadySemaphore, clientConnectedSemaphore;
-
-        // Queues used to buffer game state changes that have been received
-        private Queue<GameData> gameDataBuffer;
+        private Semaphore serverReadySemaphore, clientConnectedSemaphore; // Semaphores used for flow control
+        private Queue<GameData> gameDataBuffer; // Queue used to store received game data information
 
         private const int PING_INITIAL_DELAY = 1000; // Amount of time to wait before starting to ping heartbeats
         private const int PING_PERIOD = 500; // Amount of time to wait between ping heartbeats
@@ -40,7 +32,7 @@ namespace OceanMars.Common.NetCode
 
         #endregion
 
-        #region ClientInternalCode
+        #region Internal Code
 
         /// <summary>
         /// Create a new raw client.
@@ -58,9 +50,45 @@ namespace OceanMars.Common.NetCode
             gameDataBuffer = new Queue<GameData>();
 
             // Create the actual client thread
-            clientThread = new Thread(RunNetworkClientThread);
-            clientThread.IsBackground = true;
-            clientThread.Start();
+            networkThread.Start();
+            return;
+        }
+
+        /// <summary>
+        /// Main execution loop for network clients.
+        /// </summary>
+        protected override void NetworkMain()
+        {
+            serverReadySemaphore.WaitOne();
+            NetworkStateMachine.TransitionEvent transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSTARTED;
+
+            while (continueRunning) // Loop and push packets into the state machine
+            {
+                NetworkPacket receivePacket = networkWorker.ReceivePacket(); // Grab a packet from the server
+
+                if (receivePacket == null)
+                {
+                    continue;
+                }
+
+                switch (receivePacket.Type)
+                {
+                    case NetworkPacket.PacketType.HANDSHAKE:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTCONNECTED;
+                        break;
+                    case NetworkPacket.PacketType.PING:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTPINGING;
+                        break;
+                    case NetworkPacket.PacketType.GAMEDATA:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTGAMEDATA;
+                        break;
+                    case NetworkPacket.PacketType.SYNC:
+                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSYNC;
+                        break;
+                }
+                networkStateMachine.DoTransition(transitionEvent, receivePacket); // This is amazing
+            }
+
             return;
         }
 
@@ -81,64 +109,16 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Transition action that occurs on connecting to a server.
+        /// Shutdown this particular network client.
         /// </summary>
-        /// <param name="packet">The network packet retrieved during this transition.</param>
-        public void OnConnect(NetworkPacket packet)
+        protected override void Shutdown()
         {
-            clientConnectedSemaphore.Release();
-            StartPinging();
-            return;
-        }
-
-        /// <summary>
-        /// Callback on Disconnect events
-        /// </summary>
-        /// <param name="packet">A packet received that has caused us to disconnect.</param>
-        private void OnDisconnect(NetworkPacket packet)
-        {
-            Debug.WriteLine(String.Format("Client has disconnected"));
-            continueRunning = false;
-            if (networkWorker != null)
-            {
-                networkWorker.Close();
-                networkWorker.Exit();
-            }
-            return;
-        }
-
-        /// <summary>
-        /// Transition action that occurs on pinging.
-        /// </summary>
-        /// <param name="packet">The network packet retrieved during this transition.</param>
-        public void OnPing(NetworkPacket packet)
-        {
-            lock (pingStopwatch)
+            if (pingStopwatch.IsRunning)
             {
                 pingStopwatch.Stop();
-                lastPing = pingStopwatch.ElapsedMilliseconds;
             }
-            return;
-        }
-
-        /// <summary>
-        /// Transition action that should occur when the state of the game changes.
-        /// </summary>
-        /// <param name="packet">The packet received.</param>
-        public void OnGameData(NetworkPacket packet)
-        {
-            gameDataUpdater(new GameData(packet.DataArray));
-            return;
-        }
-
-        /// <summary>
-        /// Transition action that should occur when syncing.
-        /// </summary>
-        /// <param name="packet">The packet received.</param>
-        public void OnSync(NetworkPacket packet)
-        {
-            SendSync();
-            return;
+            pingPacketTimer.Dispose();
+            base.Shutdown();
         }
 
         /// <summary>
@@ -167,49 +147,6 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Main execution loop for network clients.
-        /// </summary>
-        private void RunNetworkClientThread()
-        {
-            serverReadySemaphore.WaitOne();
-            NetworkStateMachine.TransitionEvent transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSTARTED;
-
-            while (continueRunning) // Loop and push packets into the state machine
-            {
-                NetworkPacket receivePacket = networkWorker.ReceivePacket(); // Grab a packet from the server
-                if (receivePacket == null)
-                    continue;
-                switch (receivePacket.Type)
-                {
-                    case NetworkPacket.PacketType.HANDSHAKE:
-                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTCONNECTED;
-                        break;
-                    case NetworkPacket.PacketType.PING:
-                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTPINGING;
-                        break;
-                    case NetworkPacket.PacketType.GAMEDATA:
-                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTGAMEDATA;
-                        break;
-                    case NetworkPacket.PacketType.SYNC:
-                        transitionEvent = NetworkStateMachine.TransitionEvent.CLIENTSYNC;
-                        break;
-                }
-                networkStateMachine.DoTransition(transitionEvent, receivePacket); // This is amazing
-            }
-
-            return;
-        }
-
-        /// <summary>
-        /// Send a handshake packet to the server.
-        /// </summary>
-        private void SendHandshake()
-        {
-            networkWorker.SendPacket(new HandshakePacket(serverEndPoint));
-            return; 
-        }
-
-        /// <summary>
         /// Begin sending ping heartbeats to the server.
         /// </summary>
         private void StartPinging()
@@ -219,22 +156,20 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Handle ticks from the ping timer.
+        /// Handler function for ping timer ticks.
         /// </summary>
         /// <param name="eventArgs">Event arguments.</param>
         private void PingTimerTicked(Object eventArgs)
         {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(DoPingTimerWork));
+            ThreadPool.QueueUserWorkItem(new WaitCallback(SendPingOnTick));
             return;
         }
 
         /// <summary>
-        /// The worker thread for the client side ping timer
-        /// This actually resets and starts the timer again if need be
-        /// This should also transition to TIMEOUT if a certain threshold is reached
+        /// Worker thread function to deal with ping timer ticks and possible transition into the TIMEOUT state.
         /// </summary>
         /// <param name="eventArgs">Unused event arguments.</param>
-        private void DoPingTimerWork(Object eventArgs)
+        private void SendPingOnTick(Object eventArgs)
         {
             lock (pingStopwatch)
             {
@@ -255,9 +190,70 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
-        #endregion
+        /// <summary>
+        /// Callback function upon connecting to a server.
+        /// </summary>
+        /// <param name="packet">The network packet retrieved during this transition.</param>
+        private void OnConnect(NetworkPacket packet)
+        {
+            clientConnectedSemaphore.Release();
+            StartPinging();
+            return;
+        }
 
-        #region Public Client Code
+        /// <summary>
+        /// Callback function on disconnect events.
+        /// </summary>
+        /// <param name="packet">A packet received that has caused us to disconnect.</param>
+        protected void OnDisconnect(NetworkPacket packet)
+        {
+            Debug.WriteLine(String.Format("Client has disconnected"));
+            Shutdown();
+            return;
+        }
+
+        /// <summary>
+        /// Callback function on receipt of game data.
+        /// </summary>
+        /// <param name="packet">The packet received.</param>
+        protected override void OnGameData(NetworkPacket packet)
+        {
+            gameDataUpdater(new GameData(packet.DataArray));
+            return;
+        }
+
+        /// <summary>
+        /// Callback function on receipt of a ping.
+        /// </summary>
+        /// <param name="packet">The packet received.</param>
+        protected override void OnPing(NetworkPacket packet)
+        {
+            lock (pingStopwatch)
+            {
+                pingStopwatch.Stop();
+                lastPing = pingStopwatch.ElapsedMilliseconds;
+            }
+            return;
+        }
+
+        /// <summary>
+        /// Callback function on receipt of a SYNC packet.
+        /// </summary>
+        /// <param name="packet">The packet received.</param>
+        protected override void OnSync(NetworkPacket packet)
+        {
+            SendSync();
+            return;
+        }
+
+        /// <summary>
+        /// Send a handshake packet to the server.
+        /// </summary>
+        private void SendHandshake()
+        {
+            networkWorker.SendPacket(new HandshakePacket(serverEndPoint));
+            return; 
+        }
 
         /// <summary>
         /// Send a synchronization message to the server.
@@ -268,23 +264,27 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
+        #endregion
+
+        #region Public Interface
+
         /// <summary>
-        /// Send a list of game data changes to the server.
+        /// Send a list of game data information to the server.
         /// </summary>
         /// <param name="gameDataList">A list of game data to send to the server.</param>
         public void SendGameData(List<GameData> gameDataList)
         {
-            foreach (GameData gameData in gameDataList)
+            for (int i = 0; i < gameDataList.Count; i += 1)
             {
-                SendGameData(gameData);
+                SendGameData(gameDataList[i]);
             }
             return;
         }
 
         /// <summary>
-        /// Send a game data change to the server.
+        /// Send a unit of game data to the server.
         /// </summary>
-        /// <param name="gameData">The menu state to send to the server.</param>
+        /// <param name="gameData">The game data to send to the server.</param>
         public void SendGameData(GameData gameData)
         {
             networkWorker.SendPacket(new GameDataPacket(serverEndPoint, gameData));
@@ -294,7 +294,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Receive an update about the game state.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A list of GameData that represents update sates.</returns>
         public List<GameData> ReceiveGameData()
         {
             List<GameData> gameDataList = new List<GameData>();
@@ -321,6 +321,7 @@ namespace OceanMars.Common.NetCode
         }
 
         #endregion
+
     }
 
 }

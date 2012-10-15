@@ -77,33 +77,32 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Join the game lobby
+        /// Have a client join the game lobby.
         /// </summary>
         public void JoinLobby()
         {
             //Do we want to actually join the lobby on top of joinging the Server?
-            GameData changeRequest = new GameData(GameData.GameDataType.Connect, 0, (int)GameData.ConnectionDetails.IdReqest);
-            Game.Network.SendGameData(changeRequest);
+            Game.Network.SendGameData(new GameData(GameData.GameDataType.Connect, 0, (int)GameData.ConnectionDetails.IdReqest));
+            return;
         }
 
         /// <summary>
-        /// The uesr makes a change to the character selection
+        /// Change a user's character selection.
         /// </summary>
-        /// <param name="character"></param>
+        /// <param name="character">The character to select.</param>
         public void SelectCharacter(int character)
         {
-            GameData changeRequest = new GameData(GameData.GameDataType.SelectCharacter, Game.LocalPlayer.PlayerID, character);
-            Game.Network.SendGameData(changeRequest);
+            Game.Network.SendGameData(new GameData(GameData.GameDataType.SelectCharacter, Game.LocalPlayer.PlayerID, character));
+            return;
         }
 
         /// <summary>
-        /// The uesr makes a change to the character selection
-        /// </summary>
-        /// <param name="character"></param>
+        /// Lock in a user's character selection.
+        /// </summary
         public void LockCharacter()
         {
-            GameData changeRequest = new GameData(GameData.GameDataType.LockCharacter, Game.LocalPlayer.PlayerID);
-            Game.Network.SendGameData(changeRequest);
+            Game.Network.SendGameData(new GameData(GameData.GameDataType.LockCharacter, Game.LocalPlayer.PlayerID));
+            return;
         }
 
         /// <summary>
@@ -112,8 +111,8 @@ namespace OceanMars.Common.NetCode
         /// <param name="character"></param>
         public void StartGame()
         {
-            GameData changeRequest = new GameData(GameData.GameDataType.GameStart,Game.LocalPlayer.PlayerID);
-            Game.Network.SendGameData(changeRequest);
+            Game.Network.SendGameData(new GameData(GameData.GameDataType.GameStart,Game.LocalPlayer.PlayerID));
+            return;
         }
     }
 }

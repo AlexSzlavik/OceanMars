@@ -133,10 +133,10 @@ namespace OceanMars.Common.NetCode
                         SetupGameState(currentData.EventDetail, currentData.PlayerID);
                         break;
                     case GameData.GameDataType.Movement:
-                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.getMatrix();
+                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.GetMatrix();
                         break;
                     case GameData.GameDataType.PlayerTransform:
-                        GameState.entities[playerIDToEntity[currentData.TransformData.EntityID]].transform = currentData.TransformData.getMatrix();
+                        GameState.entities[playerIDToEntity[currentData.TransformData.EntityID]].transform = currentData.TransformData.GetMatrix();
                         break;
                     default:
                         throw new NotImplementedException("Unhandled state passed to GameClient");
