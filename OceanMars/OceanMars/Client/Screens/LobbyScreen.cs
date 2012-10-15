@@ -52,7 +52,7 @@ namespace OceanMars.Screens
             this.gc = gc;
             this.gs = gs;
 
-            if (gs != null)
+            
             {
                 // Create the single invisible menu entry
                 MenuEntry startGameMenuEntry = new MenuEntry(string.Empty, true);
@@ -108,12 +108,16 @@ namespace OceanMars.Screens
         /// <summary>
         /// Run a regular update loop on the menu.
         /// </summary>
+        /// 
+
+        bool ahack = false;
         public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
-            if (gs == null)
+            if (gs == null && gc.LocalPlayer != null && !ahack)
             {
                 // Poll to see if game has started
                 startGame();
+                ahack = true;
             }
 
             return;

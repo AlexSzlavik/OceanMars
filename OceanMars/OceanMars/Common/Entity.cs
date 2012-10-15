@@ -16,7 +16,7 @@ namespace OceanMars.Common
         public Entity parent = null;
         public List<Entity> children = new List<Entity>();
 
-        private bool owned = false; // Represents whether this Entity is owned by the machine running (could be client or server)
+        public bool owned = false; // Represents whether this Entity is owned by the machine running (could be client or server)
 
         public bool worldTransformDirty = false;
         public bool inverseWorldTransformDirty = false;
@@ -26,6 +26,7 @@ namespace OceanMars.Common
             this.collisionBox = collisionBox;
             this.id = next_id++;
             this.parent = parent;
+            this.owned = owner;
         }
 
         // When changed, will invalidate world transform matrix and all children

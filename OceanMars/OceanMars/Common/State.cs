@@ -48,21 +48,25 @@ namespace OceanMars.Common
 
         public void nextFrame()
         {
-            foreach (Entity child in root.children)
+            foreach (int id in entities.Keys)
             {
-                if (child is EllipseEntity)
+                Entity child = entities[id];
+                if (child.owned)
                 {
+                    if (child is EllipseEntity)
+                    {
 
-                    EllipseEntity ellipseEntity = (EllipseEntity)child;
-                    ellipseEntity.velocity += GRAVITY;
-                    ellipseEntity.testCollision(entities.Values.ToList()); // TODO: using ToList may be inefficient
+                        EllipseEntity ellipseEntity = (EllipseEntity)child;
+                        ellipseEntity.velocity += GRAVITY;
+                        ellipseEntity.testCollision(entities.Values.ToList()); // TODO: using ToList may be inefficient
+                    }
+                    else if (child is FreeEntity)
+                    {
+                        FreeEntity freeEntity = (FreeEntity)child;
+                        freeEntity.testCollision(entities.Values.ToList()); // TODO: using ToList may be inefficient
+                    }
+                    // Do not do collisions for SliderEntities
                 }
-                else if (child is FreeEntity)
-                {
-                    FreeEntity freeEntity = (FreeEntity)child;
-                    freeEntity.testCollision(entities.Values.ToList()); // TODO: using ToList may be inefficient
-                }
-                // Do not do collisions for SliderEntities
             }
         }
 

@@ -68,9 +68,9 @@ namespace OceanMars.Common.NetCode
             for (int i = 0; i < players.Length; i++)
             {
                 if (players[i] == null) continue; // Don't create players that didn't join
-
                 SpawnPointEntity sp = level.spawnPoints[i];
-                TestMan tm = new TestMan(sp, (i == myPlayerID));
+                System.Diagnostics.Debug.WriteLine(players[i].PlayerID + " " + myPlayerID);
+                TestMan tm = new TestMan(sp, (players[i].PlayerID == myPlayerID));
 
                 players[i].EntityID = tm.id;
                 sp.addChild(tm);
