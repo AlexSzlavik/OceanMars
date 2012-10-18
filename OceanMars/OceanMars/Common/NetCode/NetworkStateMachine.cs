@@ -158,18 +158,18 @@ namespace OceanMars.Common.NetCode
         public void DoTransition(TransitionEvent transEvent, NetworkPacket packet)
         {
             Tuple<NetworkState, TransitionAction> transition = null;
-            try
+            //try
             {
-                transition = TransitionTable[new Tuple<NetworkState,TransitionEvent>(CurrentState,transEvent)];
+                transition = TransitionTable[new Tuple<NetworkState, TransitionEvent>(CurrentState, transEvent)];
                 transition.Item2(packet);
                 CurrentState = transition.Item1;
             }
-            catch (Exception error)
-            {
-                Debug.WriteLine("You managed to break the NetStateMachine. Congratulations, asshole: {0}", new Object[] {error.Message});
-                Debug.WriteLine("Violating Transition: {0} - {1}",new Object[] {CurrentState,transEvent});
-                throw error;
-            }
+            //catch (Exception error)
+            //{
+            //    Debug.WriteLine("You managed to break the NetStateMachine. Congratulations, asshole: {0}", new Object[] {error.Message});
+            //    Debug.WriteLine("Violating Transition: {0} - {1}",new Object[] {CurrentState,transEvent});
+            //    throw error;
+            //}
             return;
         }
 

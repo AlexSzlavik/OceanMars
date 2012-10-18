@@ -70,10 +70,27 @@ namespace OceanMars.Common.NetCode
                 if (players[i] == null) continue; // Don't create players that didn't join
                 SpawnPointEntity sp = level.spawnPoints[i];
                 System.Diagnostics.Debug.WriteLine(players[i].PlayerID + " " + myPlayerID);
-                TestMan tm = new TestMan(sp, (players[i].PlayerID == myPlayerID));
+                TestMan tm;
+                
+                //super uber hacky:
+                if (players[i].PlayerID != myPlayerID)
+                {
+                    tm = new TestMan(sp,
+                                     (players[i].PlayerID == myPlayerID),
+                                     players[i].PlayerID * int.MaxValue / GameBase.MAX_PLAYERS + Entity.next_id - myPlayerID * int.MaxValue / GameBase.MAX_PLAYERS);
+                }
+                else
+                {
+                    tm = new TestMan(sp, (players[i].PlayerID == myPlayerID));
+                }
 
+                System.Diagnostics.Debug.WriteLine("EntityID: " + tm.id);
                 players[i].EntityID = tm.id;
                 sp.addChild(tm);
+
+                //hack?
+                if (players[i].PlayerID == myPlayerID)
+                    LocalPlayer.EntityID = players[i].EntityID;
             }
         }
 

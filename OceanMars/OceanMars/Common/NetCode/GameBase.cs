@@ -36,7 +36,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// The players that are known by the game.
         /// </summary>
-        protected Player[] players;
+        public Player[] players { get; protected set; }
 
         /// <summary>
         /// The player that is local to this machine.
@@ -114,21 +114,29 @@ namespace OceanMars.Common.NetCode
 
         public void commitGameStates()
         {
-            foreach (GameData gs in GameStatesToCommit)
+            //take a snapeshot of the GameStatesToCommit in case more are added while we're looping
+            int gsLength = GameStatesToCommit.Count;
+
+            for (int i = 0; i < gsLength; ++i)
             {
-                if (gs.Type == GameData.GameDataType.Movement)
+                GameData gs = GameStatesToCommit[i];
+                if (gs != null)
                 {
-                    int id = gs.TransformData.EntityID;
-                    GameState.entities[id].transform = gs.TransformData.getMatrix();
-                }
-                else if (gs.Type == GameData.GameDataType.PlayerTransform)
-                {
-                    int id = players[gs.TransformData.EntityID].EntityID;
-                    GameState.entities[id].transform = gs.TransformData.getMatrix();
+                    if (gs.Type == GameData.GameDataType.Movement)
+                    {
+                        int id = gs.TransformData.EntityID;
+                        GameState.entities[id].transform = gs.TransformData.getMatrix();
+                    }
+                    else if (gs.Type == GameData.GameDataType.PlayerTransform)
+                    {
+                        int id = players[gs.TransformData.EntityID].EntityID;
+                        GameState.entities[id].transform = gs.TransformData.getMatrix();
+                    }
                 }
             }
 
-            GameStatesToCommit.Clear();
+            //clear the game states we've just committed
+            GameStatesToCommit.RemoveRange(0, gsLength);
         }
 
         /// <summary>

@@ -12,7 +12,8 @@ namespace OceanMars.Common
         private const float FUZZY_EPSILON = 0.01f;
         public Vector2 collisionEllipse;
 
-        public EllipseEntity(Vector2 size, Entity parent, bool owner = false) : base(size, parent, owner)
+        public EllipseEntity(Vector2 size, Entity parent, bool owner = false, int id = -1)
+            : base(size, parent, owner, id)
         {
             collisionEllipse = size/2.0f;
         }

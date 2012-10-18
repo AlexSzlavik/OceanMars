@@ -49,7 +49,18 @@ namespace OceanMars.Common.NetCode
                         player = new Player(gameData.ConnectionInfo, Game);
                     }
                     response = new GameData(GameData.GameDataType.Connect, player.PlayerID, (int)GameData.ConnectionDetails.IdReqest);
+                    
+                    //TODO: Ask Ben Cassel, why is this broadcast?
                     Game.Network.BroadCastGameData(response);
+
+                    for (int i = 0; i < Game.players.Length; ++i)
+                    {
+                        if (Game.players[i] != null)
+                        {
+                            response = new GameData(GameData.GameDataType.Connect, Game.players[i].PlayerID, (int)GameData.ConnectionDetails.Connected);
+                            Game.Network.BroadCastGameData(response);
+                        }
+                    }
 
                     break;
                 case GameData.ConnectionDetails.Disconnected:

@@ -39,11 +39,14 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">The game data related to the character joining the session.</param>
         protected override void OnPlayerConnect(GameData gameData)
         {
-            GameData response;
             switch ((GameData.ConnectionDetails)gameData.EventDetail)
             {
                 case GameData.ConnectionDetails.IdReqest:
-                    Game.LocalPlayer = new Player(null, Game, gameData.PlayerID);
+                    if (Game.LocalPlayer == null)
+                    {
+                        Game.LocalPlayer = new Player(null, Game, gameData.PlayerID);
+                        Entity.next_id = gameData.PlayerID * int.MaxValue / GameBase.MAX_PLAYERS;
+                    }
                     break;
                 case GameData.ConnectionDetails.Connected: // Register a new player on a client
                     new Player(null, Game, gameData.PlayerID);

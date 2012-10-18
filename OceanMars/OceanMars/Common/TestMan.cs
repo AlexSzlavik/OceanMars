@@ -9,7 +9,9 @@ namespace OceanMars.Common
 {
     class TestMan : EllipseEntity
     {
-        public TestMan(Entity parent, bool owner = false) : base(new Vector2(30, 30), parent, owner) {
+        public TestMan(Entity parent, bool owner = false, int id = -1)
+            : base(new Vector2(30, 30), parent, owner, id)
+        {
         }
     }
     

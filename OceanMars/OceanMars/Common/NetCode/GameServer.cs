@@ -116,7 +116,8 @@ namespace OceanMars.Common.NetCode
 
             // Once we're done with the lobby, the connections and players will be handed off to the game and the GameDataUpdater re-registered to GameServer.UpdateGameState
 
-            LocalPlayer = new Player(null, this); // Create and register self as a player (do this last as it needs access to the completed GameBase)
+            //Don't need to register anymore if we're running headless server
+            //LocalPlayer = new Player(null, this); // Create and register self as a player (do this last as it needs access to the completed GameBase)
             return;
         }
 
@@ -177,7 +178,7 @@ namespace OceanMars.Common.NetCode
             // Should forward to other machines (not the one received from)
             for (int i = 0; i < players.Length; i++ )
             {
-                if (i == gameData.PlayerID) continue;
+                if (i == gameData.PlayerID || players[i] == null) continue;
                 Network.SignalGameData(gameData, PlayerToConnectionID(players[i]));
                 GameStatesToCommit.Add(gameData);
             }

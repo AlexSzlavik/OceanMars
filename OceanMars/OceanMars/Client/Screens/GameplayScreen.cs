@@ -186,7 +186,7 @@ namespace SkyCrane.Screens
                 if (keyboardState.IsKeyDown(Keys.Space) ||
                     gamePadState.Buttons.A == ButtonState.Pressed)
                 {
-                    if (firstRelease == true)
+                    //if (firstRelease == true)
                     {
                         if ((!context.avatar.inAir &&
                              !stillHoldingJump) ||

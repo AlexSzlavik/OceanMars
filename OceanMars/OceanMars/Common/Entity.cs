@@ -22,9 +22,9 @@ namespace OceanMars.Common
         public bool inverseWorldTransformDirty = false;
 
         List<TransformChangeListener> tcListeners = new List<TransformChangeListener>();
-        public Entity(Vector2 collisionBox, Entity parent, bool owner = false) {
+        public Entity(Vector2 collisionBox, Entity parent, bool owner = false, int id = -1) {
             this.collisionBox = collisionBox;
-            this.id = next_id++;
+            this.id = id < 0 ? next_id++ : id;
             this.parent = parent;
             this.owned = owner;
         }
