@@ -106,7 +106,7 @@ namespace OceanMars.Common.NetCode
         {
             // Generate a transform change packet, put it on stack
             TransformData td = new TransformData(e.id, e.transform);
-            GameData gd = new GameData(GameData.GameDataType.Movement, transformData: td);
+            GameData gd = new GameData(GameData.GameDataType.Movement, LocalPlayer.PlayerID, 0, td);
             GameStatesToSend.Add(gd);
         }
 

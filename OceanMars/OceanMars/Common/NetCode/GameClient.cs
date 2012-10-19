@@ -71,13 +71,14 @@ namespace OceanMars.Common.NetCode
                 SpawnPointEntity sp = level.spawnPoints[i];
                 System.Diagnostics.Debug.WriteLine(players[i].PlayerID + " " + myPlayerID);
                 TestMan tm;
-                
-                //super uber hacky:
+
+                //supercalifragilistic uber hacky:
                 if (players[i].PlayerID != myPlayerID)
                 {
+                    int additionalHackyAddition = players[i].PlayerID < myPlayerID ? Entity.next_id : Entity.next_id - 1;
                     tm = new TestMan(sp,
                                      (players[i].PlayerID == myPlayerID),
-                                     players[i].PlayerID * int.MaxValue / GameBase.MAX_PLAYERS + Entity.next_id - myPlayerID * int.MaxValue / GameBase.MAX_PLAYERS);
+                                     players[i].PlayerID * int.MaxValue / GameBase.MAX_PLAYERS + additionalHackyAddition - myPlayerID * int.MaxValue / GameBase.MAX_PLAYERS);
                 }
                 else
                 {
