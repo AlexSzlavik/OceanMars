@@ -118,7 +118,7 @@ namespace OceanMars.Common.NetCode
                                 //assuming TestMan for now
 
                                 TestMan testMan = new TestMan(GameState.root, false, gameState.EntityData.transformData.EntityID);
-                                testMan.transform = gameState.TransformData.GetMatrix();
+                                testMan.transform = gameState.EntityData.transformData.GetMatrix();
                                 break;
                             default:
                                 // throw new NotImplementedExption("Received unexpected gamestate");
