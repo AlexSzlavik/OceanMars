@@ -127,14 +127,12 @@ namespace OceanMars.Common.NetCode
         public void SetupAndSendGameState(int levelID)
         {
             Level level = new Level(GameState.root, LevelPack.levels[levelID]);
-            GameState.root.addChild(level);
 
             // Create players in personal state
             for (int i = 0; i < players.Length; i++)
             {
                 SpawnPointEntity sp = level.spawnPoints[i];
                 TestMan tm = new TestMan(sp);
-                sp.addChild(tm);
 /*=======
             // Send level and a player ID to each client
             for (int i = 0; i < players.Length; i += 1)
@@ -147,7 +145,6 @@ namespace OceanMars.Common.NetCode
                     // Create a new testman at the given spawn point for each player
                     SpawnPointEntity sp = level.spawnPoints[i];
                     TestMan tm = new TestMan(sp);
-                    sp.addChild(tm);
                 }
 >>>>>>> master*/
             }

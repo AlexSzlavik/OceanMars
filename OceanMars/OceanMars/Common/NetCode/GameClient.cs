@@ -64,7 +64,7 @@ namespace OceanMars.Common.NetCode
         public void SetupGameState(int levelID, int myPlayerID)
         {
             Level level = new Level(GameState.root, LevelPack.levels[levelID]);
-            GameState.root.addChild(level);
+            //GameState.root.addChild(level);
 
             for (int i = 0; i < players.Length; i++)
             {
@@ -88,7 +88,7 @@ namespace OceanMars.Common.NetCode
 
                 System.Diagnostics.Debug.WriteLine("EntityID: " + tm.id);
                 players[i].EntityID = tm.id;
-                sp.addChild(tm);
+                //sp.addChild(tm);
 
                 //hack?
                 if (players[i].PlayerID == myPlayerID)

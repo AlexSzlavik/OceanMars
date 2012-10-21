@@ -31,17 +31,6 @@ namespace OceanMars.Common
             w8.name = "W8";
             w9.name = "W9";
             w10.name = "W10";
-
-            this.addChild(w1);
-            this.addChild(w2);
-            this.addChild(w3);
-            this.addChild(w4);
-            this.addChild(w5);
-            this.addChild(w6);
-            this.addChild(w7);
-            this.addChild(w8);
-            this.addChild(w9);
-            this.addChild(w10);
         }
     }
 }
