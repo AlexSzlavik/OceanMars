@@ -207,6 +207,11 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
+        /// Commit game state updates.
+        /// </summary>
+        public override void CommitGameStates() { throw new NotImplementedException("Commit called from server"); }
+
+        /// <summary>
         /// Send new game state information to all players.
         /// </summary>
         public override void SendGameStates()

@@ -129,32 +129,10 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
-        public void commitGameStates()
-        {
-            //take a snapeshot of the GameStatesToCommit in case more are added while we're looping
-            int gsLength = gameStatesToCommit.Count;
-
-            for (int i = 0; i < gsLength; ++i)
-            {
-                GameData gs = gameStatesToCommit[i];
-                if (gs != null)
-                {
-                    if (gs.Type == GameData.GameDataType.Movement)
-                    {
-                        int id = gs.TransformData.EntityID;
-                        GameState.entities[id].transform = gs.TransformData.GetMatrix();
-                    }
-                    else if (gs.Type == GameData.GameDataType.PlayerTransform)
-                    {
-                        int id = players[gs.TransformData.EntityID].EntityID;
-                        GameState.entities[id].transform = gs.TransformData.GetMatrix();
-                    }
-                }
-            }
-
-            //clear the game states we've just committed
-            gameStatesToCommit.RemoveRange(0, gsLength);
-        }
+        /// <summary>
+        /// Commit game state updates.
+        /// </summary>
+        public abstract void CommitGameStates();
 
         /// <summary>
         /// Send out game state updates.
@@ -183,7 +161,7 @@ namespace OceanMars.Common.NetCode
                     SendGameStates();
                     break;
                 case State.PHASE.READY_FOR_CHANGES:
-                    commitGameStates();
+                    CommitGameStates();
                     break;
                 //default:
                     //throw new NotImplementedException("Unhandled state passed to GameBase");

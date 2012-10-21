@@ -66,34 +66,16 @@ namespace OceanMars.Common.NetCode
             Level level = new Level(GameState.root, LevelPack.levels[levelID]);
             GameState.root.addChild(level);
 
-            for (int i = 0; i < players.Length; i++)
-            {
-                if (players[i] == null) continue; // Don't create players that didn't join
-                SpawnPointEntity sp = level.spawnPoints[i];
-                System.Diagnostics.Debug.WriteLine(players[i].PlayerID + " " + myPlayerID);
-                TestMan tm;
+            SpawnPointEntity sp = level.spawnPoints[myPlayerID];
+            TestMan tm = new TestMan(sp, true);
+            players[myPlayerID].EntityID = tm.id;
+            sp.addChild(tm);
+            LocalPlayer.EntityID = players[myPlayerID].EntityID;    //hack?
 
-                //supercalifragilistic uber hacky:
-                if (players[i].PlayerID != myPlayerID)
-                {
-                    int additionalHackyAddition = players[i].PlayerID < myPlayerID ? Entity.next_id : Entity.next_id - 1;
-                    tm = new TestMan(sp,
-                                     (players[i].PlayerID == myPlayerID),
-                                     players[i].PlayerID * (int.MaxValue / GameBase.MAX_PLAYERS) + additionalHackyAddition - myPlayerID * (int.MaxValue / GameBase.MAX_PLAYERS));
-                }
-                else
-                {
-                    tm = new TestMan(sp, (players[i].PlayerID == myPlayerID));
-                }
+            TransformData transformData = new TransformData(tm.id, tm.transform);
+            GameData gameData = new GameData(GameData.GameDataType.NewEntity, myPlayerID, 0, transformData);
+            Network.SendGameData(gameData);
 
-                System.Diagnostics.Debug.WriteLine("EntityID: " + tm.id);
-                players[i].EntityID = tm.id;
-                sp.addChild(tm);
-
-                //hack?
-                if (players[i].PlayerID == myPlayerID)
-                    LocalPlayer.EntityID = players[i].EntityID;
-            }
             return;
         }
 
@@ -111,6 +93,45 @@ namespace OceanMars.Common.NetCode
         {
             players[player.PlayerID] = player;
             return player.PlayerID;
+        }
+
+        public override void CommitGameStates()
+        {
+            //take a snapeshot of the GameStatesToCommit in case more are added while we're looping
+            int gsLength = gameStatesToCommit.Count;
+
+            for (int i = 0; i < gsLength; ++i)
+            {
+                GameData gs = gameStatesToCommit[i];
+                if (gs != null)
+                {
+                    int id;
+                    switch (gs.Type)
+                    {
+                        case GameData.GameDataType.Movement:
+                            id = gs.TransformData.EntityID;
+                            GameState.entities[id].transform = gs.TransformData.GetMatrix();
+                            break;
+                        case GameData.GameDataType.PlayerTransform:
+                            id = players[gs.TransformData.EntityID].EntityID;
+                            GameState.entities[id].transform = gs.TransformData.GetMatrix();
+                            break;
+                        case GameData.GameDataType.NewEntity:
+                            //hack, need to use something more than TransformData
+                            //assuming TestMan for now
+
+                            System.Diagnostics.Debug.WriteLine("EntityID: " + gs.TransformData.EntityID);
+                            TestMan testMan = new TestMan(GameState.root, false, gs.TransformData.EntityID);
+                            testMan.transform = gs.TransformData.GetMatrix();
+                            GameState.root.addChild(testMan);
+                            break;
+                    }
+
+                }
+            }
+
+            //clear the game states we've just committed
+            gameStatesToCommit.RemoveRange(0, gsLength);
         }
 
         /// <summary>
