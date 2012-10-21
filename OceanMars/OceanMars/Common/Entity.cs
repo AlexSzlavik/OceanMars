@@ -23,7 +23,22 @@ namespace OceanMars.Common
             //WATER
             //LAVA
         }
-        public GroundState groundState;
+
+        private GroundState groundBack;
+        public GroundState groundState
+        {
+            get
+            {
+                return groundBack;
+            }
+            set
+            {
+                if(value != groundBack) stateChanged = true;
+                groundBack = value;
+            }
+        }
+
+        public bool stateChanged = false;
 
         public static int next_id = 0;
 

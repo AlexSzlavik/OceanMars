@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 //TODO: Move to PlayerMan
 namespace OceanMars.Common
 {
-    class EllipseEntity : Entity
+    public class EllipseEntity : Entity
     {
         private const float BIG_FUZZY_EPSILON = 0.5f;
         private const float FUZZY_EPSILON = 0.01f;

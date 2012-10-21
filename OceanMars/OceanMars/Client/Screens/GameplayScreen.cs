@@ -195,10 +195,16 @@ namespace SkyCrane.Screens
                 if (!sliding)
                 {
                     if (keyboardState.IsKeyDown(Keys.Left))
+                    {
                         context.avatar.acceleration.X = -movementAcceleration;
+                        context.avatar.facing = TestMan.FacingState.LEFT;
+                    }
 
                     if (keyboardState.IsKeyDown(Keys.Right))
+                    {
                         context.avatar.acceleration.X = movementAcceleration;
+                        context.avatar.facing = TestMan.FacingState.RIGHT;
+                    }
 
                     Vector2 thumbstick = gamePadState.ThumbSticks.Left;
 
