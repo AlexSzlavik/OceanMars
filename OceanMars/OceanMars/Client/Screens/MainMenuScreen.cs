@@ -1,6 +1,18 @@
+#region File Description
+//-----------------------------------------------------------------------------
+// MainMenuScreen.cs
+//
+// Microsoft XNA Community Game Platform
+// Copyright (C) Microsoft Corporation. All rights reserved.
+//-----------------------------------------------------------------------------
+#endregion
+
+#region Using Statements
 using Microsoft.Xna.Framework;
 using OceanMars.Client.GameStateManager;
-using SkyCrane.Screens;
+using OceanMars.Common.NetCode;
+using OceanMars.Screens;
+#endregion
 
 
 namespace OceanMars.Client.Screens
@@ -50,7 +62,11 @@ namespace OceanMars.Client.Screens
         /// </summary>
         void NewGameMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
-            //ScreenManager.AddScreen(new GameplayScreen());
+            GameServer gs = new GameServer(9999);
+            GameClient gc = new GameClient();
+            gc.ConnectToGame("127.0.0.1", 9999);
+            ScreenManager.AddScreen(new LobbyScreen(gc, gs));
+
             return;
         }
 

@@ -1,6 +1,6 @@
 #region File Description
 //-----------------------------------------------------------------------------
-// MainMenuScreen.cs
+// MultiplayerMenuScreen.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
@@ -10,7 +10,6 @@
 #region Using Statements
 using Microsoft.Xna.Framework;
 using OceanMars.Common.NetCode;
-using SkyCrane.Screens;
 using System.Threading;
 using OceanMars.Screens;
 #endregion
