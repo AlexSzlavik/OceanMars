@@ -116,6 +116,7 @@ namespace OceanMars.Common.NetCode
 
             for (int i = 0; i < Game.players.Length; ++i)
             {
+
                 if (Game.GetPlayer(i) != null && !Game.GetPlayer(i).PlayerReady)
                 {
                     return;
