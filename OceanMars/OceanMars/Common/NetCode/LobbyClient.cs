@@ -36,13 +36,8 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Who to inform when the game is starting
         /// </summary>
-<<<<<<< HEAD
-        public delegate void NewGameUpdater();
-        private NewGameUpdater newGameUpdater;
-=======
         public delegate void NewGameUpdater(GameClient gc);
         public NewGameUpdater newGameUpdater;
->>>>>>> 3ce076ea5f5fcbea67c859f0ae6fb72589f56a07
 
         /// <summary>
         /// Register a delegate to call when the game starts

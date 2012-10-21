@@ -73,20 +73,6 @@ namespace OceanMars.Common.NetCode
             TransformData transformData = new TransformData(tm.id, tm.transform);
             GameData gameData = new GameData(GameData.GameDataType.NewEntity, myPlayerID, 0, transformData);
             Network.SendGameData(gameData);
-
-<<<<<<< HEAD
-                System.Diagnostics.Debug.WriteLine("EntityID: " + tm.id);
-                players[i].EntityID = tm.id;
-                sp.addChild(tm);
-
-                //hack?
-                if (players[i].PlayerID == myPlayerID)
-                {
-                    LocalPlayer.EntityID = players[i].EntityID;
-                }
-            }
-=======
->>>>>>> 3ce076ea5f5fcbea67c859f0ae6fb72589f56a07
             return;
         }
 

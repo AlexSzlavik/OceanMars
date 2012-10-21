@@ -55,7 +55,7 @@ namespace SkyCrane.Screens
         {
             game = gb;
 
-            context = new View(gb.GameState, gb.getPlayerEntity());
+            context = new View(gb.GameState, gb.GetPlayerEntity());
         }
 
         /// <summary>
