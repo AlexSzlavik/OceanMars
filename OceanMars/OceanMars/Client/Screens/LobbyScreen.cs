@@ -96,12 +96,9 @@ namespace OceanMars.Screens
         /// </summary>
         void StartGameMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
-            // Start the fucking game yo
-            if (gs != null)
-            {
-                //send game start packet
-                gc.Lobby.SendLaunchPacket();
-            }
+
+            //send game start packet
+            gc.Lobby.SendLaunchPacket();
 
             return;
         }
