@@ -19,9 +19,9 @@ namespace OceanMars.Common
             //TestWall w = new TestWall(root);
 
             //root.addChild(dl);
-            root.addChild(player);
+            //root.addChild(player);
             //root.addChild(tl);
-            root.addChild(lp);
+            //root.addChild(lp);
             //root.addChild(w);
 
         }

@@ -34,7 +34,7 @@ namespace OceanMars.Common
                 vectorList = (List<Vector2[]>)deserializer.Deserialize(textReader);
                 textReader.Close();
 
-                this.addChild(new Level(this, vectorList));
+                //this.addChild(new Level(this, vectorList));
                 //levelList.Add(new Level(this, vectorList));
             //}
 
