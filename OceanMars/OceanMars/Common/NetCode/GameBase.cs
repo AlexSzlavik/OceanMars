@@ -166,8 +166,9 @@ namespace OceanMars.Common.NetCode
                 case State.PHASE.READY_FOR_CHANGES:
                     CommitGameStates();
                     break;
-                //default:
+                default:
                     //throw new NotImplementedException("Unhandled state passed to GameBase");
+                    break;
             }
             return;
         }

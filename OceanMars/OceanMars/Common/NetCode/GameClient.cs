@@ -73,11 +73,14 @@ namespace OceanMars.Common.NetCode
             TransformData transformData = new TransformData(tm.id, tm.transform);
             GameData gameData = new GameData(GameData.GameDataType.NewEntity, myPlayerID, 0, transformData);
             Network.SendGameData(gameData);
-
             return;
         }
 
-        public Entity getPlayerEntity()
+        /// <summary>
+        /// Get the entity associated with the local player.
+        /// </summary>
+        /// <returns>An entity object associated wtih local player object.</returns>
+        public Entity GetPlayerEntity()
         {
             return GameState.entities[LocalPlayer.EntityID];
         }
@@ -95,40 +98,39 @@ namespace OceanMars.Common.NetCode
 
         public override void CommitGameStates()
         {
-            //take a snapeshot of the GameStatesToCommit in case more are added while we're looping
-            int gsLength = gameStatesToCommit.Count;
-
-            for (int i = 0; i < gsLength; ++i)
+            lock (gameStatesToCommit)
             {
-                GameData gs = gameStatesToCommit[i];
-                if (gs != null)
+                for (int i = 0; i < gameStatesToCommit.Count; ++i)
                 {
-                    int id;
-                    switch (gs.Type)
+                    GameData gameState = gameStatesToCommit[i];
+                    if (gameState != null)
                     {
-                        case GameData.GameDataType.Movement:
-                            id = gs.TransformData.EntityID;
-                            GameState.entities[id].transform = gs.TransformData.GetMatrix();
-                            break;
-                        case GameData.GameDataType.PlayerTransform:
-                            id = players[gs.TransformData.EntityID].EntityID;
-                            GameState.entities[id].transform = gs.TransformData.GetMatrix();
-                            break;
-                        case GameData.GameDataType.NewEntity:
-                            //hack, need to use something more than TransformData
-                            //assuming TestMan for now
+                        switch (gameState.Type)
+                        {
+                            case GameData.GameDataType.Movement:
+                                GameState.entities[gameState.TransformData.EntityID].transform = gameState.TransformData.GetMatrix();
+                                break;
+                            case GameData.GameDataType.PlayerTransform:
+                                GameState.entities[players[gameState.TransformData.EntityID].EntityID].transform = gameState.TransformData.GetMatrix();
+                                break;
+                            case GameData.GameDataType.NewEntity:
+                                //hack, need to use something more than TransformData
+                                //assuming TestMan for now
 
-                            System.Diagnostics.Debug.WriteLine("EntityID: " + gs.TransformData.EntityID);
-                            TestMan testMan = new TestMan(GameState.root, false, gs.TransformData.EntityID);
-                            testMan.transform = gs.TransformData.GetMatrix();
-                            break;
+                                System.Diagnostics.Debug.WriteLine("EntityID: " + gameState.TransformData.EntityID);
+                                TestMan testMan = new TestMan(GameState.root, false, gameState.TransformData.EntityID);
+                                testMan.transform = gameState.TransformData.GetMatrix();
+                                break;
+                            default:
+                                // throw new NotImplementedExption("Received unexpected gamestate");
+                                break;
+                        }
+
                     }
-
                 }
+                gameStatesToCommit.Clear();
             }
-
-            //clear the game states we've just committed
-            gameStatesToCommit.RemoveRange(0, gsLength);
+            return;
         }
 
         /// <summary>
@@ -136,8 +138,11 @@ namespace OceanMars.Common.NetCode
         /// </summary>
         public override void SendGameStates()
         {
-            Network.SendGameData(gameStatesToSend);
-            gameStatesToSend.Clear();
+            lock (gameStatesToCommit)
+            {
+                Network.SendGameData(gameStatesToSend);
+                gameStatesToSend.Clear();
+            }
             return;
         }
 
