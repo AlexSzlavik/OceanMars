@@ -36,7 +36,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Who to inform when the game is starting
         /// </summary>
-        public delegate void NewGameUpdater();
+        public delegate void NewGameUpdater(GameClient gc);
         public NewGameUpdater newGameUpdater;
 
         /// <summary>
@@ -131,8 +131,9 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">The game data related to character locking.</param>
         protected override void OnGameStart(GameData gameData)
         {
+            Game.SetupGameState(0, Game.LocalPlayer.PlayerID);
             Game.startGame();
-            newGameUpdater.Invoke();
+            newGameUpdater.Invoke(Game);
             return;
         }
 
