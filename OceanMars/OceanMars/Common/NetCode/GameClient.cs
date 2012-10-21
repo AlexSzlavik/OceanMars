@@ -78,7 +78,7 @@ namespace OceanMars.Common.NetCode
                     int additionalHackyAddition = players[i].PlayerID < myPlayerID ? Entity.next_id : Entity.next_id - 1;
                     tm = new TestMan(sp,
                                      (players[i].PlayerID == myPlayerID),
-                                     players[i].PlayerID * int.MaxValue / GameBase.MAX_PLAYERS + additionalHackyAddition - myPlayerID * int.MaxValue / GameBase.MAX_PLAYERS);
+                                     players[i].PlayerID * (int.MaxValue / GameBase.MAX_PLAYERS) + additionalHackyAddition - myPlayerID * (int.MaxValue / GameBase.MAX_PLAYERS));
                 }
                 else
                 {

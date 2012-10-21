@@ -45,7 +45,7 @@ namespace OceanMars.Common.NetCode
                     if (Game.LocalPlayer == null)
                     {
                         Game.LocalPlayer = new Player(null, Game, gameData.PlayerID);
-                        Entity.next_id = gameData.PlayerID * int.MaxValue / GameBase.MAX_PLAYERS;
+                        Entity.next_id = gameData.PlayerID * (int.MaxValue / GameBase.MAX_PLAYERS);
                     }
                     break;
                 case GameData.ConnectionDetails.Connected: // Register a new player on a client

@@ -30,8 +30,8 @@ namespace OceanMars.Client.Screens
         MenuEntry hostPortMenuEntry;
 
         // Hosting, address and port information
-        string lastAddress = "192.168.1.112";
-        static StringBuilder hostAddress = new StringBuilder("192.168.1.112"); // Host's address (IP or hostname)
+        string lastAddress = "";
+        static StringBuilder hostAddress = new StringBuilder(""); // Host's address (IP or hostname)
         const int MAX_ADDRESS_LENGTH = 32;
         string lastPort = "9999";
         static StringBuilder hostPort = new StringBuilder("9999"); // Host's port
