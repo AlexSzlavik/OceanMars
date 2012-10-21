@@ -81,4 +81,76 @@ namespace OceanMars.Common.NetCode
             }
         }
     }
+
+    public class EntityData : IMarshallable
+    {
+
+        /// <summary>
+        /// A list of ALL possible entities to be sent over the network.
+        /// If you add a new type of entity, add it here
+        /// </summary>
+        public enum EntityType
+        {
+            TestMan = 0
+        }
+
+        public EntityType type;
+        public TransformData transformData;
+
+                /// <summary>
+        /// Convinience Constructor to Marshal Matrix
+        /// </summary>
+        /// <param name="ID"></param>
+        /// <param name="matrix"></param>
+        public EntityData(EntityType type, int id, Matrix matrix)
+        {
+            this.type = type;
+            this.transformData = new TransformData(id, matrix);
+        }
+
+        /// <summary>
+        /// Reconstruct the Class from Network
+        /// </summary>
+        /// <param name="data"></param>
+        public EntityData(byte[] data)
+        {
+            using (MemoryStream memoryStream = new MemoryStream(data))
+            {
+                using (BinaryReader binaryReader = new BinaryReader(memoryStream))
+                {
+                    type = (EntityType)binaryReader.ReadInt32();
+                    int entityID = (int)binaryReader.ReadInt32();
+                    float[] matrix = new float[16];
+                    Matrix Matrix;
+                    for (int i = 0; i < 16; i++)
+                    {
+                        matrix[i] = (float)binaryReader.ReadDouble();
+                    }
+                    Matrix = new Matrix(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5], matrix[6], matrix[7], matrix[8], matrix[9], matrix[10], matrix[11], matrix[12], matrix[13], matrix[14], matrix[15]);
+                    transformData = new TransformData(entityID, Matrix);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Construct Network representation
+        /// </summary>
+        /// <returns></returns>
+        public byte[] GetByteArray()
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (BinaryWriter binaryWriter = new BinaryWriter(memoryStream))
+                {
+                    binaryWriter.Write((int)type);
+                    binaryWriter.Write((int)transformData.EntityID);
+                    foreach (float element in transformData.Matrix)
+                        binaryWriter.Write((double)element);
+
+                    return memoryStream.ToArray();
+                }
+            }
+        }
+
+    }
 }

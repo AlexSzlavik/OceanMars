@@ -70,8 +70,8 @@ namespace OceanMars.Common.NetCode
             players[myPlayerID].EntityID = tm.id;
             LocalPlayer.EntityID = players[myPlayerID].EntityID;    //hack?
 
-            TransformData transformData = new TransformData(tm.id, tm.transform);
-            GameData gameData = new GameData(GameData.GameDataType.NewEntity, myPlayerID, 0, transformData);
+            EntityData entityData = new EntityData(EntityData.EntityType.TestMan, tm.id, tm.transform);
+            GameData gameData = new GameData(GameData.GameDataType.NewEntity, myPlayerID, 0, null, entityData);
             Network.SendGameData(gameData);
 
             return;
@@ -117,10 +117,11 @@ namespace OceanMars.Common.NetCode
                         case GameData.GameDataType.NewEntity:
                             //hack, need to use something more than TransformData
                             //assuming TestMan for now
-
-                            System.Diagnostics.Debug.WriteLine("EntityID: " + gs.TransformData.EntityID);
-                            TestMan testMan = new TestMan(GameState.root, false, gs.TransformData.EntityID);
-                            testMan.transform = gs.TransformData.GetMatrix();
+                            if (gs.EntityData.type == EntityData.EntityType.TestMan)
+                            {
+                                TestMan testMan = new TestMan(GameState.root, false, gs.TransformData.EntityID);
+                                testMan.transform = gs.TransformData.GetMatrix();
+                            }
                             break;
                     }
 
