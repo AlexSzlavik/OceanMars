@@ -13,7 +13,7 @@ namespace OceanMars.Common.NetCode
 
         public float [] Matrix = new float[16];
 
-        public Matrix getMatrix()
+        public Matrix GetMatrix()
         {
             Matrix ret = new Matrix(Matrix[0], Matrix[1], Matrix[2], Matrix[3], Matrix[4], Matrix[5], Matrix[6], Matrix[7], Matrix[8], Matrix[9], Matrix[10], Matrix[11], Matrix[12], Matrix[13], Matrix[14], Matrix[15]);
             return ret;

@@ -129,7 +129,7 @@ namespace OceanMars.Screens
 
         private void startGame()
         {
-            gc.setupGameState(0, gc.LocalPlayer.PlayerID);
+            gc.SetupGameState(0, gc.LocalPlayer.PlayerID);
             ScreenManager.AddScreen(new GameplayScreen(gc));
         }
 

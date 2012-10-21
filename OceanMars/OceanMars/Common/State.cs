@@ -10,8 +10,6 @@ namespace OceanMars.Common
     {
         public enum PHASE { READY_FOR_CHANGES, PROCESSING_FRAME, FINISHED_FRAME }
 
-        private static Vector2 GRAVITY = new Vector2(0, 2.0f);
-
         private List<IStatePhaseListener> spListeners = new List<IStatePhaseListener>();
         private List<TransformChangeListener> scListeners = new List<TransformChangeListener>();
 
@@ -30,7 +28,7 @@ namespace OceanMars.Common
                 phaseBack = value;
                 foreach (IStatePhaseListener spl in spListeners)
                 {
-                    spl.handleStatePhaseChange(phaseBack);
+                    spl.HandleStatePhaseChange(phaseBack);
                 }
             }
         }
@@ -56,9 +54,7 @@ namespace OceanMars.Common
                 {
                     if (child is EllipseEntity)
                     {
-
                         EllipseEntity ellipseEntity = (EllipseEntity)child;
-                        ellipseEntity.velocity += GRAVITY;
                         ellipseEntity.testCollision(entities.Values.ToList()); // TODO: using ToList may be inefficient
                     }
                     else if (child is FreeEntity)
@@ -67,17 +63,18 @@ namespace OceanMars.Common
                         freeEntity.testCollision(entities.Values.ToList()); // TODO: using ToList may be inefficient
                     }
                     // Do not do collisions for SliderEntities
+
                 }
             }
             phase = PHASE.FINISHED_FRAME;
             phase = PHASE.READY_FOR_CHANGES;
         }
 
-        public void handleTransformChange(Entity e)
+        public void HandleTransformChange(Entity e)
         {
             foreach (TransformChangeListener scl in scListeners)
             {
-                scl.handleTransformChange(e);
+                scl.HandleTransformChange(e);
             }
         }
 

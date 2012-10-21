@@ -14,7 +14,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Different potential types of packets.
         /// </summary>
-        public enum PacketType { HANDSHAKE = 0, SYNC = 1, PING = 2, GAMEDATA = 5 };
+        public enum PacketType { HANDSHAKE = 0, SYNC, PING, GAMEDATA };
 
         /// <summary>
         /// The type of packet 

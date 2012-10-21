@@ -9,6 +9,22 @@ namespace OceanMars.Common
 {
     public class Entity
     {
+        public Vector2 velocity;
+        public Vector2 acceleration;
+        public bool ignoreFriction = false; //better place to put this? maybe a physics entity needed?
+        public float movementAcceleration = 5.0f;
+        public float jumpAcceleration = 10.0f;
+        public float maxVelocity = 35.0f;
+        public enum GroundState
+        {
+            GROUND,
+            AIR,
+            WALL
+            //WATER
+            //LAVA
+        }
+        public GroundState groundState;
+
         public static int next_id = 0;
 
         public int id;
@@ -27,6 +43,7 @@ namespace OceanMars.Common
             this.id = id < 0 ? next_id++ : id;
             this.parent = parent;
             this.owned = owner;
+            groundState = GroundState.GROUND;
         }
 
         // When changed, will invalidate world transform matrix and all children
@@ -52,11 +69,6 @@ namespace OceanMars.Common
                 if(owned) notifyTransformChange(); // Only notify of things we have jurisdiction over
             }
         }
-
-        public Vector2 velocity;
-        public float jumpAcceleration = 10.0f;
-        public float maxVelocity = 35.0f;
-        public bool inAir = false;
 
         // Handles caching of world transform matrix to avoid redundant work
         private Matrix worldTransformBack = Matrix.Identity;
@@ -106,7 +118,7 @@ namespace OceanMars.Common
         {
             foreach (TransformChangeListener tcl in tcListeners)
             {
-                tcl.handleTransformChange(this);
+                tcl.HandleTransformChange(this);
             }
         }
         

@@ -33,14 +33,19 @@ namespace OceanMars.Common.NetCode
             GameStart,
 
             /// <summary>
-            /// Additional information related to movement
+            /// Movement has occurred in an entity.
             /// </summary>
             Movement,
 
             /// <summary>
-            /// Player transform information
+            /// A player's transform has been changed.
             /// </summary>
-            PlayerTransform
+            PlayerTransform,
+
+            /// <summary>
+            /// Initialization information about level and player number sent from the server to a client.
+            /// </summary>
+            InitClientState
 
         }
 
@@ -116,12 +121,18 @@ namespace OceanMars.Common.NetCode
             set;
         }
 
+        /// <summary>
+        /// The ConnectionID (if any) associated with this GameData.
+        /// </summary>
         public ConnectionID ConnectionInfo
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// The TransformData (if any) associated with this GameData.
+        /// </summary>
         public TransformData TransformData
         {
             get;
@@ -142,11 +153,13 @@ namespace OceanMars.Common.NetCode
                     PlayerID = (int)binaryReader.ReadByte();
                     EventDetail = (int)binaryReader.ReadByte();
 
-                    byte [] SubData  = new byte[byteArray.Length - 3];
-                    Array.ConstrainedCopy(byteArray, 3, SubData, 0,byteArray.Length - 3);
+                    byte[] subData  = new byte[byteArray.Length - 3];
+                    Array.ConstrainedCopy(byteArray, 3, subData, 0, byteArray.Length - 3);
 
                     if (Type == GameDataType.Movement)
-                        TransformData = new TransformData(SubData);
+                    {
+                        TransformData = new TransformData(subData);
+                    }
                 }
             }
             
@@ -183,7 +196,9 @@ namespace OceanMars.Common.NetCode
                     binaryWriter.Write((byte)EventDetail);
 
                     if (Type == GameDataType.Movement)
+                    {
                         binaryWriter.Write(TransformData.GetByteArray());
+                    }
 
                     return memoryStream.ToArray();
                 }

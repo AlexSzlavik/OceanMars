@@ -5,79 +5,140 @@ using System.Net;
 namespace OceanMars.Common.NetCode
 {
 
+    /// <summary>
+    /// A class that represents a particular UDP connection.
+    /// </summary>
     public class ConnectionID
     {
-        private static short ids = 0;
-        public short ID;
-        public IPEndPoint endpt;
-        public long lastSYNC = -1;
+        
+        /// <summary>
+        /// The current ID to assign to new connections.
+        /// </summary>
+        private static int currentID = 0;
 
+        /// <summary>
+        /// The integer ID of this particular connection.
+        /// </summary>
+        public int ID
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// The IP end point associated with this connection.
+        /// </summary>
+        public IPEndPoint IPEndPoint
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Number of sync packets missed.
+        /// </summary>
         public int MissedSyncs
         {
             get;
             private set;
         }
 
-        private NetworkStateMachine StateMachine;
+        /// <summary>
+        /// The underlying state machine for this connection.
+        /// </summary>
+        private NetworkStateMachine networkStateMachine;
 
-        public ConnectionID(IPEndPoint ep)
+        /// <summary>
+        /// Create a new ConnectionID for a user.
+        /// </summary>
+        /// <param name="ipEndPoint"></param>
+        public ConnectionID(IPEndPoint ipEndPoint)
         {
-            StateMachine = new NetworkStateMachine(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED);
-            initStateMachine();
+            networkStateMachine = new NetworkStateMachine(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED);
+            InitStateMachine();
             MissedSyncs = 0;
-
-            ID = ids++;
-            this.endpt = ep;
+            ID = currentID++;
+            IPEndPoint = ipEndPoint;
+            return;
         }
 
-        private void initStateMachine()
+        
+        /// <summary>
+        /// Initialize the state machine for this connection.
+        /// </summary>
+        private void InitStateMachine()
         {
-            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CONNECTIONDISCONNECT, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
-            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
-            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, onSync);
-            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
-            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, delegate { });
-            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, onSync);
-            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, onMissingSync);
-            StateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CONNECTIONDISCONNECT, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, OnSync);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONTIMEOUT, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, delegate { });
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED, OnSync);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING, NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, OnMissingSync);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.CONNECTIONCONNECTED_SYNC, NetworkStateMachine.TransitionEvent.CONNECTIONTIMEOUT, NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED, delegate { });
+            return;
         }
-
-        public void changeState(NetworkStateMachine.TransitionEvent transitionEvent)
+        
+        /// <summary>
+        /// Change the state of this connection ID through the internal network state machine.
+        /// </summary>
+        /// <param name="transitionEvent">The transition event to run to apply to the internal network state machine.</param>
+        public void ChangeState(NetworkStateMachine.TransitionEvent transitionEvent)
         {
             lock (this)
             {
-                StateMachine.DoTransition(transitionEvent, null);
+                networkStateMachine.DoTransition(transitionEvent, null);
             }
+            return;
         }
 
-        private void onSync(NetworkPacket packet)
+        /// <summary>
+        /// Get the current state of the internal network state machine.
+        /// </summary>
+        public NetworkStateMachine.NetworkState CurrentState
         {
-            lock (this)
+            get
             {
-                this.lastSYNC = 1;
-                this.MissedSyncs = 0;
+                return networkStateMachine.CurrentState;
             }
         }
 
         /// <summary>
-        /// Keep track of the number of Syncs we have missed
-        /// and eventually transition into the TIMEOUT state
+        /// Update this connection ID on receipt of a sync packet.
         /// </summary>
-        /// <param name="packet"></param>
-        private void onMissingSync(NetworkPacket packet)
+        /// <param name="packet">The packet that was received.</param>
+        private void OnSync(NetworkPacket packet)
+        {
+            lock (this)
+            {
+                this.MissedSyncs = 0;
+            }
+            return;
+        }
+
+        /// <summary>
+        /// Keep track of the number of SYNCS that have been missed to eventually transition into a TIMEOUT state.
+        /// </summary>
+        /// <param name="packet">The packet that was received.</param>
+        private void OnMissingSync(NetworkPacket packet)
         {
             lock (this)
             {
                 MissedSyncs += 1;
                 Debug.WriteLine(String.Format("Missed {0} SYNCS", MissedSyncs));
             }
+            return;
         }
 
-        public bool isConnected()
+        /// <summary>
+        /// Whether or not this connection ID is currently connected.
+        /// </summary>
+        /// <returns>A boolean representing whether or not the internal network state machine is not disconnected.</returns>
+        public bool IsConnected()
         {
             lock (this)
             {
-                return StateMachine.CurrentState != NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED;
+                return networkStateMachine.CurrentState != NetworkStateMachine.NetworkState.CONNECTIONDISCONNECTED;
             }
         }
     }

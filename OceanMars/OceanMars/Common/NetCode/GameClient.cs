@@ -10,6 +10,10 @@ namespace OceanMars.Common.NetCode
     /// </summary>
     public class GameClient : GameBase
     {
+        /// <summary>
+        /// A mapping of player IDs to entity IDs.
+        /// </summary>
+        private Dictionary<int, int> playerIDToEntity;
 
         /// <summary>
         /// The client lobby associated with this game client.
@@ -47,23 +51,25 @@ namespace OceanMars.Common.NetCode
         /// <param name="port">The port to create the GameServer on.</param>
         public GameClient() : base(new NetworkClient())
         {
+            playerIDToEntity = new Dictionary<int, int>();
+
             Lobby = new LobbyClient(this); // Give initial control to the lobby
             Network.RegisterGameDataUpdater(Lobby.UpdateLobbyState);
 
-            // Once we're done with the lobby, the connections and players will be handed off to the game and the GameDataUpdater re-registered to GameClient.UpdateGameState
+            // TODO: Once we're done with the lobby, the connections and players will be handed off to the game and the GameDataUpdater re-registered to GameClient.UpdateGameState
 
             return;
         }
 
         /// <summary>
-        /// After choosing the level and number of players, start the game
+        /// After choosing the level and number of players, start the game.
         /// </summary>
-        public void setupGameState(int levelID, int myPlayerID)
+        /// <param name="levelID">The ID of the level to initialize.</param>
+        /// <param name="myPlayerID">The ID of the player character.</param>
+        public void SetupGameState(int levelID, int myPlayerID)
         {
-            Entity root = GameState.root;
-
-            Level level = new Level(root, LevelPack.levels[levelID]);
-            root.addChild(level);
+            Level level = new Level(GameState.root, LevelPack.levels[levelID]);
+            GameState.root.addChild(level);
 
             for (int i = 0; i < players.Length; i++)
             {
@@ -93,6 +99,7 @@ namespace OceanMars.Common.NetCode
                 if (players[i].PlayerID == myPlayerID)
                     LocalPlayer.EntityID = players[i].EntityID;
             }
+            return;
         }
 
         public Entity getPlayerEntity()
@@ -111,24 +118,58 @@ namespace OceanMars.Common.NetCode
             return player.PlayerID;
         }
 
-        public override void sendGameStates()
+        /// <summary>
+        /// Send any built of game state changes over the network.
+        /// </summary>
+        public override void SendGameStates()
         {
-            Network.SendGameData(GameStatesToSend);
-            GameStatesToSend.Clear();
+            Network.SendGameData(gameStatesToSend);
+            gameStatesToSend.Clear();
+            return;
         }
 
         /// <summary>
-        /// User Level connection method
+        /// Connect the client to a hosting server.
         /// </summary>
-        /// <param name="host"></param>
-        /// <param name="port"></param>
+        /// <param name="host">The host address.</param>
+        /// <param name="port">The port number to connect to.</param>
         public void ConnectToGame(String host, int port)
         {
             Network.Connect(host, port);
             Lobby.JoinLobby();
+            return;
         }
 
+/*<<<<<<< HEAD
 
+=======
+        /// <summary>
+        /// Commit any updated game states into the state of the world.
+        /// </summary>
+        public override void CommitGameStates()
+        {
+            for (int i = 0; i < gameStatesToCommit.Count; i += 1)
+            {
+                GameData currentData = gameStatesToCommit[i];
+                switch (currentData.Type)
+                {
+                    case GameData.GameDataType.InitClientState:
+                        SetupGameState(currentData.EventDetail, currentData.PlayerID);
+                        break;
+                    case GameData.GameDataType.Movement:
+                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.GetMatrix();
+                        break;
+                    case GameData.GameDataType.PlayerTransform:
+                        GameState.entities[playerIDToEntity[currentData.TransformData.EntityID]].transform = currentData.TransformData.GetMatrix();
+                        break;
+                    default:
+                        throw new NotImplementedException("Unhandled state passed to GameClient");
+                }
+            }
+            gameStatesToCommit.Clear();
+            return;
+        }
+>>>>>>> master*/
     }
 
 }

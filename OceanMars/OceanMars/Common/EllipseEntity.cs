@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 
+//TODO: Move to PlayerMan
 namespace OceanMars.Common
 {
     class EllipseEntity : Entity
@@ -181,8 +182,6 @@ namespace OceanMars.Common
                         Vector2.Transform(slider.endPoints[1], transformSliderToLocal)
                                                 };
 
-                        //System.Diagnostics.Debug.WriteLine(sliderEndPoints[0].X + "," + sliderEndPoints[0].Y + "\n" + sliderEndPoints[1].X + "," + sliderEndPoints[1].Y + "\n");
-
                         //TODO: Unit normal
                         Vector2 sliderNormal = Vector2.Transform((sliderEndPoints[1] - sliderEndPoints[0]),
                             Matrix.CreateRotationZ((float)(-Math.PI / 2.0f)));
@@ -242,7 +241,6 @@ namespace OceanMars.Common
                             (t < distanceToNearest || !hasCollided))
                         {
                             distanceToNearest = t;
-                            hasCollidedOnce = true;
                             hasCollided = true;
                             shortestSlider = slider;
                             shortestSliderNormal = sliderNormal;
@@ -261,14 +259,7 @@ namespace OceanMars.Common
 
                     Vector2 truncatedVelocity = new Vector2(dist * normalizedVelocity.X,
                                                             dist * normalizedVelocity.Y);
-
-                    //TODO: SHOULD PROBABLY MOVE; MAKE A CONSTANT VAR
-                    //test if we're still jumping
-                    if (Math.Abs(Vector2.Dot(shortestSliderNormal, new Vector2(1, 0))) < 0.9f)
-                    {
-                        inAir = false;
-                    }
-
+                    
                     Vector3 newSource = new Vector3(truncatedVelocity.X,
                                                     truncatedVelocity.Y, 0);
                     transform = transform * Matrix.CreateTranslation(newSource);
@@ -276,10 +267,27 @@ namespace OceanMars.Common
                     //new Vector2(newSource.X, newSource.Y)
                     float t = intersect(shortestSliderIntersectionPoint, shortestSliderNormal,
                                                         velocity, shortestSliderNormal);
-                    shortestSliderNormal = shortestSliderNormal / shortestSliderNormal.Length() * t;
+                    shortestSliderNormal *= t;
                     velocity = velocity + shortestSliderNormal - shortestSliderIntersectionPoint;
 
-                    velocity = shortestSlider == null ? velocity : shortestSlider.applyFriction(velocity);
+                    if (!ignoreFriction)
+                        velocity = shortestSlider.applyFriction(velocity);
+
+                    //TODO: SHOULD PROBABLY MOVE; MAKE A CONSTANT VAR
+                    //test if we're still jumping
+                    if (Math.Abs(Vector2.Dot(Vector2.Normalize(shortestSliderNormal), new Vector2(1, 0))) < 0.9f)
+                    {
+                        groundState = Entity.GroundState.GROUND;
+                        if (!ignoreFriction && 
+                            shortestSlider.staticFriction >= Vector2.Dot(Vector2.Normalize(velocity), acceleration))
+                            velocity = Vector2.Zero;
+                    }
+                    else if (groundState == Entity.GroundState.AIR)
+                    {
+                        groundState = Entity.GroundState.WALL;
+                    }
+
+                    hasCollidedOnce = true;
 
                     
                 }
@@ -290,7 +298,7 @@ namespace OceanMars.Common
                 }
             }
             if (!hasCollidedOnce)
-                inAir = true;
+                groundState = Entity.GroundState.AIR;
         }
     }
 }

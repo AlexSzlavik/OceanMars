@@ -39,9 +39,10 @@ namespace SkyCrane.Screens
         GameClient game;
         ContentManager content;
         View context;
-        bool stillJumping = false;
-        bool stillHoldingJump = false;
-        bool firstRelease = false;
+        private bool stillJumping = false;
+        private bool stillHoldingJump = false;
+        private bool firstRelease = false;
+        private float GRAVITY = 2.0f;
 
         #endregion
 
@@ -93,6 +94,7 @@ namespace SkyCrane.Screens
 
             context.textureDict.Add("defaultlevel", content.Load<Texture2D>("Sprites/scenery"));
             context.textureDict.Add("whitesquare", content.Load<Texture2D>("Sprites/30x30whitesquare"));
+            context.textureDict.Add("SonicWalking", content.Load<Texture2D>("Sprites/SonicWalking"));
             context.textureDict.Add("blacksquare", content.Load<Texture2D>("Sprites/1x1blacksquare"));
             context.textureDict.Add("localcoordplayer", content.Load<Texture2D>("Sprites/localcoordplayer"));
 
@@ -153,13 +155,28 @@ namespace SkyCrane.Screens
             }
             else
             {
-                Vector2 movement = Vector2.Zero;
-                float movementSpeed = context.avatar.inAir ? 0.25f : 2.5f;
+                //if the game is not paused, handle user input
 
-                stillHoldingJump |= context.avatar.inAir;
+                #region Handle Jump Input
+
+                Vector2 movement = Vector2.Zero;
+                float movementAcceleration = context.avatar.movementAcceleration;
+                if (context.avatar.groundState == Entity.GroundState.AIR)
+                    movementAcceleration /= 10.0f;
+
+                context.avatar.acceleration = Vector2.Zero;
+
+                context.avatar.acceleration.Y = context.avatar.groundState == Entity.GroundState.WALL ? GRAVITY / 2.0f : GRAVITY;
+
+                //stillHoldingJump makes sure that, once our character hits the ground, he doesn't jump
+                //again until we let go of the jump button and press it again
+                stillHoldingJump |= context.avatar.groundState == Entity.GroundState.AIR;
 
                 if (stillHoldingJump &&
                     (keyboardState.IsKeyUp(Keys.Space) && gamePadState.Buttons.A == ButtonState.Released))
+                    //don't interpret the first key press as actually pressed, so that coming in from
+                    //the menu doesn't make us jump
+                    //NOTE: Feels VERY hacky, is there a better way?
                     if (firstRelease == false)
                     {
                         firstRelease = true;
@@ -169,54 +186,63 @@ namespace SkyCrane.Screens
                         stillHoldingJump = false;
                     }
 
-                if (keyboardState.IsKeyDown(Keys.Left))
-                    movement.X -= movementSpeed;
-
-                if (keyboardState.IsKeyDown(Keys.Right))
-                    movement.X += movementSpeed;
-
-                //TODO: SLIDING VELOCITY CURRENTLY AFFECTS JUMP HEIGHT; IT SHOULDN'T
-
-                //if (keyboardState.IsKeyDown(Keys.Up))
-                //    movement.Y--;
-
-                //if (keyboardState.IsKeyDown(Keys.Down))
-                //    movement.Y++;
-
                 if (keyboardState.IsKeyDown(Keys.Space) ||
                     gamePadState.Buttons.A == ButtonState.Pressed)
                 {
                     //if (firstRelease == true)
                     {
-                        if ((!context.avatar.inAir &&
+                        if (((context.avatar.groundState == Entity.GroundState.GROUND ||
+                              context.avatar.groundState == Entity.GroundState.WALL) &&
                              !stillHoldingJump) ||
-                            (context.avatar.inAir &&
+                            (context.avatar.groundState == Entity.GroundState.AIR &&
                              stillJumping &&
-                             stillHoldingJump &&
                              Math.Abs(context.avatar.velocity.Y) < context.avatar.maxVelocity))
                         {
-                            context.avatar.velocity.Y -= context.avatar.jumpAcceleration;
-                            context.avatar.inAir = true;
+                            if (context.avatar.groundState == Entity.GroundState.WALL)
+                                movementAcceleration *= -5;
+                            context.avatar.acceleration.Y -= context.avatar.jumpAcceleration;
+                            context.avatar.groundState = Entity.GroundState.AIR;
                             stillJumping = true;
                             stillHoldingJump = true;
                         }
                         else
                         {
+                            //stillJumping makes sure we cannot jump infinitely
                             stillJumping = false;
                         }
                     }
                 }
 
+                #endregion
 
-                Vector2 thumbstick = gamePadState.ThumbSticks.Left;
+                #region Handle Left/Right Movement
 
-                movement.X += thumbstick.X * movementSpeed;
-                movement.Y -= thumbstick.Y * movementSpeed;
+                bool sliding = (keyboardState.IsKeyDown(Keys.LeftShift) ||
+                                gamePadState.Buttons.B == ButtonState.Pressed);
 
-                //if (movement.Length() > 1)
-                //    movement.Normalize();
+                if (!sliding)
+                {
+                    if (keyboardState.IsKeyDown(Keys.Left))
+                        context.avatar.acceleration.X = -movementAcceleration;
 
-                context.avatar.velocity += 1 * movement;
+                    if (keyboardState.IsKeyDown(Keys.Right))
+                        context.avatar.acceleration.X = movementAcceleration;
+
+                    Vector2 thumbstick = gamePadState.ThumbSticks.Left;
+
+                    if (thumbstick.X != 0)
+                        context.avatar.acceleration.X = thumbstick.X * movementAcceleration;
+
+                    if (keyboardState.IsKeyDown(Keys.LeftControl) ||
+                        gamePadState.Buttons.RightShoulder == ButtonState.Pressed)
+                        context.avatar.acceleration.X *= 2.0f;
+
+                }
+
+                context.avatar.velocity += context.avatar.acceleration;
+                context.avatar.ignoreFriction = sliding;
+
+                #endregion
             }
         }
 

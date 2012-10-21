@@ -9,11 +9,23 @@ namespace OceanMars.Common.NetCode
     /// </summary>
     public abstract class GameBase : TransformChangeListener, IStatePhaseListener
     {
-        public const int MAX_PLAYERS = 8; // Maximum number of players allowed in a lobby
         public bool sorryPeter = false;
 
-        public List<GameData> GameStatesToCommit = new List<GameData>();
-        public List<GameData> GameStatesToSend = new List<GameData>();
+        /// <summary>
+        /// Maximum number of players in a game.
+        /// </summary>
+        public const int MAX_PLAYERS = 8;
+
+        /// <summary>
+        /// Game states that have been received and not yet committed to the overall game state.
+        /// </summary>
+        protected List<GameData> gameStatesToCommit;
+
+        /// <summary>
+        /// Game states that must be sent out to other games (either the client or the main server).
+        /// </summary>
+        protected List<GameData> gameStatesToSend;
+
 
         /// <summary>
         /// The hierarchical tree that represents the state of the game.
@@ -82,6 +94,8 @@ namespace OceanMars.Common.NetCode
         /// <param name="port">The port to open the GameNetworkServer on.</param>
         protected GameBase(NetworkBase network)
         {
+            gameStatesToCommit = new List<GameData>();
+            gameStatesToSend = new List<GameData>();
             players = new Player[MAX_PLAYERS]; // Defaults to null elements (unlike C, you don't have to set the elements)
             GameState = new State();
             Network = network;
@@ -102,42 +116,53 @@ namespace OceanMars.Common.NetCode
             return players[playerID];
         }
 
-        public virtual void handleTransformChange(Entity e)
+        /// <summary>
+        /// Update an entity based on a transform.
+        /// </summary>
+        /// <param name="entity">The entity to update.</param>
+        public virtual void HandleTransformChange(Entity entity)
         {
             // Generate a transform change packet, put it on stack
-            TransformData td = new TransformData(e.id, e.transform);
-            GameData gd = new GameData(GameData.GameDataType.Movement, LocalPlayer.PlayerID, 0, td);
-            GameStatesToSend.Add(gd);
-        }
+            TransformData transformData = new TransformData(entity.id, entity.transform);
+            
+            // TODO: This likely doesn't work. This neeeds to be fixed (the player ID and event detail might need changing, or we may simply need a new constructor).
+            GameData gameData = new GameData(GameData.GameDataType.Movement, LocalPlayer.PlayerID, 0, transformData);
 
-        public abstract void sendGameStates();
+            gameStatesToSend.Add(gameData);
+            return;
+        }
 
         public void commitGameStates()
         {
             //take a snapeshot of the GameStatesToCommit in case more are added while we're looping
-            int gsLength = GameStatesToCommit.Count;
+            int gsLength = gameStatesToCommit.Count;
 
             for (int i = 0; i < gsLength; ++i)
             {
-                GameData gs = GameStatesToCommit[i];
+                GameData gs = gameStatesToCommit[i];
                 if (gs != null)
                 {
                     if (gs.Type == GameData.GameDataType.Movement)
                     {
                         int id = gs.TransformData.EntityID;
-                        GameState.entities[id].transform = gs.TransformData.getMatrix();
+                        GameState.entities[id].transform = gs.TransformData.GetMatrix();
                     }
                     else if (gs.Type == GameData.GameDataType.PlayerTransform)
                     {
                         int id = players[gs.TransformData.EntityID].EntityID;
-                        GameState.entities[id].transform = gs.TransformData.getMatrix();
+                        GameState.entities[id].transform = gs.TransformData.GetMatrix();
                     }
                 }
             }
 
             //clear the game states we've just committed
-            GameStatesToCommit.RemoveRange(0, gsLength);
+            gameStatesToCommit.RemoveRange(0, gsLength);
         }
+
+        /// <summary>
+        /// Send out game state updates.
+        /// </summary>
+        public abstract void SendGameStates();
 
         /// <summary>
         /// Update the game state based on incoming game data.
@@ -145,19 +170,28 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">Received game data that should inform us about changing state, requests, etc.</param>
         protected virtual void UpdateGameState(GameData gameData)
         {
-            GameStatesToCommit.Add(gameData);
+            gameStatesToCommit.Add(gameData);
+            return;
         }
 
-        public void handleStatePhaseChange(State.PHASE phase)
+        /// <summary>
+        /// Handle changes to the phase of the world state.
+        /// </summary>
+        /// <param name="phase">The phase that we are transitioning into.</param>
+        public void HandleStatePhaseChange(State.PHASE phase)
         {
-            if (phase == State.PHASE.READY_FOR_CHANGES)
+            switch (phase)
             {
-                commitGameStates();
+                case State.PHASE.FINISHED_FRAME:
+                    SendGameStates();
+                    break;
+                case State.PHASE.READY_FOR_CHANGES:
+                    commitGameStates();
+                    break;
+                //default:
+                    //throw new NotImplementedException("Unhandled state passed to GameBase");
             }
-            else if (phase == State.PHASE.FINISHED_FRAME)
-            {
-                sendGameStates();
-            }
+            return;
         }
 
         /// <summary>

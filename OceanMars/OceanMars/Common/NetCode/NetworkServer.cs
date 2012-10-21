@@ -21,24 +21,49 @@ using System.Threading;
 namespace OceanMars.Common.NetCode
 {
 
-    #region Server Internals
-
     public class NetworkServer : NetworkBase
     {
 
         #region Member Variables
 
-        private Thread serverThread; // Thread used to host the server
-        private Timer TimeoutTimer;
-        private ServerStats serverStats;
-        private Dictionary<IPEndPoint, ConnectionID> connections;
+        private Timer TimeoutTimer; // The timer used to cause sync timeouts.
+        private Dictionary<IPEndPoint, ConnectionID> connections; // Mapping of IPEndPoints to ConnectionIDs
 
         // Timeout related constants
         private const int TIMEOUT_INITIAL_DELAY = 2000;
         private const int TIMEOUT_PERIOD = 1000;
         private const int MAX_MISSED_SYNCS = 10;
+
+        /// <summary>
+        /// Number of packets received by the server.
+        /// </summary>
+        public long PacketsReceived
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Number of packets sent by the server.
+        /// </summary>
+        public long PacketsSent
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Number of packets processed by the server.
+        /// </summary>
+        public long PacketsProcessed
+        {
+            get;
+            private set;
+        }
         
         #endregion
+
+        #region Internal Code
 
         /// <summary>
         /// Create a new network server.
@@ -47,152 +72,33 @@ namespace OceanMars.Common.NetCode
         /// <param name="port">The port to create the network server on.</param>
         public NetworkServer(int port) : base(NetworkStateMachine.NetworkState.SERVERSTART)
         {
-            serverStats = new ServerStats(); // Instantiate some basic variables
             connections = new Dictionary<IPEndPoint, ConnectionID>();
 
             Debug.WriteLine("Starting Server");
 
-            serverThread = new Thread(ServerMainLoop); // Create the new thread and associated network worker
-            serverThread.IsBackground = true;
             networkWorker = new NetworkWorker(port);
-            serverThread.Start();
-            return;
-        }
-
-        /// <summary>
-        /// The sync timer timed out, we need to send out
-        /// Syncs to all players
-        /// </summary>
-        /// <param name="eventArgs">The event arguments for this timer tick.</param>
-        private void TimeoutTimerTicked(Object eventArgs)
-        {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(SendTimerSync));
-            return;
-        }
-
-        /// <summary>
-        /// Send Sync packets based on timer ticks.
-        /// </summary>
-        /// <param name="eventArgs">The event arguments passed into this function.</param>
-        private void SendTimerSync(Object eventArgs)
-        {
-            List<ConnectionID> rmList = new List<ConnectionID>();
-            foreach (IPEndPoint ep in connections.Keys)
-            {
-                SyncPacket ps = new SyncPacket(ep);
-                this.networkWorker.SendPacket(ps);
-                this.serverStats.sentPkts++;
-                connections[ep].changeState(NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING);
-                if (connections[ep].MissedSyncs >= MAX_MISSED_SYNCS)
-                {
-                    rmList.Add(connections[ep]);
-                }
-            }
-            for (int i = 0; i < rmList.Count; i++)
-            {
-                connections.Remove(rmList[i].endpt);
-            }
-            return;
-        }
-
-
-        /// <summary>
-        /// Sets up the state machine for the main server
-        /// </summary>
-        protected override void RegisterStateMachineTransitions()
-        {
-            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERSTART, NetworkStateMachine.TransitionEvent.SERVERSTARTED, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, delegate { });
-            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERHANDSHAKE, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnHandshake);
-            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERGAMEDATA, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnGameData);
-            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERPING, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnPing);
-            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnSync);
-            networkStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.SERVERSTARTED, null);
-            return;
-        }
-
-        /// <summary>
-        /// After receiving a handshake, respond to a client with another handshake.
-        /// </summary>
-        /// <param name="packet"></param>
-        private void OnHandshake(NetworkPacket packet)
-        {
-            if (!connections.ContainsKey(packet.Destination))
-            {
-                Debug.WriteLine("Server - New connection from: " + packet.Destination);
-                connections[packet.Destination] = new ConnectionID(packet.Destination);
-                Debug.WriteLine("Server - Added Connection: " + connections[packet.Destination].ID);
-                HandshakePacket hs = new HandshakePacket(packet.Destination);
-                networkWorker.SendPacket(hs);
-                this.serverStats.sentPkts++;
-            }
-            return;
-        }
-
-        /// <summary>
-        /// Handles reception of game data updates from the client.
-        /// </summary>
-        /// <param name="packet">A packet that contains game data information.</param>
-        private void OnGameData(NetworkPacket packet)
-        {
-            GameData gameData = new GameData(packet.DataArray);
-            gameData.ConnectionInfo = connections[packet.Destination];
-            gameDataUpdater(gameData);
-            return;
-        }
-
-        /// <summary>
-        /// Handles Sync acks from clients
-        /// </summary>
-        /// <param name="packet"></param>
-        private void OnSync(NetworkPacket packet)
-        {
-            connections[packet.Destination].changeState(NetworkStateMachine.TransitionEvent.SERVERSYNC);
-            return;
-        }
-
-        /// <summary>
-        /// Handles the acking of a ping from clients
-        /// </summary>
-        /// <param name="packet"></param>
-        private void OnPing(NetworkPacket packet)
-        {
-            PingPacket ps = new PingPacket(packet.Destination);
-            networkWorker.SendPacket(ps); //ACK the ping
-            this.serverStats.sentPkts++;
-            return;
-        }
-
-        /// <summary>
-        /// Gracefully shut down the network server.
-        /// </summary>
-        public void Exit()
-        {
-            this.continueRunning = false;
+            networkThread.Start();
             return;
         }
 
         /// <summary>
         /// Servers main event loop
         /// </summary>
-        private void ServerMainLoop()
+        protected override void NetworkMain()
         {
-            NetworkPacket packet;
             TimeoutTimer = new Timer(TimeoutTimerTicked, new AutoResetEvent(false), TIMEOUT_INITIAL_DELAY, TIMEOUT_PERIOD);
-            
-            while (this.continueRunning)
+
+            while (continueRunning)
             {
-                packet = networkWorker.ReceivePacket();
+                NetworkPacket packet = networkWorker.ReceivePacket();
                 NetworkStateMachine.TransitionEvent transitionEvent = NetworkStateMachine.TransitionEvent.SERVERSTARTED;
 
-                //Special case, we timed out
-                //Should query all Clients to make sure they are still alive
-                if (packet == null)
+                if (packet == null) // Server has timed out, should query clients to verify client health
                 {
                     continue;
                 }
 
-                //We actually received something, increase stats
-                this.serverStats.rcvdPkts++;
+                PacketsReceived++;
 
                 //Switch on the packet type to create the correct state transition
                 switch (packet.Type)
@@ -212,62 +118,180 @@ namespace OceanMars.Common.NetCode
                     default:
                         continue;
                 }
-                this.networkStateMachine.DoTransition(transitionEvent, packet);
-                this.serverStats.pktsProcessed++;
+                networkStateMachine.DoTransition(transitionEvent, packet);
+                PacketsProcessed++;
             }
             return;
         }
 
-    #endregion
+        /// <summary>
+        /// Sets up the state machine for the main server
+        /// </summary>
+        protected override void RegisterStateMachineTransitions()
+        {
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERSTART, NetworkStateMachine.TransitionEvent.SERVERSTARTED, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, delegate { });
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERHANDSHAKE, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnHandshake);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERGAMEDATA, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnGameData);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERPING, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnPing);
+            networkStateMachine.RegisterTransition(NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, NetworkStateMachine.TransitionEvent.SERVERSYNC, NetworkStateMachine.NetworkState.SERVERACCEPTCONNECTIONS, OnSync);
+            networkStateMachine.DoTransition(NetworkStateMachine.TransitionEvent.SERVERSTARTED, null);
+            return;
+        }
+
+        /// <summary>
+        /// Shutdown this particular network server.
+        /// </summary>
+        protected override void Shutdown()
+        {
+            TimeoutTimer.Dispose();
+            base.Shutdown();
+        }
+
+        /// <summary>
+        /// The sync timer timed out, we need to send out
+        /// Syncs to all players
+        /// </summary>
+        /// <param name="eventArgs">The event arguments for this timer tick.</param>
+        private void TimeoutTimerTicked(Object eventArgs)
+        {
+            ThreadPool.QueueUserWorkItem(new WaitCallback(SendSyncOnTick));
+            return;
+        }
+
+        /// <summary>
+        /// Send Sync packets based on timer ticks.
+        /// </summary>
+        /// <param name="eventArgs">The event arguments passed into this function.</param>
+        private void SendSyncOnTick(Object eventArgs)
+        {
+            List<ConnectionID> rmList = new List<ConnectionID>();
+            foreach (IPEndPoint ep in connections.Keys)
+            {
+                SyncPacket syncPacket = new SyncPacket(ep);
+                networkWorker.SendPacket(syncPacket);
+                PacketsSent++;
+                connections[ep].ChangeState(NetworkStateMachine.TransitionEvent.CLIENTCONNECTED_SYNCING);
+                if (connections[ep].MissedSyncs >= MAX_MISSED_SYNCS)
+                {
+                    rmList.Add(connections[ep]);
+                }
+            }
+            for (int i = 0; i < rmList.Count; i++)
+            {
+                connections.Remove(rmList[i].IPEndPoint);
+            }
+            return;
+        }
+
+        /// <summary>
+        /// After receiving a handshake, respond to a client with another handshake.
+        /// </summary>
+        /// <param name="packet"></param>
+        private void OnHandshake(NetworkPacket packet)
+        {
+            if (!connections.ContainsKey(packet.Destination))
+            {
+                Debug.WriteLine("Server - New connection from: " + packet.Destination);
+                connections[packet.Destination] = new ConnectionID(packet.Destination);
+                Debug.WriteLine("Server - Added Connection: " + connections[packet.Destination].ID);
+                HandshakePacket hs = new HandshakePacket(packet.Destination);
+                networkWorker.SendPacket(hs);
+                PacketsSent++;
+            }
+            return;
+        }
+
+        /// <summary>
+        /// Handles reception of game data updates from the client.
+        /// </summary>
+        /// <param name="packet">A packet that contains game data information.</param>
+        protected override void OnGameData(NetworkPacket packet)
+        {
+            GameData gameData = new GameData(packet.DataArray);
+            gameData.ConnectionInfo = connections[packet.Destination];
+            gameDataUpdater(gameData);
+            return;
+        }
+
+        /// <summary>
+        /// Callback function on receipt of a ping.
+        /// </summary>
+        /// <param name="packet">The packet received.</param>
+        protected override void OnPing(NetworkPacket packet)
+        {
+            PingPacket ps = new PingPacket(packet.Destination);
+            networkWorker.SendPacket(ps); //ACK the ping
+            PacketsSent++;
+            return;
+        }
+
+        /// <summary>
+        /// Callback function on receipt of a SYNC packet.
+        /// </summary>
+        /// <param name="packet">The packet received.</param>
+        protected override void OnSync(NetworkPacket packet)
+        {
+            connections[packet.Destination].ChangeState(NetworkStateMachine.TransitionEvent.SERVERSYNC);
+            return;
+        }
+
+        #endregion
 
         #region Server Public interfaces
 
-        public ServerStats getStats()
-        {
-            return this.serverStats;
-        }
-
+        /// <summary>
+        /// Broadcast a list of game data to all clients.
+        /// </summary>
+        /// <param name="gameDataList">The list of game data to broadcast.</param>
         public void BroadCastGameData(List<GameData> gameDataList)
         {
-            foreach (GameData gameData in gameDataList)
+            for (int i = 0; i < gameDataList.Count; i += 1)
             {
-                BroadCastGameData(gameData);
+                BroadCastGameData(gameDataList[i]);
             }
             return;
         }
 
+        /// <summary>
+        /// Broadcast a unit of game data to all users.
+        /// </summary>
+        /// <param name="gameData">The unit of game data to broadcast.</param>
         public void BroadCastGameData(GameData gameData)
         {
             foreach (ConnectionID connection in connections.Values)
             {
-                SignalGameData(gameData, connection);
+                SendGameData(gameData, connection);
             }
             return;
         }
 
-        public void SignalGameData(List<GameData> gameDataList, ConnectionID cid)
+        /// <summary>
+        /// Send a list of game data to a particular client.
+        /// </summary>
+        /// <param name="gameDataList">The list of game data to send.</param>
+        /// <param name="connectionID">The ID of the client to send the game data to.</param>
+        public void SendGameData(List<GameData> gameDataList, ConnectionID connectionID)
         {
-            foreach (GameData gameData in gameDataList)
+            for (int i = 0; i < gameDataList.Count; i += 1)
             {
-                SignalGameData(gameData, cid);
+                SendGameData(gameDataList[i], connectionID);
             }
             return;
         }
 
-        public void SignalGameData(GameData gameData, ConnectionID connectionID)
+        /// <summary>
+        /// Send a unit of game data to a particular client.
+        /// </summary>
+        /// <param name="gameData">The unit of game data to send.</param>
+        /// <param name="connectionID">The ID of the client to send the game data to.</param>
+        public void SendGameData(GameData gameData, ConnectionID connectionID)
         {
-            networkWorker.SendPacket(new GameDataPacket(connectionID.endpt, gameData));
+            networkWorker.SendPacket(new GameDataPacket(connectionID.IPEndPoint, gameData));
             return;
         }
 
-    }
         #endregion
 
-    public class ServerStats
-    {
-        public long rcvdPkts = 0;
-        public long sentPkts = 0;
-        public long pktsProcessed = 0;
     }
 
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Diagnostics;
 
 namespace OceanMars.Common.NetCode
 {
@@ -47,11 +48,12 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Terminate threads associated with the network on the next possible pass.
         /// </summary>
-        public void Exit()
+        public void Disconnect()
         {
+            Close();
             continueRunning = false;
-            this.sendBuffer.Clear();
-            this.receiveBuffer.Clear();
+            sendBuffer.Clear();
+            receiveBuffer.Clear();
             return;
         }
 
@@ -66,6 +68,7 @@ namespace OceanMars.Common.NetCode
                 sendBuffer.Enqueue(packet);
             }
             sendSemaphore.Release();
+            return;
         }
 
         /// <summary>
@@ -108,12 +111,7 @@ namespace OceanMars.Common.NetCode
                         receiveSemaphore.Release();
                     }
                 }
-                catch
-                {
-                    //We should only come here when
-                    //A) Things go horrible wrong...
-                    //B) When we are disconnecting and this network worker needs to quit
-                }
+                catch { } // This should only be enountered if something is horribly wrong or it the worker is closing down
             }
             return;
         }
@@ -135,9 +133,11 @@ namespace OceanMars.Common.NetCode
                     }
                     catch (ObjectDisposedException exception)
                     {
+                        Debug.WriteLine("Object has been disposed: {0}", new Object[] { exception.Message });
                     }
                 }
             }
+            return;
         }
     }
 

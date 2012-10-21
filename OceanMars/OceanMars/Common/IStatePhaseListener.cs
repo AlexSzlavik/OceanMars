@@ -5,8 +5,15 @@ using System.Text;
 
 namespace OceanMars.Common
 {
+
+    /// <summary>
+    /// An interface representing objects that can listen to updating state.
+    /// </summary>
     public interface IStatePhaseListener
     {
-        void handleStatePhaseChange(State.PHASE phase);
+
+        void HandleStatePhaseChange(State.PHASE phase);
+
     }
+
 }

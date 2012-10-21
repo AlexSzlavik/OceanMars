@@ -16,12 +16,12 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// A mapping between players and connections.
         /// </summary>
-        private Dictionary<Player, ConnectionID> PlayerToConnectionIDMap = new Dictionary<Player, ConnectionID>();
+        private Dictionary<Player, ConnectionID> PlayerToConnectionIDMap;
 
         /// <summary>
         /// A reverse mapping of connections to players
         /// </summary>
-        private Dictionary<ConnectionID, Player> ConnectionIDToPlayerMap = new Dictionary<ConnectionID, Player>();
+        private Dictionary<ConnectionID, Player> ConnectionIDToPlayerMap;
 
         /// <summary>
         /// Retrieve a connection ID from a player.
@@ -124,12 +124,10 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// After choosing the level and number of players, start the game by sending everyone the level and a player ID
         /// </summary>
-        public void setupAndSendGameState(int levelID)
+        public void SetupAndSendGameState(int levelID)
         {
-            Entity root = GameState.root;
-
-            Level level = new Level(root, LevelPack.levels[levelID]);
-            root.addChild(level);
+            Level level = new Level(GameState.root, LevelPack.levels[levelID]);
+            GameState.root.addChild(level);
 
             // Create players in personal state
             for (int i = 0; i < players.Length; i++)
@@ -137,7 +135,23 @@ namespace OceanMars.Common.NetCode
                 SpawnPointEntity sp = level.spawnPoints[i];
                 TestMan tm = new TestMan(sp);
                 sp.addChild(tm);
+/*=======
+            // Send level and a player ID to each client
+            for (int i = 0; i < players.Length; i += 1)
+            {
+                Player player = GetPlayer(i);
+                if (player != null)
+                {
+                    Network.SendGameData(new GameData(GameData.GameDataType.InitClientState, player.PlayerID, levelID), PlayerToConnectionID(player));
+
+                    // Create a new testman at the given spawn point for each player
+                    SpawnPointEntity sp = level.spawnPoints[i];
+                    TestMan tm = new TestMan(sp);
+                    sp.addChild(tm);
+                }
+>>>>>>> master*/
             }
+            return;
         }
 
         /// <summary>
@@ -173,26 +187,69 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
+        /// <summary>
+        /// Update the state over the game based on incoming game data.
+        /// </summary>
+        /// <param name="gameData">The received game data.</param>
         protected override void UpdateGameState(GameData gameData)
         {
-            // Should forward to other machines (not the one received from)
-            for (int i = 0; i < players.Length; i++ )
+            for (int i = 0; i < players.Length; i++ ) // Forward the received information to other machines (but not the one received from)
             {
-                if (i == gameData.PlayerID || players[i] == null) continue;
-                Network.SignalGameData(gameData, PlayerToConnectionID(players[i]));
-                GameStatesToCommit.Add(gameData);
+                Player player = GetPlayer(i);
+                if (i == gameData.PlayerID || player == null)
+                {
+                    continue;
+                }
+                Network.SendGameData(gameData, PlayerToConnectionID(players[i]));
+                gameStatesToCommit.Add(gameData);
             }
+            return;
         }
 
-        public override void sendGameStates()
+        /// <summary>
+        /// Send new game state information to all players.
+        /// </summary>
+        public override void SendGameStates()
         {
-            foreach(Player p in players) {
-                Network.SignalGameData(GameStatesToSend, PlayerToConnectionID(p));
+
+            for (int i = 0; i < players.Length; i += 1)
+            {
+                Player player = GetPlayer(i);
+                if (player != null)
+                {
+                    Network.SendGameData(gameStatesToSend, PlayerToConnectionID(players[i]));
+                }
             }
-            
-            GameStatesToSend.Clear();
+            gameStatesToSend.Clear();
+            return;
         }
 
+/*<<<<<<< HEAD
+=======
+        /// <summary>
+        /// Commit the game state data into the state of the world.
+        /// </summary>
+        public override void CommitGameStates()
+        {
+            for (int i = 0; i < gameStatesToCommit.Count; i += 1)
+            {
+                GameData currentData = gameStatesToCommit[i];
+                switch (currentData.Type)
+                {
+                    case GameData.GameDataType.Movement:
+                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.GetMatrix();
+                        break;
+                    case GameData.GameDataType.PlayerTransform:
+                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.GetMatrix();
+                        break;
+                    default:
+                        throw new NotImplementedException("Unhandled state passed to GameServer");
+                }
+            }
+            return;
+        }
+
+>>>>>>> master*/
     }
 
 }

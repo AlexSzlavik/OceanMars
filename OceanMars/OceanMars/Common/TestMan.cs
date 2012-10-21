@@ -12,6 +12,7 @@ namespace OceanMars.Common
         public TestMan(Entity parent, bool owner = false, int id = -1)
             : base(new Vector2(30, 30), parent, owner, id)
         {
+
         }
     }
     
