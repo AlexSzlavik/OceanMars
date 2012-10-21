@@ -12,7 +12,7 @@ namespace OceanMars.Client
 {
     public class View
     {
-        public Entity avatar;
+        public TestMan avatar;
         State state;
 
         public Dictionary<int, Sprite> sprites = new Dictionary<int,Sprite>();
@@ -22,7 +22,7 @@ namespace OceanMars.Client
         public View(State s, Entity avatar)
         {
             this.state = s;
-            this.avatar = avatar;
+            this.avatar = (TestMan)avatar;
 
             s.registerEntityAdd(this.OnAddEntity);
             s.registerEntityRemove(this.OnRemoveEntity);

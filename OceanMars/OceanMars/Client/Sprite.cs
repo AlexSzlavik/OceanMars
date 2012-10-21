@@ -11,7 +11,7 @@ namespace OceanMars.Client
     public class Sprite
     {
         View context;
-        Entity e;
+        protected Entity e;
 
         public Vector2 drawSize;
 
@@ -26,6 +26,7 @@ namespace OceanMars.Client
         int frameHeight;
         Color color;
         Rectangle sourceRect;
+        bool flipHorizontal = false;
 
         bool active;
         bool looping;
@@ -40,8 +41,11 @@ namespace OceanMars.Client
             setAnimationSpriteStrip(frameWidth, frameTime, spriteStripName);
         }
 
-        internal void draw(GameTime gameTime, SpriteBatch spriteBatch)
+        internal virtual void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
+            // Advance frame
+            nextFrame(gameTime);
+
             Matrix temp =
                 e.worldTransform *
                 context.avatar.inverseWorldTransform *
@@ -58,7 +62,8 @@ namespace OceanMars.Client
 
             Rectangle destRest = new Rectangle((int)(-drawSize.X/2), (int)(-drawSize.Y/2), (int)drawSize.X, (int)drawSize.Y);
             //Rectangle destRest = new Rectangle(0, 0, (int)drawSize.X, (int)drawSize.Y);
-            spriteBatch.Draw(spriteStrip, destRest, sourceRect, Color.White);
+            SpriteEffects se = flipHorizontal ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+            spriteBatch.Draw(spriteStrip, destRest, sourceRect, Color.White, 0, Vector2.Zero, se, 0);
 
             /*spriteBatch.Draw(
                 spriteStrip,
@@ -86,9 +91,10 @@ namespace OceanMars.Client
             }
         }
 
-        public void setAnimationSpriteStrip(int frameWidth, int frameTime, String spriteStripName)
+        public void setAnimationSpriteStrip(int frameWidth, int frameTime, String spriteStripName, bool flipHorizontal = false)
         {
             Texture2D chara = context.textureDict[spriteStripName];
+            this.flipHorizontal = flipHorizontal;
 
             List<int> animationFrames = new List<int>(); // TODO: some way of loading animation
             for (int i = 0; i < chara.Width / frameWidth; i++)
@@ -97,7 +103,14 @@ namespace OceanMars.Client
             }
 
             initDrawable(chara, frameWidth, chara.Height, animationFrames, frameTime, Color.White, true);
-            active = true;
+            if (frameTime != 0)
+            {
+                active = true;
+            }
+            else
+            {
+                active = false;
+            }
 
             currentFrame = 0;
         }

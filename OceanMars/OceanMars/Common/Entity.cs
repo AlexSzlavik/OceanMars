@@ -23,7 +23,22 @@ namespace OceanMars.Common
             //WATER
             //LAVA
         }
-        public GroundState groundState;
+
+        private GroundState groundBack;
+        public GroundState groundState
+        {
+            get
+            {
+                return groundBack;
+            }
+            set
+            {
+                if(value != groundBack) stateChanged = true;
+                groundBack = value;
+            }
+        }
+
+        public bool stateChanged = false;
 
         public static int next_id = 0;
 
@@ -37,7 +52,9 @@ namespace OceanMars.Common
         public bool worldTransformDirty = false;
         public bool inverseWorldTransformDirty = false;
 
-        List<TransformChangeListener> tcListeners = new List<TransformChangeListener>();
+        public delegate void TransformChange(Entity e);
+        private List<TransformChange> TransformChangeListeners = new List<TransformChange>();
+
         public Entity(Vector2 collisionBox, Entity parent, bool owner = false, int id = -1) {
             this.collisionBox = collisionBox;
             this.id = id < 0 ? next_id++ : id;
@@ -71,7 +88,7 @@ namespace OceanMars.Common
                     child.inverseWorldTransformDirty = true;
                 }
 
-                if(owned) notifyTransformChange(); // Only notify of things we have jurisdiction over
+                if(owned) OnTransformChange(); // Only notify of things we have jurisdiction over
             }
         }
 
@@ -114,16 +131,16 @@ namespace OceanMars.Common
             }
         }
 
-        public void addTransformChangeListener(TransformChangeListener tcl)
+        public void registerTransformChangeListener(TransformChange tcl)
         {
-            tcListeners.Add(tcl);
+            TransformChangeListeners.Add(tcl);
         }
 
-        public void notifyTransformChange()
+        public void OnTransformChange()
         {
-            foreach (TransformChangeListener tcl in tcListeners)
+            foreach (TransformChange tcl in TransformChangeListeners)
             {
-                tcl.HandleTransformChange(this);
+                tcl.Invoke(this);
             }
         }
         

@@ -125,7 +125,10 @@ namespace OceanMars.Common.NetCode
             // TODO: This likely doesn't work. This neeeds to be fixed (the player ID and event detail might need changing, or we may simply need a new constructor).
             GameData gameData = new GameData(GameData.GameDataType.Movement, LocalPlayer.PlayerID, 0, transformData);
 
-            gameStatesToSend.Add(gameData);
+            lock (gameStatesToSend)
+            {
+                gameStatesToSend.Add(gameData);
+            }
             return;
         }
 
@@ -166,8 +169,9 @@ namespace OceanMars.Common.NetCode
                 case State.PHASE.READY_FOR_CHANGES:
                     CommitGameStates();
                     break;
-                //default:
+                default:
                     //throw new NotImplementedException("Unhandled state passed to GameBase");
+                    break;
             }
             return;
         }

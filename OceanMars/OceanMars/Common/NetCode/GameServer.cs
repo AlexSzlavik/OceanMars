@@ -190,15 +190,18 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">The received game data.</param>
         protected override void AddGameState(GameData gameData)
         {
-            for (int i = 0; i < players.Length; i++ ) // Forward the received information to other machines (but not the one received from)
+            lock (gameStatesToCommit)
             {
-                Player player = GetPlayer(i);
-                if (i == gameData.PlayerID || player == null)
+                for (int i = 0; i < players.Length; i++) // Forward the received information to other machines (but not the one received from)
                 {
-                    continue;
+                    Player player = GetPlayer(i);
+                    if (i == gameData.PlayerID || player == null)
+                    {
+                        continue;
+                    }
+                    Network.SendGameData(gameData, PlayerToConnectionID(players[i]));
+                    gameStatesToCommit.Add(gameData);
                 }
-                Network.SendGameData(gameData, PlayerToConnectionID(players[i]));
-                gameStatesToCommit.Add(gameData);
             }
             return;
         }
@@ -213,16 +216,18 @@ namespace OceanMars.Common.NetCode
         /// </summary>
         public override void SendGameStates()
         {
-
-            for (int i = 0; i < players.Length; i += 1)
+            lock (gameStatesToSend)
             {
-                Player player = GetPlayer(i);
-                if (player != null)
+                for (int i = 0; i < players.Length; i += 1)
                 {
-                    Network.SendGameData(gameStatesToSend, PlayerToConnectionID(players[i]));
+                    Player player = GetPlayer(i);
+                    if (player != null)
+                    {
+                        Network.SendGameData(gameStatesToSend, PlayerToConnectionID(players[i]));
+                    }
                 }
+                gameStatesToSend.Clear();
             }
-            gameStatesToSend.Clear();
             return;
         }
     }
