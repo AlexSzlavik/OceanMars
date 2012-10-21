@@ -138,7 +138,7 @@ namespace OceanMars.Common.NetCode
         /// </summary>
         public override void SendGameStates()
         {
-            lock (gameStatesToCommit)
+            lock (gameStatesToSend)
             {
                 Network.SendGameData(gameStatesToSend);
                 gameStatesToSend.Clear();

@@ -314,10 +314,7 @@ namespace OceanMars.Common.NetCode
         /// <returns>A long value representing the last ping.</returns>
         public long GetLastPing()
         {
-            lock (this)
-            {
-                return lastPing;
-            }
+            return lastPing;
         }
 
         #endregion
