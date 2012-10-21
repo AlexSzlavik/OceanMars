@@ -18,8 +18,7 @@ namespace OceanMars.Common
 
         public override void registerChild(Entity child)
         {
-            owner.entities.Add(child.id, child);
-            child.addTransformChangeListener(owner);
+            owner.registerEntity(child);
         }
     }
 }

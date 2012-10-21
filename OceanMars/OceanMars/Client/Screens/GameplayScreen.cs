@@ -54,31 +54,8 @@ namespace SkyCrane.Screens
         public GameplayScreen(GameClient gb)
         {
             game = gb;
+
             context = new View(gb.GameState, gb.getPlayerEntity());
-        }
-
-        private void createSprites(Entity root)
-        {
-
-            foreach (Entity e in root.children)
-            {
-                createSprites(e);
-                if (e is DefaultLevel)
-                {
-                    Sprite s = new DefaultLevelSprite(context, (DefaultLevel)e);
-                    context.sprites.Add(e.id, s);
-                }
-                else if (e is TestMan)
-                {
-                    Sprite s = new TestManSprite(context, (TestMan)e);
-                    context.sprites.Add(e.id, s);
-                }
-                else if (e is TestWall)
-                {
-                    Sprite s = new TestWallSprite(context, (TestWall)e);
-                    context.sprites.Add(e.id, s);
-                }
-            }
         }
 
         /// <summary>
@@ -86,7 +63,6 @@ namespace SkyCrane.Screens
         /// </summary>
         public override void LoadContent()
         {
-
             if (content == null)
             {
                 content = new ContentManager(ScreenManager.Game.Services, "Content");
@@ -98,11 +74,7 @@ namespace SkyCrane.Screens
             context.textureDict.Add("blacksquare", content.Load<Texture2D>("Sprites/1x1blacksquare"));
             context.textureDict.Add("localcoordplayer", content.Load<Texture2D>("Sprites/localcoordplayer"));
 
-            // After loading content, instantiate sprites
-            createSprites(game.GameState.root);
-            
-
-            return;
+            context.InitFromState();
         }
 
         /// <summary>
@@ -252,11 +224,11 @@ namespace SkyCrane.Screens
         /// </summary>
         public override void Draw(GameTime gameTime)
         {
+
             // This game has a blue background. Why? Because!
             ScreenManager.GraphicsDevice.Clear(ClearOptions.Target,
                                                Color.CornflowerBlue, 0, 0);
 
-            // Our player and enemy are both actually just text strings.
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
 
             context.draw(gameTime, spriteBatch);

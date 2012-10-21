@@ -140,12 +140,15 @@ namespace OceanMars.Common.NetCode
         public abstract void SendGameStates();
 
         /// <summary>
-        /// Update the game state based on incoming game data.
+        /// Add incoming data to the game states.
         /// </summary>
         /// <param name="gameData">Received game data that should inform us about changing state, requests, etc.</param>
-        protected virtual void UpdateGameState(GameData gameData)
+        protected virtual void AddGameState(GameData gameData)
         {
-            gameStatesToCommit.Add(gameData);
+            lock (gameStatesToCommit)
+            {
+                gameStatesToCommit.Add(gameData);
+            }
             return;
         }
 
@@ -170,13 +173,12 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Start the game
+        /// Start the game.
         /// </summary>
-        /// <param name="host"></param>
-        /// <param name="port"></param>
-        public void startGame()
+        public void StartGame()
         {
-            Network.RegisterGameDataUpdater(this.UpdateGameState);
+            Network.RegisterGameDataUpdater(AddGameState);
+            return;
         }
     }
 }

@@ -42,6 +42,15 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
+        /// Boolean to check whether this player has voted to start
+        /// </summary>
+        public bool PlayerReady
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Local Entity ID of player Entity
         /// </summary>
         public int EntityID
@@ -61,6 +70,7 @@ namespace OceanMars.Common.NetCode
             ConnectionID = connection;
             CharacterSelection = -1;
             CharacterLocked = false;
+            PlayerReady = false;
             if (playerID < 0)
             {
                 PlayerID = gameBase.RegisterPlayer(this);

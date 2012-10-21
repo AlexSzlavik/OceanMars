@@ -34,16 +34,9 @@ namespace OceanMars.Common
                 vectorList = (List<Vector2[]>)deserializer.Deserialize(textReader);
                 textReader.Close();
 
-                this.addChild(new Level(this, vectorList));
                 //levelList.Add(new Level(this, vectorList));
             //}
 
-            // Add one of the levels to the scene graph
-            /*foreach (Level l in levelList)
-            {
-                this.addChild(l);
-            }*/
-            //this.addChild(levelList[0]);
         }
     }
 }

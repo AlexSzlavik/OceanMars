@@ -109,10 +109,22 @@ namespace OceanMars.Common.NetCode
         /// Handles a Game Start Request
         /// </summary>
         /// <param name="gameData">The game data related to character locking.</param>
-        protected override void OnGameStart (GameData gameData)
+        protected override void OnGameStart(GameData gameData)
         {
+            // Set player as ready
+            Game.GetPlayer(gameData.PlayerID).PlayerReady = true;
+
+            for (int i = 0; i < Game.players.Length; ++i)
+            {
+                if (Game.GetPlayer(i) != null && !Game.GetPlayer(i).PlayerReady)
+                {
+                    return;
+                }
+            }
+
+            // If everyone has sent the start game request:
             Game.Network.BroadCastGameData(new GameData(GameData.GameDataType.GameStart));
-            Game.startGame();
+            Game.StartGame();
             return;
         }
     }

@@ -127,14 +127,12 @@ namespace OceanMars.Common.NetCode
         public void SetupAndSendGameState(int levelID)
         {
             Level level = new Level(GameState.root, LevelPack.levels[levelID]);
-            GameState.root.addChild(level);
 
             // Create players in personal state
             for (int i = 0; i < players.Length; i++)
             {
                 SpawnPointEntity sp = level.spawnPoints[i];
                 TestMan tm = new TestMan(sp);
-                sp.addChild(tm);
 /*=======
             // Send level and a player ID to each client
             for (int i = 0; i < players.Length; i += 1)
@@ -147,7 +145,6 @@ namespace OceanMars.Common.NetCode
                     // Create a new testman at the given spawn point for each player
                     SpawnPointEntity sp = level.spawnPoints[i];
                     TestMan tm = new TestMan(sp);
-                    sp.addChild(tm);
                 }
 >>>>>>> master*/
             }
@@ -191,7 +188,7 @@ namespace OceanMars.Common.NetCode
         /// Update the state over the game based on incoming game data.
         /// </summary>
         /// <param name="gameData">The received game data.</param>
-        protected override void UpdateGameState(GameData gameData)
+        protected override void AddGameState(GameData gameData)
         {
             for (int i = 0; i < players.Length; i++ ) // Forward the received information to other machines (but not the one received from)
             {

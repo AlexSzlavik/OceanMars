@@ -64,12 +64,10 @@ namespace OceanMars.Common.NetCode
         public void SetupGameState(int levelID, int myPlayerID)
         {
             Level level = new Level(GameState.root, LevelPack.levels[levelID]);
-            GameState.root.addChild(level);
 
             SpawnPointEntity sp = level.spawnPoints[myPlayerID];
             TestMan tm = new TestMan(sp, true);
             players[myPlayerID].EntityID = tm.id;
-            sp.addChild(tm);
             LocalPlayer.EntityID = players[myPlayerID].EntityID;    //hack?
 
             TransformData transformData = new TransformData(tm.id, tm.transform);
@@ -123,7 +121,6 @@ namespace OceanMars.Common.NetCode
                             System.Diagnostics.Debug.WriteLine("EntityID: " + gs.TransformData.EntityID);
                             TestMan testMan = new TestMan(GameState.root, false, gs.TransformData.EntityID);
                             testMan.transform = gs.TransformData.GetMatrix();
-                            GameState.root.addChild(testMan);
                             break;
                     }
 

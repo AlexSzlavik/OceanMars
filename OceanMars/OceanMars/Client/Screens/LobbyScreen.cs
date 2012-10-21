@@ -34,8 +34,7 @@ namespace OceanMars.Screens
         #region Fields
 
         // Game and player settings
-        GameClient gc;
-        GameServer gs;
+        LobbyClient lc;
 
         #endregion
 
@@ -46,15 +45,13 @@ namespace OceanMars.Screens
         /// </summary>
         /// <param name="host">Whether or not this player is the host.</param>
         /// <param name="multiplayer">Whether or not this game is multiplayer.</param>
-        public LobbyScreen(GameClient gc, GameServer gs = null)
+        public LobbyScreen(LobbyClient lc)
             : base("Lobby", true)
         {
-            this.gc = gc;
-            this.gs = gs;
+            this.lc = lc;
 
-            gc.Lobby.RegisterNewGameUpdater(this.startGame);
+            lc.RegisterNewGameUpdater(this.startGame);
 
-            
             {
                 // Create the single invisible menu entry
                 MenuEntry startGameMenuEntry = new MenuEntry(string.Empty, true);
@@ -96,12 +93,9 @@ namespace OceanMars.Screens
         /// </summary>
         void StartGameMenuEntrySelected(object sender, PlayerInputEventArgs e)
         {
-            // Start the fucking game yo
-            if (gs != null)
-            {
-                //send game start packet
-                gc.Lobby.SendLaunchPacket();
-            }
+
+            //send game start packet
+            lc.SendLaunchPacket();
 
             return;
         }
@@ -121,9 +115,8 @@ namespace OceanMars.Screens
             return;
         }
 
-        private void startGame()
+        private void startGame(GameClient gc)
         {
-            gc.SetupGameState(0, gc.LocalPlayer.PlayerID);
             ScreenManager.AddScreen(new GameplayScreen(gc));
         }
 
