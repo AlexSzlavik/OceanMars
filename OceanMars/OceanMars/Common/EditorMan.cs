@@ -89,7 +89,6 @@ namespace OceanMars.Common
             {
                 Vector2 point2 = new Vector2(worldTransform.Translation.X, inverseWorldTransform.Translation.Y);
                 TestWall w = new TestWall(this, (Vector2)point1, point2);
-                //parent.addChild(w);
                 result = w;
                 // Add the walls to the list of vector2 arrays for saving later
                 Vector2[] worldWallEndpoints = new Vector2[] {
@@ -149,7 +148,6 @@ namespace OceanMars.Common
             {
                 spawns.Add(v[i]);
                 s = new SpawnPointEntity(root, v[i]);
-                //root.addChild(s);
             }
 
             // Next, create the set of walls
@@ -158,7 +156,6 @@ namespace OceanMars.Common
                 v = level[i];
                 walls.Add(v);
                 w = new TestWall(root, v[0], v[1]);
-                //root.addChild(w);
             }
         }
 
