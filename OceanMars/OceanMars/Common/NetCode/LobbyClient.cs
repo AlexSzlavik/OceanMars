@@ -126,16 +126,6 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// The Host requests the game to start
-        /// </summary>
-        /// <param name="character"></param>
-        public void StartGame()
-        {
-            Game.Network.SendGameData(new GameData(GameData.GameDataType.GameStart,Game.LocalPlayer.PlayerID));
-            return;
-        }
-
-        /// <summary>
         /// Handles a Game Start Request
         /// </summary>
         /// <param name="gameData">The game data related to character locking.</param>
@@ -154,7 +144,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">The game data related to character locking.</param>
         public void SendLaunchPacket()
         {
-            Game.Network.SendGameData(new GameData(GameData.GameDataType.GameStart));
+            Game.Network.SendGameData(new GameData(GameData.GameDataType.GameStart, Game.LocalPlayer.PlayerID));
             return;
         }
     }
