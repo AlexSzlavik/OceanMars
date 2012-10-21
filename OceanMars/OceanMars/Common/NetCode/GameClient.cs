@@ -117,8 +117,7 @@ namespace OceanMars.Common.NetCode
                                 //hack, need to use something more than TransformData
                                 //assuming TestMan for now
 
-                                System.Diagnostics.Debug.WriteLine("EntityID: " + gameState.TransformData.EntityID);
-                                TestMan testMan = new TestMan(GameState.root, false, gameState.TransformData.EntityID);
+                                TestMan testMan = new TestMan(GameState.root, false, gameState.EntityData.transformData.EntityID);
                                 testMan.transform = gameState.TransformData.GetMatrix();
                                 break;
                             default:
