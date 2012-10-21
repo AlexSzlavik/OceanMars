@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace OceanMars.Common
 {
-    public class State : TransformChangeListener
+    public class State
     {
         public enum PHASE { READY_FOR_CHANGES, PROCESSING_FRAME, FINISHED_FRAME }
 
@@ -46,11 +46,16 @@ namespace OceanMars.Common
             }
         }
 
+        public State()
+        {
+            root = new World(this);
+        }
+
         public void registerEntity(Entity e)
         {
             
             entities.Add(e.id, e);
-            e.addTransformChangeListener(this);
+            e.registerTransformChangeListener(OnTransformChange);
 
             // Notify people that we've added an entity
             for (int i = 0; i < EntityAddListeners.Count; i++)
@@ -59,10 +64,37 @@ namespace OceanMars.Common
             }
         }
 
-        public State()
+        public void OnTransformChange(Entity e)
         {
-            root = new World(this);
+            foreach (TransformChange tcl in TransformChangeListeners)
+            {
+                tcl.Invoke(e);
+            }
         }
+
+        #region Delegate Registration Functions
+
+        public void registerTransformChange(TransformChange tcl)
+        {
+            TransformChangeListeners.Add(tcl);
+        }
+
+        public void registerStatePhaseChange(StatePhaseChange spl)
+        {
+            StatePhaseChangeListeners.Add(spl);
+        }
+
+        public void registerEntityAdd(EntityAdd e)
+        {
+            EntityAddListeners.Add(e);
+        }
+
+        public void registerEntityRemove(EntityRemove e)
+        {
+            EntityRemoveListeners.Add(e);
+        }
+
+        #endregion
 
         public void nextFrame()
         {
@@ -86,36 +118,9 @@ namespace OceanMars.Common
 
                 }
             }
+            // NB: Phase changes trigger actions, do not remove the "un-necessary" phase change
             phase = PHASE.FINISHED_FRAME;
             phase = PHASE.READY_FOR_CHANGES;
-        }
-
-        public void HandleTransformChange(Entity e)
-        {
-            foreach (TransformChange tcl in TransformChangeListeners)
-            {
-                tcl.Invoke(e);
-            }
-        }
-
-        public void registerTransformChange(TransformChange tcl)
-        {
-            TransformChangeListeners.Add(tcl);
-        }
-
-        public void registerStatePhaseChange(StatePhaseChange spl)
-        {
-            StatePhaseChangeListeners.Add(spl);
-        }
-
-        public void registerEntityAdd(EntityAdd e)
-        {
-            EntityAddListeners.Add(e);
-        }
-
-        public void registerEntityRemove(EntityRemove e)
-        {
-            EntityRemoveListeners.Add(e);
         }
     }
 }
