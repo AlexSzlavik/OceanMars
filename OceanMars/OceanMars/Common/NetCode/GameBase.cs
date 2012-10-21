@@ -190,7 +190,8 @@ namespace OceanMars.Common.NetCode
                     CommitGameStates();
                     break;
                 default:
-                    throw new NotImplementedException("Unhandled state passed to GameBase");
+                    //throw new NotImplementedException("Unhandled state passed to GameBase");
+                    break;
             }
             return;
         }

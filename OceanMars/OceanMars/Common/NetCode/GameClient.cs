@@ -92,12 +92,18 @@ namespace OceanMars.Common.NetCode
 
                 //hack?
                 if (players[i].PlayerID == myPlayerID)
+                {
                     LocalPlayer.EntityID = players[i].EntityID;
+                }
             }
             return;
         }
 
-        public Entity getPlayerEntity()
+        /// <summary>
+        /// Get the entity associated with the local player.
+        /// </summary>
+        /// <returns>An entity object associated wtih local player object.</returns>
+        public Entity GetPlayerEntity()
         {
             return GameState.entities[LocalPlayer.EntityID];
         }
@@ -118,8 +124,11 @@ namespace OceanMars.Common.NetCode
         /// </summary>
         public override void SendGameStates()
         {
-            Network.SendGameData(gameStatesToSend);
-            gameStatesToSend.Clear();
+            lock (gameStatesToCommit)
+            {
+                Network.SendGameData(gameStatesToSend);
+                gameStatesToSend.Clear();
+            }
             return;
         }
 
