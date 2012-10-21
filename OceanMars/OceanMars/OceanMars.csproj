@@ -94,11 +94,8 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client\EditorManSprite.cs" />
     <Compile Include="Client\Screens\LobbyScreen.cs" />
     <Compile Include="Client\Screens\HostSettingsMenuScreen.cs" />
-    <Compile Include="Client\Screens\LevelEditPauseScreen.cs" />
-    <Compile Include="Client\Screens\LevelEditScreen.cs" />
     <Compile Include="Client\Screens\MultiplayerMenuScreen.cs" />
     <Compile Include="Client\SpawnPointSprite.cs" />
     <Compile Include="Client\TestWallSprite.cs" />
@@ -123,12 +120,10 @@
     <Compile Include="Common\SpawnPointEntity.cs" />
     <Compile Include="Common\FreeEntity.cs" />
     <Compile Include="Common\DefaultLevel.cs" />
-    <Compile Include="Common\EditorMan.cs" />
     <Compile Include="Common\EllipseEntity.cs" />
     <Compile Include="Common\Entity.cs" />
     <Compile Include="Common\IStatePhaseListener.cs" />
     <Compile Include="Common\Level.cs" />
-    <Compile Include="Common\LevelEditorState.cs" />
     <Compile Include="Common\LevelPack.cs" />
     <Compile Include="Common\NetCode\ConnectionID.cs" />
     <Compile Include="Common\NetCode\GameBase.cs" />
@@ -150,11 +145,9 @@
     <Compile Include="Common\NetCode\PacketInformation.cs" />
     <Compile Include="Common\NetCode\Player.cs" />
     <Compile Include="Common\NetCode\StateChange.cs" />
-    <Compile Include="Common\ServerlessState.cs" />
     <Compile Include="Common\SliderEntity.cs" />
     <Compile Include="Common\State.cs" />
     <Compile Include="Common\TransformChangeListener.cs" />
-    <Compile Include="Common\TestLevel.cs" />
     <Compile Include="Common\TestMan.cs" />
     <Compile Include="Common\TestWall.cs" />
     <Compile Include="Common\World.cs" />
