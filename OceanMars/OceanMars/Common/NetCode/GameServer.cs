@@ -223,33 +223,6 @@ namespace OceanMars.Common.NetCode
             gameStatesToSend.Clear();
             return;
         }
-
-/*<<<<<<< HEAD
-=======
-        /// <summary>
-        /// Commit the game state data into the state of the world.
-        /// </summary>
-        public override void CommitGameStates()
-        {
-            for (int i = 0; i < gameStatesToCommit.Count; i += 1)
-            {
-                GameData currentData = gameStatesToCommit[i];
-                switch (currentData.Type)
-                {
-                    case GameData.GameDataType.Movement:
-                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.GetMatrix();
-                        break;
-                    case GameData.GameDataType.PlayerTransform:
-                        GameState.entities[currentData.TransformData.EntityID].transform = currentData.TransformData.GetMatrix();
-                        break;
-                    default:
-                        throw new NotImplementedException("Unhandled state passed to GameServer");
-                }
-            }
-            return;
-        }
-
->>>>>>> master*/
     }
 
 }
