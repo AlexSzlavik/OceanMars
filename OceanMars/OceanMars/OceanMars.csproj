@@ -147,7 +147,6 @@
     <Compile Include="Common\NetCode\StateChange.cs" />
     <Compile Include="Common\SliderEntity.cs" />
     <Compile Include="Common\State.cs" />
-    <Compile Include="Common\TransformChangeListener.cs" />
     <Compile Include="Common\TestMan.cs" />
     <Compile Include="Common\TestWall.cs" />
     <Compile Include="Common\World.cs" />

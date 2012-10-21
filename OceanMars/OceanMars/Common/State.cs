@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace OceanMars.Common
 {
-    public class State : TransformChangeListener
+    public class State
     {
         public enum PHASE { READY_FOR_CHANGES, PROCESSING_FRAME, FINISHED_FRAME }
 
@@ -50,12 +50,20 @@ namespace OceanMars.Common
         {
             
             entities.Add(e.id, e);
-            e.addTransformChangeListener(this);
+            e.registerTransformChangeListener(OnTransformChange);
 
             // Notify people that we've added an entity
             for (int i = 0; i < EntityAddListeners.Count; i++)
             {
                 EntityAddListeners[i].Invoke(e);
+            }
+        }
+
+        public void OnTransformChange(Entity e)
+        {
+            foreach (TransformChange tcl in TransformChangeListeners)
+            {
+                tcl.Invoke(e);
             }
         }
 
@@ -86,17 +94,12 @@ namespace OceanMars.Common
 
                 }
             }
+            // NB: Phase changes trigger actions, do not remove the "un-necessary" phase change
             phase = PHASE.FINISHED_FRAME;
             phase = PHASE.READY_FOR_CHANGES;
         }
 
-        public void HandleTransformChange(Entity e)
-        {
-            foreach (TransformChange tcl in TransformChangeListeners)
-            {
-                tcl.Invoke(e);
-            }
-        }
+        #region Delegate Registration Functions
 
         public void registerTransformChange(TransformChange tcl)
         {
@@ -117,5 +120,7 @@ namespace OceanMars.Common
         {
             EntityRemoveListeners.Add(e);
         }
+
+        #endregion
     }
 }
