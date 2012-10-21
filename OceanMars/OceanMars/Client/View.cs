@@ -6,6 +6,7 @@ using OceanMars.Common;
 using Microsoft.Xna.Framework;
 using OceanMars.Client.GameStateManager;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Content;
 
 namespace OceanMars.Client
 {
@@ -22,6 +23,21 @@ namespace OceanMars.Client
         {
             this.state = s;
             this.avatar = avatar;
+
+            s.registerEntityAdd(this.OnAddEntity);
+            s.registerEntityRemove(this.OnRemoveEntity);
+        }
+
+        /// <summary>
+        /// Initialize sprite lists from entities already created. Should be called after content is loaded.
+        /// </summary>
+        public void InitFromState()
+        {
+            // Add all entities already in state
+            foreach (Entity e in state.entities.Values)
+            {
+                OnAddEntity(e);
+            }
         }
 
         public void draw(GameTime gameTime, SpriteBatch spriteBatch)
@@ -30,6 +46,30 @@ namespace OceanMars.Client
             {
                 sprites[id].draw(gameTime, spriteBatch);
             }
+        }
+
+        public void OnAddEntity(Entity e)
+        {
+            if (e is DefaultLevel)
+            {
+                Sprite s = new DefaultLevelSprite(this, (DefaultLevel)e);
+                sprites.Add(e.id, s);
+            }
+            else if (e is TestMan)
+            {
+                Sprite s = new TestManSprite(this, (TestMan)e);
+                sprites.Add(e.id, s);
+            }
+            else if (e is TestWall)
+            {
+                Sprite s = new TestWallSprite(this, (TestWall)e);
+                sprites.Add(e.id, s);
+            }
+        }
+
+        public void OnRemoveEntity(Entity e)
+        {
+            sprites.Remove(e.id);
         }
     }
 }
