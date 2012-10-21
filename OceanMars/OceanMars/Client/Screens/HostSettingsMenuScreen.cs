@@ -221,7 +221,7 @@ namespace OceanMars.Client.Screens
 
             GameClient gc = new GameClient();
             gc.ConnectToGame(hostAddressString, port);
-            ScreenManager.AddScreen(new LobbyScreen(gc));
+            ScreenManager.AddScreen(new LobbyScreen(gc.Lobby));
             return;
         }
 

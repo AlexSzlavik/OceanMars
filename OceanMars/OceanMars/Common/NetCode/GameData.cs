@@ -45,7 +45,12 @@ namespace OceanMars.Common.NetCode
             /// <summary>
             /// Initialization information about level and player number sent from the server to a client.
             /// </summary>
-            InitClientState
+            InitClientState,
+
+            /// <summary>
+            /// A client has created a new entity.
+            /// </summary>
+            NewEntity
 
         }
 
@@ -156,7 +161,7 @@ namespace OceanMars.Common.NetCode
                     byte[] subData  = new byte[byteArray.Length - 3];
                     Array.ConstrainedCopy(byteArray, 3, subData, 0, byteArray.Length - 3);
 
-                    if (Type == GameDataType.Movement)
+                    if (Type == GameDataType.Movement || Type == GameDataType.NewEntity)
                     {
                         TransformData = new TransformData(subData);
                     }
@@ -195,7 +200,7 @@ namespace OceanMars.Common.NetCode
                     binaryWriter.Write((byte)PlayerID);
                     binaryWriter.Write((byte)EventDetail);
 
-                    if (Type == GameDataType.Movement)
+                    if (Type == GameDataType.Movement || Type == GameDataType.NewEntity)
                     {
                         binaryWriter.Write(TransformData.GetByteArray());
                     }

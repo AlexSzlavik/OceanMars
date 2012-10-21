@@ -42,7 +42,6 @@ namespace OceanMars.Common
             for (int i = 0; i < v.Length; i++)
             {
                 s = new SpawnPointEntity(this, v[i]);
-                this.addChild(s);
                 spawnPoints.Add(s);
             }
 
@@ -51,7 +50,6 @@ namespace OceanMars.Common
             {
                 v = vectorList[i];
                 w = new TestWall(this, v[0], v[1]);
-                this.addChild(w);
             }
         }
     }

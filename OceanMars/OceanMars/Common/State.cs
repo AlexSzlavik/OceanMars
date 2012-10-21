@@ -10,8 +10,21 @@ namespace OceanMars.Common
     {
         public enum PHASE { READY_FOR_CHANGES, PROCESSING_FRAME, FINISHED_FRAME }
 
-        private List<IStatePhaseListener> spListeners = new List<IStatePhaseListener>();
-        private List<TransformChangeListener> scListeners = new List<TransformChangeListener>();
+        #region Listener Delegate Lists
+
+        public delegate void EntityAdd(Entity e);
+        private List<EntityAdd> EntityAddListeners = new List<EntityAdd>();
+
+        public delegate void EntityRemove(Entity e);
+        private List<EntityRemove> EntityRemoveListeners = new List<EntityRemove>();
+
+        public delegate void TransformChange(Entity e);
+        private List<TransformChange> TransformChangeListeners = new List<TransformChange>();
+
+        public delegate void StatePhaseChange(PHASE p);
+        private List<StatePhaseChange> StatePhaseChangeListeners = new List<StatePhaseChange>();
+
+        #endregion
 
         public World root;
         public Dictionary<int, Entity> entities = new Dictionary<int,Entity>();
@@ -26,17 +39,24 @@ namespace OceanMars.Common
 
             private set {
                 phaseBack = value;
-                foreach (IStatePhaseListener spl in spListeners)
+                foreach (StatePhaseChange spl in StatePhaseChangeListeners)
                 {
-                    spl.HandleStatePhaseChange(phaseBack);
+                    spl.Invoke(phaseBack);
                 }
             }
         }
 
         public void registerEntity(Entity e)
         {
+            
             entities.Add(e.id, e);
             e.addTransformChangeListener(this);
+
+            // Notify people that we've added an entity
+            for (int i = 0; i < EntityAddListeners.Count; i++)
+            {
+                EntityAddListeners[i].Invoke(e);
+            }
         }
 
         public State()
@@ -72,20 +92,30 @@ namespace OceanMars.Common
 
         public void HandleTransformChange(Entity e)
         {
-            foreach (TransformChangeListener scl in scListeners)
+            foreach (TransformChange tcl in TransformChangeListeners)
             {
-                scl.HandleTransformChange(e);
+                tcl.Invoke(e);
             }
         }
 
-        public void addTransformChangeListener(TransformChangeListener tcl)
+        public void registerTransformChange(TransformChange tcl)
         {
-            scListeners.Add(tcl);
+            TransformChangeListeners.Add(tcl);
         }
 
-        public void addStatePhaseListener(IStatePhaseListener spl)
+        public void registerStatePhaseChange(StatePhaseChange spl)
         {
-            spListeners.Add(spl);
+            StatePhaseChangeListeners.Add(spl);
+        }
+
+        public void registerEntityAdd(EntityAdd e)
+        {
+            EntityAddListeners.Add(e);
+        }
+
+        public void registerEntityRemove(EntityRemove e)
+        {
+            EntityRemoveListeners.Add(e);
         }
     }
 }

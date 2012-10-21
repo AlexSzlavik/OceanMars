@@ -7,7 +7,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// Abstraction of the top-of-network-stack game.
     /// </summary>
-    public abstract class GameBase : TransformChangeListener, IStatePhaseListener
+    public abstract class GameBase
     {
         /// <summary>
         /// Maximum number of players in a game.
@@ -97,8 +97,8 @@ namespace OceanMars.Common.NetCode
             GameState = new State();
             Network = network;
 
-            GameState.addStatePhaseListener(this);
-            GameState.addTransformChangeListener(this);
+            GameState.registerStatePhaseChange(this.OnStatePhaseChange);
+            GameState.registerTransformChange(this.OnTransformChange);
 
             return;
         }
@@ -117,7 +117,7 @@ namespace OceanMars.Common.NetCode
         /// Update an entity based on a transform.
         /// </summary>
         /// <param name="entity">The entity to update.</param>
-        public virtual void HandleTransformChange(Entity entity)
+        public virtual void OnTransformChange(Entity entity)
         {
             // Generate a transform change packet, put it on stack
             TransformData transformData = new TransformData(entity.id, entity.transform);
@@ -130,32 +130,9 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
-        /// Commit incoming game states into the world.
+        /// Commit game state updates.
         /// </summary>
-        public void CommitGameStates()
-        {
-            lock (gameStatesToCommit)
-            {
-                for (int i = 0; i < gameStatesToCommit.Count; ++i)
-                {
-                    GameData gameState = gameStatesToCommit[i];
-                    if (gameState != null)
-                    {
-                        switch (gameState.Type)
-                        {
-                            case GameData.GameDataType.Movement:
-                                GameState.entities[gameState.TransformData.EntityID].transform = gameState.TransformData.GetMatrix();
-                                break;
-                            case GameData.GameDataType.PlayerTransform:
-                                GameState.entities[players[gameState.TransformData.EntityID].EntityID].transform = gameState.TransformData.GetMatrix();
-                                break;
-                        }
-                    }
-                }
-                gameStatesToCommit.Clear();
-            }
-            return;
-        }
+        public abstract void CommitGameStates();
 
         /// <summary>
         /// Send out game state updates.
@@ -179,7 +156,7 @@ namespace OceanMars.Common.NetCode
         /// Handle changes to the phase of the world state.
         /// </summary>
         /// <param name="phase">The phase that we are transitioning into.</param>
-        public void HandleStatePhaseChange(State.PHASE phase)
+        public void OnStatePhaseChange(State.PHASE phase)
         {
             switch (phase)
             {
@@ -189,9 +166,14 @@ namespace OceanMars.Common.NetCode
                 case State.PHASE.READY_FOR_CHANGES:
                     CommitGameStates();
                     break;
+<<<<<<< HEAD
                 default:
                     //throw new NotImplementedException("Unhandled state passed to GameBase");
                     break;
+=======
+                //default:
+                    //throw new NotImplementedException("Unhandled state passed to GameBase");
+>>>>>>> 3ce076ea5f5fcbea67c859f0ae6fb72589f56a07
             }
             return;
         }

@@ -44,6 +44,11 @@ namespace OceanMars.Common
             this.parent = parent;
             this.owned = owner;
             groundState = GroundState.GROUND;
+
+            if (parent != null)
+            {
+                parent.addChild(this);
+            }
         }
 
         // When changed, will invalidate world transform matrix and all children
@@ -124,9 +129,9 @@ namespace OceanMars.Common
         
         public void addChild(Entity child)
         {
+            // Add the calling entity to the child list
             children.Add(child);
-            child.parent = this;
-
+            // Call up the tree in order to register the child with the state
             registerChild(child);
         }
 
