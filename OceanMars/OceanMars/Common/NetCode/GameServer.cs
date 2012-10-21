@@ -10,7 +10,7 @@ namespace OceanMars.Common.NetCode
     /// <summary>
     /// Abstraction of a game server that rests on top of the network stack.
     /// </summary>
-    public class GameServer : GameBase, TransformChangeListener, IStatePhaseListener
+    public class GameServer : GameBase
     {
 
         /// <summary>
