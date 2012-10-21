@@ -34,6 +34,22 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
+        /// Who to inform when the game is starting
+        /// </summary>
+        public delegate void NewGameUpdater();
+        public NewGameUpdater newGameUpdater;
+
+        /// <summary>
+        /// Register a delegate to call when the game starts
+        /// </summary>
+        /// <param name="gameDataUpdater">A delegate function to call when the game starts.</param>
+        public void RegisterNewGameUpdater(NewGameUpdater newGameUpdater)
+        {
+            this.newGameUpdater = newGameUpdater;
+            return;
+        }
+
+        /// <summary>
         /// A Player has joined, set them up in the system.
         /// </summary>
         /// <param name="gameData">The game data related to the character joining the session.</param>
@@ -126,6 +142,7 @@ namespace OceanMars.Common.NetCode
         protected override void OnGameStart(GameData gameData)
         {
             Game.startGame();
+            newGameUpdater.Invoke();
             return;
         }
 
