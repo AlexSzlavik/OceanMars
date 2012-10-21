@@ -132,7 +132,7 @@ namespace OceanMars.Common.NetCode
         protected override void OnGameStart(GameData gameData)
         {
             Game.SetupGameState(0, Game.LocalPlayer.PlayerID);
-            Game.startGame();
+            Game.StartGame();
             newGameUpdater.Invoke(Game);
             return;
         }

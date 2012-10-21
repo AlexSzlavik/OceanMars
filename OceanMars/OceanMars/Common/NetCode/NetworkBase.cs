@@ -81,7 +81,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Callback function on receipt of game data.
         /// </summary>
-        /// <param name="packet"></param>
+        /// <param name="packet">The packet received.</param>
         protected abstract void OnGameData(NetworkPacket packet);
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace OceanMars.Common.NetCode
         /// <summary>
         /// Callback function on receipt of a SYNC.
         /// </summary>
-        /// <param name="packet"></param>
+        /// <param name="packet">The packet received.</param>
         protected abstract void OnSync(NetworkPacket packet);
 
     }

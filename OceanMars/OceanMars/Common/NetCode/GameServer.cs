@@ -191,7 +191,7 @@ namespace OceanMars.Common.NetCode
         /// Update the state over the game based on incoming game data.
         /// </summary>
         /// <param name="gameData">The received game data.</param>
-        protected override void UpdateGameState(GameData gameData)
+        protected override void AddGameState(GameData gameData)
         {
             for (int i = 0; i < players.Length; i++ ) // Forward the received information to other machines (but not the one received from)
             {
