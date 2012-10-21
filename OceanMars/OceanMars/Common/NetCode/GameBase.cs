@@ -9,8 +9,6 @@ namespace OceanMars.Common.NetCode
     /// </summary>
     public abstract class GameBase : TransformChangeListener, IStatePhaseListener
     {
-        public bool sorryPeter = false;
-
         /// <summary>
         /// Maximum number of players in a game.
         /// </summary>
@@ -25,7 +23,6 @@ namespace OceanMars.Common.NetCode
         /// Game states that must be sent out to other games (either the client or the main server).
         /// </summary>
         protected List<GameData> gameStatesToSend;
-
 
         /// <summary>
         /// The hierarchical tree that represents the state of the game.
@@ -202,7 +199,6 @@ namespace OceanMars.Common.NetCode
         public void startGame()
         {
             Network.RegisterGameDataUpdater(this.UpdateGameState);
-            sorryPeter = true;
         }
     }
 }

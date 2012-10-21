@@ -11,11 +11,6 @@ namespace OceanMars.Common.NetCode
     public class GameClient : GameBase
     {
         /// <summary>
-        /// A mapping of player IDs to entity IDs.
-        /// </summary>
-        private Dictionary<int, int> playerIDToEntity;
-
-        /// <summary>
         /// The client lobby associated with this game client.
         /// </summary>
         public new LobbyClient Lobby
@@ -49,9 +44,9 @@ namespace OceanMars.Common.NetCode
         /// Create a new GameClient.
         /// </summary>
         /// <param name="port">The port to create the GameServer on.</param>
-        public GameClient() : base(new NetworkClient())
+        public GameClient()
+            : base(new NetworkClient())
         {
-            playerIDToEntity = new Dictionary<int, int>();
 
             Lobby = new LobbyClient(this); // Give initial control to the lobby
             Network.RegisterGameDataUpdater(Lobby.UpdateLobbyState);

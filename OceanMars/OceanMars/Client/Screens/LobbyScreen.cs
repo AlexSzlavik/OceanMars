@@ -52,6 +52,8 @@ namespace OceanMars.Screens
             this.gc = gc;
             this.gs = gs;
 
+            gc.Lobby.RegisterNewGameUpdater(this.startGame);
+
             
             {
                 // Create the single invisible menu entry
@@ -114,16 +116,8 @@ namespace OceanMars.Screens
         /// </summary>
         /// 
 
-        bool ahack = false;
         public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
-            if (gc.sorryPeter && !ahack)
-            {
-                // Poll to see if game has started
-                startGame();
-                ahack = true;
-            }
-
             return;
         }
 
