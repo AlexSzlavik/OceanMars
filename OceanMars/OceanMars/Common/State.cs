@@ -46,6 +46,11 @@ namespace OceanMars.Common
             }
         }
 
+        public State()
+        {
+            root = new World(this);
+        }
+
         public void registerEntity(Entity e)
         {
             
@@ -67,10 +72,29 @@ namespace OceanMars.Common
             }
         }
 
-        public State()
+        #region Delegate Registration Functions
+
+        public void registerTransformChange(TransformChange tcl)
         {
-            root = new World(this);
+            TransformChangeListeners.Add(tcl);
         }
+
+        public void registerStatePhaseChange(StatePhaseChange spl)
+        {
+            StatePhaseChangeListeners.Add(spl);
+        }
+
+        public void registerEntityAdd(EntityAdd e)
+        {
+            EntityAddListeners.Add(e);
+        }
+
+        public void registerEntityRemove(EntityRemove e)
+        {
+            EntityRemoveListeners.Add(e);
+        }
+
+        #endregion
 
         public void nextFrame()
         {
@@ -98,29 +122,5 @@ namespace OceanMars.Common
             phase = PHASE.FINISHED_FRAME;
             phase = PHASE.READY_FOR_CHANGES;
         }
-
-        #region Delegate Registration Functions
-
-        public void registerTransformChange(TransformChange tcl)
-        {
-            TransformChangeListeners.Add(tcl);
-        }
-
-        public void registerStatePhaseChange(StatePhaseChange spl)
-        {
-            StatePhaseChangeListeners.Add(spl);
-        }
-
-        public void registerEntityAdd(EntityAdd e)
-        {
-            EntityAddListeners.Add(e);
-        }
-
-        public void registerEntityRemove(EntityRemove e)
-        {
-            EntityRemoveListeners.Add(e);
-        }
-
-        #endregion
     }
 }
