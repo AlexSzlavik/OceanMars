@@ -141,7 +141,7 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameData">The game data related to character locking.</param>
         protected override void OnGameStart(GameData gameData)
         {
-            Game.startGame();
+            Game.StartGame();
             newGameUpdater.Invoke();
             return;
         }

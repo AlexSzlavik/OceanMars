@@ -129,31 +129,32 @@ namespace OceanMars.Common.NetCode
             return;
         }
 
-        public void commitGameStates()
+        /// <summary>
+        /// Commit incoming game states into the world.
+        /// </summary>
+        public void CommitGameStates()
         {
-            //take a snapeshot of the GameStatesToCommit in case more are added while we're looping
-            int gsLength = gameStatesToCommit.Count;
-
-            for (int i = 0; i < gsLength; ++i)
+            lock (gameStatesToCommit)
             {
-                GameData gs = gameStatesToCommit[i];
-                if (gs != null)
+                for (int i = 0; i < gameStatesToCommit.Count; ++i)
                 {
-                    if (gs.Type == GameData.GameDataType.Movement)
+                    GameData gameState = gameStatesToCommit[i];
+                    if (gameState != null)
                     {
-                        int id = gs.TransformData.EntityID;
-                        GameState.entities[id].transform = gs.TransformData.GetMatrix();
-                    }
-                    else if (gs.Type == GameData.GameDataType.PlayerTransform)
-                    {
-                        int id = players[gs.TransformData.EntityID].EntityID;
-                        GameState.entities[id].transform = gs.TransformData.GetMatrix();
+                        switch (gameState.Type)
+                        {
+                            case GameData.GameDataType.Movement:
+                                GameState.entities[gameState.TransformData.EntityID].transform = gameState.TransformData.GetMatrix();
+                                break;
+                            case GameData.GameDataType.PlayerTransform:
+                                GameState.entities[players[gameState.TransformData.EntityID].EntityID].transform = gameState.TransformData.GetMatrix();
+                                break;
+                        }
                     }
                 }
+                gameStatesToCommit.Clear();
             }
-
-            //clear the game states we've just committed
-            gameStatesToCommit.RemoveRange(0, gsLength);
+            return;
         }
 
         /// <summary>
@@ -162,12 +163,15 @@ namespace OceanMars.Common.NetCode
         public abstract void SendGameStates();
 
         /// <summary>
-        /// Update the game state based on incoming game data.
+        /// Add incoming data to the game states.
         /// </summary>
         /// <param name="gameData">Received game data that should inform us about changing state, requests, etc.</param>
-        protected virtual void UpdateGameState(GameData gameData)
+        protected virtual void AddGameState(GameData gameData)
         {
-            gameStatesToCommit.Add(gameData);
+            lock (gameStatesToCommit)
+            {
+                gameStatesToCommit.Add(gameData);
+            }
             return;
         }
 
@@ -183,22 +187,21 @@ namespace OceanMars.Common.NetCode
                     SendGameStates();
                     break;
                 case State.PHASE.READY_FOR_CHANGES:
-                    commitGameStates();
+                    CommitGameStates();
                     break;
-                //default:
-                    //throw new NotImplementedException("Unhandled state passed to GameBase");
+                default:
+                    throw new NotImplementedException("Unhandled state passed to GameBase");
             }
             return;
         }
 
         /// <summary>
-        /// Start the game
+        /// Start the game.
         /// </summary>
-        /// <param name="host"></param>
-        /// <param name="port"></param>
-        public void startGame()
+        public void StartGame()
         {
-            Network.RegisterGameDataUpdater(this.UpdateGameState);
+            Network.RegisterGameDataUpdater(AddGameState);
+            return;
         }
     }
 }
