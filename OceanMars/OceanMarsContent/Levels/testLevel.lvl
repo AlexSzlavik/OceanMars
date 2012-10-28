@@ -40,6 +40,16 @@
   </ArrayOfVector2>
   <ArrayOfVector2>
     <Vector2>
+      <X>200</X>
+      <Y>-10000</Y>
+    </Vector2>
+    <Vector2>
+      <X>200</X>
+      <Y>10000</Y>
+    </Vector2>
+  </ArrayOfVector2>
+  <ArrayOfVector2>
+    <Vector2>
       <X>-1000</X>
       <Y>1000</Y>
     </Vector2>

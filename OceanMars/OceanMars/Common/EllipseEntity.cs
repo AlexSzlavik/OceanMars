@@ -12,6 +12,7 @@ namespace OceanMars.Common
         private const float BIG_FUZZY_EPSILON = 0.5f;
         private const float FUZZY_EPSILON = 0.01f;
         public Vector2 collisionEllipse;
+        int debugCount = 0;
 
         public EllipseEntity(Vector2 size, Entity parent, bool owner = false, int id = -1)
             : base(size, parent, owner, id)
@@ -117,14 +118,14 @@ namespace OceanMars.Common
 
         float intersectEllipsoid(Vector3 center, Vector3 ellipsoid_radius, Vector3 ray_origin, Vector3 ray)
         {
-	        // Center around the ellipsoid
+            // Center around the ellipsoid
             ray_origin.X = ray_origin.X - center.X;
             ray_origin.Y = ray_origin.Y - center.Y;
             ray_origin.Z = ray_origin.Z - center.Z;
-	        Vector3 ray_normal = ray;
+            Vector3 ray_normal = ray;
             ray_normal.Normalize();
 
-	        // Scale the ellipsoid and apply the quadratic equation
+            // Scale the ellipsoid and apply the quadratic equation
             float a = ((ray_normal.X * ray_normal.X) / (ellipsoid_radius.X * ellipsoid_radius.X))
                     + ((ray_normal.Y*ray_normal.Y)/(ellipsoid_radius.Y*ellipsoid_radius.Y))
                     + ((ray_normal.Z*ray_normal.Z)/(ellipsoid_radius.Z*ellipsoid_radius.Z));
@@ -138,7 +139,7 @@ namespace OceanMars.Common
 
             float d = ((b * b) - (4 * a * c));
 
-	        // Check for actual intersection (if b^2 - 4ac < 0)
+            // Check for actual intersection (if b^2 - 4ac < 0)
             if ( d < 0 ) { return -1; }
             else { d = (float)Math.Sqrt(d); }
             float hit = (-b + d)/(2*a);
@@ -165,21 +166,21 @@ namespace OceanMars.Common
 
                 foreach (Entity entity in entities)
                 {
-                    if (entity is SliderEntity)
+                    if (entity is LineEntity)
                     {
-                        SliderEntity slider = (SliderEntity)entity;
+                        LineEntity line = (LineEntity)entity;
                         Vector2 lineIntersectionPoint = new Vector2(0, 0);
-                        Matrix transformSliderToLocal = slider.worldTransform * inverseWorldTransform;
+                        Matrix transformLineToLocal = line.worldTransform * inverseWorldTransform;
 
-                        Vector2[] worldSliderEndpoints = {
-                        Vector2.Transform(slider.endPoints[0], slider.worldTransform),
-                        Vector2.Transform(slider.endPoints[1], slider.worldTransform)
+                        Vector2[] worldLineEndpoints = {
+                        Vector2.Transform(line.endPoints[0], line.worldTransform),
+                        Vector2.Transform(line.endPoints[1], line.worldTransform)
                                                 };
 
                         //find the SliderEntity's end points and normal
                         Vector2[] sliderEndPoints = {
-                        Vector2.Transform(slider.endPoints[0], transformSliderToLocal),
-                        Vector2.Transform(slider.endPoints[1], transformSliderToLocal)
+                        Vector2.Transform(line.endPoints[0], transformLineToLocal),
+                        Vector2.Transform(line.endPoints[1], transformLineToLocal)
                                                 };
 
                         //TODO: Unit normal
@@ -240,11 +241,19 @@ namespace OceanMars.Common
                         if (t >= 0 && t <= velocity.Length() &&
                             (t < distanceToNearest || !hasCollided))
                         {
-                            distanceToNearest = t;
-                            hasCollided = true;
-                            shortestSlider = slider;
-                            shortestSliderNormal = sliderNormal;
-                            shortestSliderIntersectionPoint = lineIntersectionPoint;
+                            if (entity is SliderEntity)
+                            {
+                                distanceToNearest = t;
+                                hasCollided = true;
+                                shortestSlider = (SliderEntity)line;
+                                shortestSliderNormal = sliderNormal;
+                                shortestSliderIntersectionPoint = lineIntersectionPoint;
+                            }
+                            else if (entity is FinishLineEntity)
+                            {
+                                //temporary hack to ensure we cross the finish line once
+                                transform = Matrix.CreateTranslation(entity.transform.Translation + new Vector3(collisionEllipse.X * Math.Sign(velocity.X), 0, 0));
+                            }
 
                         }
                     }
