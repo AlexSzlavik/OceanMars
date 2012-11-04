@@ -24,6 +24,11 @@ namespace OceanMars.Common
             //LAVA
         }
 
+        public GroundState lastGroundState
+        {
+            private set;
+            get;
+        }
         private GroundState groundBack;
         public GroundState groundState
         {
@@ -33,8 +38,11 @@ namespace OceanMars.Common
             }
             set
             {
-                if(value != groundBack) stateChanged = true;
-                groundBack = value;
+                if (value != groundBack)
+                {
+                    OnEntityStateChange();
+                    groundBack = value;
+                }
             }
         }
 
@@ -54,6 +62,9 @@ namespace OceanMars.Common
 
         public delegate void TransformChange(Entity e);
         private List<TransformChange> TransformChangeListeners = new List<TransformChange>();
+
+        public delegate void EntityStateChange(Entity e);
+        private List<EntityStateChange> EntityStateChangeListeners = new List<EntityStateChange>();
 
         public Entity(Vector2 collisionBox, Entity parent, bool owner = false, int id = -1) {
             this.collisionBox = collisionBox;
@@ -88,7 +99,7 @@ namespace OceanMars.Common
                     child.inverseWorldTransformDirty = true;
                 }
 
-                if(owned) OnTransformChange(); // Only notify of things we have jurisdiction over
+                OnTransformChange();
             }
         }
 
@@ -136,11 +147,30 @@ namespace OceanMars.Common
             TransformChangeListeners.Add(tcl);
         }
 
+        public void registerEntityStateChangeListener(EntityStateChange escl)
+        {
+            EntityStateChangeListeners.Add(escl);
+        }
+
         public void OnTransformChange()
         {
+            if (!owned) return;
             foreach (TransformChange tcl in TransformChangeListeners)
             {
                 tcl.Invoke(this);
+            }
+        }
+
+        protected void OnEntityStateChange()
+        {
+            stateChanged = true;
+            lastGroundState = groundBack;
+
+            if (!owned) return;
+
+            foreach (EntityStateChange esc in EntityStateChangeListeners)
+            {
+                esc.Invoke(this);
             }
         }
         

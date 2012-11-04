@@ -82,6 +82,84 @@ namespace OceanMars.Common.NetCode
         }
     }
 
+    public class EntityStateData : IMarshallable
+    {
+        public int EntityID;
+        public Entity.GroundState groundState;
+        public MobileEntity.FacingState facingState;
+        public MobileEntity.MovingState movingState;
+
+        public EntityStateData(Entity e)
+        {
+            EntityID = e.id;
+            groundState = e.groundState;
+        }
+
+        public EntityStateData(MobileEntity e)
+        {
+            EntityID = e.id;
+            groundState = e.groundState;
+            facingState = e.facing;
+            movingState = e.moving;
+        }
+
+        /// <summary>
+        /// Apply any data in the EntityStateData to the given entity
+        /// </summary>
+        public void apply(Entity e) {
+            e.groundState = groundState;
+        }
+
+        /// <summary>
+        /// Apply any data in the EntityStateData to the given entity
+        /// </summary>
+        public void apply(MobileEntity e)
+        {
+            e.groundState = groundState;
+            e.moving = movingState;
+            e.facing = facingState;
+        }
+
+
+        /// <summary>
+        /// Reconstruct the Class from Network
+        /// </summary>
+        /// <param name="data"></param>
+        public EntityStateData(byte[] data)
+        {
+            using (MemoryStream memoryStream = new MemoryStream(data))
+            {
+                using (BinaryReader binaryReader = new BinaryReader(memoryStream))
+                {
+                    EntityID = (int)binaryReader.ReadInt32();
+                    groundState = (Entity.GroundState)binaryReader.ReadInt32();
+                    facingState = (MobileEntity.FacingState)binaryReader.ReadInt32();
+                    movingState = (MobileEntity.MovingState)binaryReader.ReadInt32();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Construct Network representation
+        /// </summary>
+        /// <returns></returns>
+        public byte[] GetByteArray()
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (BinaryWriter binaryWriter = new BinaryWriter(memoryStream))
+                {
+                    binaryWriter.Write((int)EntityID);
+                    binaryWriter.Write((int)groundState);
+                    binaryWriter.Write((int)facingState);
+                    binaryWriter.Write((int)movingState);
+
+                    return memoryStream.ToArray();
+                }
+            }
+        }
+    }
+
     public class EntityData : IMarshallable
     {
 

@@ -91,7 +91,7 @@ namespace OceanMars.Client
             }
         }
 
-        public void setAnimationSpriteStrip(int frameWidth, int frameTime, String spriteStripName, bool flipHorizontal = false)
+        public void setAnimationSpriteStrip(int frameWidth, int frameTime, String spriteStripName, bool flipHorizontal = false, bool looping = true, bool reset = true)
         {
             Texture2D chara = context.textureDict[spriteStripName];
             this.flipHorizontal = flipHorizontal;
@@ -102,7 +102,10 @@ namespace OceanMars.Client
                 animationFrames.Add(i);
             }
 
-            initDrawable(chara, frameWidth, chara.Height, animationFrames, frameTime, Color.White, true);
+            if (reset)
+                currentFrame = 0;
+
+            initDrawable(chara, frameWidth, chara.Height, animationFrames, frameTime, Color.White, looping);
             if (frameTime != 0)
             {
                 active = true;
@@ -111,8 +114,6 @@ namespace OceanMars.Client
             {
                 active = false;
             }
-
-            currentFrame = 0;
         }
 
         public void initDrawable(Texture2D texture,
@@ -149,10 +150,16 @@ namespace OceanMars.Client
                 // If the currentFrame is equal to frameCount reset currentFrame to zero
                 if (currentFrame == animationFrames.Count)
                 {
-                    currentFrame = 0;
                     // If we are not looping deactivate the animation
                     if (looping == false)
+                    {
                         active = false;
+                        --currentFrame; //Very minor hack
+                    }
+                    else
+                    {
+                        currentFrame = 0;
+                    }
                 }
 
                 // Reset the elapsed time to zero

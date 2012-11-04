@@ -24,6 +24,9 @@ namespace OceanMars.Common
         public delegate void StatePhaseChange(PHASE p);
         private List<StatePhaseChange> StatePhaseChangeListeners = new List<StatePhaseChange>();
 
+        public delegate void EntityStateChange(Entity e);
+        private List<EntityStateChange> EntityStateChangeListeners = new List<EntityStateChange>();
+
         #endregion
 
         public World root;
@@ -56,6 +59,7 @@ namespace OceanMars.Common
             
             entities.Add(e.id, e);
             e.registerTransformChangeListener(OnTransformChange);
+            e.registerEntityStateChangeListener(OnEntityStateChange);
 
             // Notify people that we've added an entity
             for (int i = 0; i < EntityAddListeners.Count; i++)
@@ -69,6 +73,14 @@ namespace OceanMars.Common
             foreach (TransformChange tcl in TransformChangeListeners)
             {
                 tcl.Invoke(e);
+            }
+        }
+
+        public void OnEntityStateChange(Entity e)
+        {
+            foreach (EntityStateChange esc in EntityStateChangeListeners)
+            {
+                esc.Invoke(e);
             }
         }
 
@@ -92,6 +104,11 @@ namespace OceanMars.Common
         public void registerEntityRemove(EntityRemove e)
         {
             EntityRemoveListeners.Add(e);
+        }
+
+        public void RegisterEntityStateChange(EntityStateChange esc)
+        {
+            EntityStateChangeListeners.Add(esc);
         }
 
         #endregion

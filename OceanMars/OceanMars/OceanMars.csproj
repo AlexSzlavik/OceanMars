@@ -120,6 +120,7 @@
     <Compile Include="Client\View.cs" />
     <Compile Include="Common\FinishLineEntity.cs" />
     <Compile Include="Common\LineEntity.cs" />
+    <Compile Include="Common\MobileEntity.cs" />
     <Compile Include="Common\SpawnPointEntity.cs" />
     <Compile Include="Common\FreeEntity.cs" />
     <Compile Include="Common\DefaultLevel.cs" />

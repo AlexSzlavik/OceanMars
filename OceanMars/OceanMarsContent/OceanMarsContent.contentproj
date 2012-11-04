@@ -213,6 +213,11 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Sprites\SonicJumping.png">
+      <Name>SonicJumping</Name>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Sprites\1x1redsquare.png">
       <Name>1x1redsquare</Name>
       <Importer>TextureImporter</Importer>
