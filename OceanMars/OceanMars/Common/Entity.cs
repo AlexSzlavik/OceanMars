@@ -40,8 +40,8 @@ namespace OceanMars.Common
             {
                 if (value != groundBack)
                 {
-                    OnEntityStateChange();
                     groundBack = value;
+                    OnEntityStateChange();
                 }
             }
         }
@@ -167,6 +167,11 @@ namespace OceanMars.Common
             lastGroundState = groundBack;
 
             if (!owned) return;
+
+            if (this is MobileEntity)
+            {
+                MobileEntity m = (MobileEntity)this;
+            }
 
             foreach (EntityStateChange esc in EntityStateChangeListeners)
             {

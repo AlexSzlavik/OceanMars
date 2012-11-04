@@ -23,8 +23,12 @@ namespace OceanMars.Common
             }
             set
             {
-                if (value != facingBack) OnEntityStateChange();
-                facingBack = value;
+                if (value != facingBack)
+                {
+                    facingBack = value;
+                    OnEntityStateChange();
+                }
+                
             }
         }
 
@@ -44,8 +48,11 @@ namespace OceanMars.Common
             }
             set
             {
-                if (value != movingBack) OnEntityStateChange();
-                movingBack = value;
+                if (value != movingBack)
+                {
+                    movingBack = value;
+                    OnEntityStateChange();
+                }
             }
         }
 
