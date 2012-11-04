@@ -6,7 +6,9 @@ namespace OceanMars.Common.NetCode
     public class GameData : IMarshallable
     {
 
-         /// <summary>
+        #region Enumerators
+
+        /// <summary>
         /// The type of game data being delivered.
         /// </summary>
         public enum GameDataType
@@ -41,6 +43,11 @@ namespace OceanMars.Common.NetCode
             /// A player's transform has been changed.
             /// </summary>
             PlayerTransform,
+
+            /// <summary>
+            /// An entity's state information has changed (i.e. in air, on ground, etc)
+            /// </summary>
+            EntityStateChange,
 
             /// <summary>
             /// Initialization information about level and player number sent from the server to a client.
@@ -99,6 +106,8 @@ namespace OceanMars.Common.NetCode
 
         }
 
+        #endregion
+
         /// <summary>
         /// The type associated with this packet.
         /// </summary>
@@ -145,6 +154,24 @@ namespace OceanMars.Common.NetCode
         }
 
         /// <summary>
+        /// The EntityData (if any) associated with this GameData.
+        /// </summary>
+        public EntityData EntityData
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The EntityStateData (if any) associated with this GameData.
+        /// </summary>
+        public EntityStateData EntityStateData
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Create a new piece of GameData from a byte array representation.
         /// </summary>
         /// <param name="byteArray">A byte array to create a GameData packet from.</param>
@@ -161,9 +188,17 @@ namespace OceanMars.Common.NetCode
                     byte[] subData  = new byte[byteArray.Length - 3];
                     Array.ConstrainedCopy(byteArray, 3, subData, 0, byteArray.Length - 3);
 
-                    if (Type == GameDataType.Movement || Type == GameDataType.NewEntity)
+                    if (Type == GameDataType.Movement)
                     {
                         TransformData = new TransformData(subData);
+                    }
+                    else if (Type == GameDataType.NewEntity)
+                    {
+                        EntityData = new EntityData(subData);
+                    }
+                    else if (Type == GameDataType.EntityStateChange)
+                    {
+                        EntityStateData = new EntityStateData(subData);
                     }
                 }
             }
@@ -177,12 +212,13 @@ namespace OceanMars.Common.NetCode
         /// <param name="gameDataType">The type associated with this packet.</param>
         /// <param name="playerId">The id of the player that performed the action.</param>
         /// <param name="eventDetail">The extra detail associated with this event.</param>
-        public GameData(GameDataType gameDataType, int playerId = 0, int eventDetail = 0, TransformData transformData = null)
+        public GameData(GameDataType gameDataType, int playerId = 0, int eventDetail = 0, TransformData transformData = null, EntityData entityData = null)
         {
             Type = gameDataType;
             PlayerID = playerId;
             EventDetail = eventDetail;
             TransformData = transformData;
+            EntityData = entityData;
             return;
         }
 
@@ -200,9 +236,17 @@ namespace OceanMars.Common.NetCode
                     binaryWriter.Write((byte)PlayerID);
                     binaryWriter.Write((byte)EventDetail);
 
-                    if (Type == GameDataType.Movement || Type == GameDataType.NewEntity)
+                    if (Type == GameDataType.Movement)
                     {
                         binaryWriter.Write(TransformData.GetByteArray());
+                    }
+                    else if (Type == GameDataType.NewEntity)
+                    {
+                        binaryWriter.Write(EntityData.GetByteArray());
+                    }
+                    else if (Type == GameDataType.EntityStateChange)
+                    {
+                        binaryWriter.Write(EntityStateData.GetByteArray());
                     }
 
                     return memoryStream.ToArray();

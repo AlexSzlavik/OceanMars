@@ -33,8 +33,9 @@ namespace OceanMars.Common
 
         private void constructLevel(List<Vector2[]> vectorList)
         {
-            TestWall w = null;
             SpawnPointEntity s = null;
+            FinishLineEntity finish = null;
+            TestWall w = null;
             Vector2[] v;
 
             // First, create the set of spawn points
@@ -45,8 +46,13 @@ namespace OceanMars.Common
                 spawnPoints.Add(s);
             }
 
+            // Next, create the finish line (hack? but this whole system feels a lil hack atm) -Sherban
+            v = vectorList[1];
+            finish = new FinishLineEntity(v[0], v[1], this);
+            finish = new FinishLineEntity(v[1], v[0], this);
+
             // Next, create the set of walls
-            for (int i = 1; i < vectorList.Count; i++ )
+            for (int i = 2; i < vectorList.Count; i++ )
             {
                 v = vectorList[i];
                 w = new TestWall(this, v[0], v[1]);

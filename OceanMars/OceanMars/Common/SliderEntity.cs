@@ -6,10 +6,8 @@ using Microsoft.Xna.Framework;
 
 namespace OceanMars.Common
 {
-    public class SliderEntity : Entity
+    public class SliderEntity : LineEntity
     {
-        public Vector2[] endPoints;
-
         public float friction;
         public float staticFriction;
         public String name = "ill defined";
@@ -17,12 +15,8 @@ namespace OceanMars.Common
         public float frictionThreshold;
 
         public SliderEntity(Vector2 endPoint1, Vector2 endPoint2, Entity parent)
-            : base(Vector2.Zero, parent)
+            : base(endPoint1, endPoint2, parent)
         {
-            endPoints = new Vector2[2];
-            this.endPoints[0] = endPoint1;
-            this.endPoints[1] = endPoint2;
-
             // Defaults
             friction = 1.0f;
             staticFriction = 0.0f;

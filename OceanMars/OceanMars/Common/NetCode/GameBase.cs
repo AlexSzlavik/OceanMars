@@ -99,6 +99,7 @@ namespace OceanMars.Common.NetCode
 
             GameState.registerStatePhaseChange(this.OnStatePhaseChange);
             GameState.registerTransformChange(this.OnTransformChange);
+            GameState.RegisterEntityStateChange(this.OnEntityStateChange);
 
             return;
         }
@@ -131,6 +132,35 @@ namespace OceanMars.Common.NetCode
             }
             return;
         }
+
+        /// <summary>
+        /// Send out state change information
+        /// </summary>
+        /// <param name="entity">The entity to update.</param>
+        public virtual void OnEntityStateChange(Entity entity)
+        {
+            EntityStateData stateData;
+            // Invoke class-specific constructors, to avoid sending extra information
+            if (entity is MobileEntity)
+            {
+                stateData = new EntityStateData((MobileEntity)entity);
+            }
+            else
+            {
+                stateData = new EntityStateData(entity);
+            }
+
+            GameData gameData = new GameData(GameData.GameDataType.EntityStateChange, LocalPlayer.PlayerID, 0);
+            gameData.EventDetail = entity.id;
+            gameData.EntityStateData = stateData;
+
+            lock (gameStatesToSend)
+            {
+                gameStatesToSend.Add(gameData);
+            }
+            return;
+        }
+
 
         /// <summary>
         /// Commit game state updates.

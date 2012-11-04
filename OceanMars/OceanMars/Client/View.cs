@@ -65,6 +65,11 @@ namespace OceanMars.Client
                 Sprite s = new TestWallSprite(this, (TestWall)e);
                 sprites.Add(e.id, s);
             }
+            else if (e is FinishLineEntity)
+            {
+                Sprite s = new FinishLineEntitySprite(this, (FinishLineEntity)e);
+                sprites.Add(e.id, s);
+            }
         }
 
         public void OnRemoveEntity(Entity e)

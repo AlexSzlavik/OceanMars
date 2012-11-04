@@ -81,4 +81,154 @@ namespace OceanMars.Common.NetCode
             }
         }
     }
+
+    public class EntityStateData : IMarshallable
+    {
+        public int EntityID;
+        public Entity.GroundState groundState;
+        public MobileEntity.FacingState facingState;
+        public MobileEntity.MovingState movingState;
+
+        public EntityStateData(Entity e)
+        {
+            EntityID = e.id;
+            groundState = e.groundState;
+        }
+
+        public EntityStateData(MobileEntity e)
+        {
+            EntityID = e.id;
+            groundState = e.groundState;
+            facingState = e.facing;
+            movingState = e.moving;
+        }
+
+        /// <summary>
+        /// Apply any data in the EntityStateData to the given entity
+        /// </summary>
+        public void apply(Entity e) {
+            e.groundState = groundState;
+        }
+
+        /// <summary>
+        /// Apply any data in the EntityStateData to the given entity
+        /// </summary>
+        public void apply(MobileEntity e)
+        {
+            e.groundState = groundState;
+            e.moving = movingState;
+            e.facing = facingState;
+        }
+
+
+        /// <summary>
+        /// Reconstruct the Class from Network
+        /// </summary>
+        /// <param name="data"></param>
+        public EntityStateData(byte[] data)
+        {
+            using (MemoryStream memoryStream = new MemoryStream(data))
+            {
+                using (BinaryReader binaryReader = new BinaryReader(memoryStream))
+                {
+                    EntityID = (int)binaryReader.ReadInt32();
+                    groundState = (Entity.GroundState)binaryReader.ReadInt32();
+                    facingState = (MobileEntity.FacingState)binaryReader.ReadInt32();
+                    movingState = (MobileEntity.MovingState)binaryReader.ReadInt32();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Construct Network representation
+        /// </summary>
+        /// <returns></returns>
+        public byte[] GetByteArray()
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (BinaryWriter binaryWriter = new BinaryWriter(memoryStream))
+                {
+                    binaryWriter.Write((int)EntityID);
+                    binaryWriter.Write((int)groundState);
+                    binaryWriter.Write((int)facingState);
+                    binaryWriter.Write((int)movingState);
+
+                    return memoryStream.ToArray();
+                }
+            }
+        }
+    }
+
+    public class EntityData : IMarshallable
+    {
+
+        /// <summary>
+        /// A list of ALL possible entities to be sent over the network.
+        /// If you add a new type of entity, add it here
+        /// </summary>
+        public enum EntityType
+        {
+            TestMan = 0
+        }
+
+        public EntityType type;
+        public TransformData transformData;
+
+                /// <summary>
+        /// Convinience Constructor to Marshal Matrix
+        /// </summary>
+        /// <param name="ID"></param>
+        /// <param name="matrix"></param>
+        public EntityData(EntityType type, int id, Matrix matrix)
+        {
+            this.type = type;
+            this.transformData = new TransformData(id, matrix);
+        }
+
+        /// <summary>
+        /// Reconstruct the Class from Network
+        /// </summary>
+        /// <param name="data"></param>
+        public EntityData(byte[] data)
+        {
+            using (MemoryStream memoryStream = new MemoryStream(data))
+            {
+                using (BinaryReader binaryReader = new BinaryReader(memoryStream))
+                {
+                    type = (EntityType)binaryReader.ReadInt32();
+                    int entityID = (int)binaryReader.ReadInt32();
+                    float[] matrix = new float[16];
+                    Matrix Matrix;
+                    for (int i = 0; i < 16; i++)
+                    {
+                        matrix[i] = (float)binaryReader.ReadDouble();
+                    }
+                    Matrix = new Matrix(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5], matrix[6], matrix[7], matrix[8], matrix[9], matrix[10], matrix[11], matrix[12], matrix[13], matrix[14], matrix[15]);
+                    transformData = new TransformData(entityID, Matrix);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Construct Network representation
+        /// </summary>
+        /// <returns></returns>
+        public byte[] GetByteArray()
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (BinaryWriter binaryWriter = new BinaryWriter(memoryStream))
+                {
+                    binaryWriter.Write((int)type);
+                    binaryWriter.Write((int)transformData.EntityID);
+                    foreach (float element in transformData.Matrix)
+                        binaryWriter.Write((double)element);
+
+                    return memoryStream.ToArray();
+                }
+            }
+        }
+
+    }
 }

@@ -215,6 +215,18 @@
   <ItemGroup>
     <Compile Include="Sprites\SonicJumping.png">
       <Name>SonicJumping</Name>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Sprites\1x1redsquare.png">
+      <Name>1x1redsquare</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Sprites\SonicRunning.png">
+      <Name>SonicRunning</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

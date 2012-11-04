@@ -70,8 +70,8 @@ namespace OceanMars.Common.NetCode
             players[myPlayerID].EntityID = tm.id;
             LocalPlayer.EntityID = players[myPlayerID].EntityID;    //hack?
 
-            TransformData transformData = new TransformData(tm.id, tm.transform);
-            GameData gameData = new GameData(GameData.GameDataType.NewEntity, myPlayerID, 0, transformData);
+            EntityData entityData = new EntityData(EntityData.EntityType.TestMan, tm.id, tm.transform);
+            GameData gameData = new GameData(GameData.GameDataType.NewEntity, myPlayerID, 0, null, entityData);
             Network.SendGameData(gameData);
             return;
         }
@@ -110,16 +110,30 @@ namespace OceanMars.Common.NetCode
                             case GameData.GameDataType.Movement:
                                 GameState.entities[gameState.TransformData.EntityID].transform = gameState.TransformData.GetMatrix();
                                 break;
-                            case GameData.GameDataType.PlayerTransform:
+                            /*case GameData.GameDataType.PlayerTransform:
                                 GameState.entities[players[gameState.TransformData.EntityID].EntityID].transform = gameState.TransformData.GetMatrix();
-                                break;
+                                break;*/
                             case GameData.GameDataType.NewEntity:
                                 //hack, need to use something more than TransformData
                                 //assuming TestMan for now
 
-                                System.Diagnostics.Debug.WriteLine("EntityID: " + gameState.TransformData.EntityID);
-                                TestMan testMan = new TestMan(GameState.root, false, gameState.TransformData.EntityID);
-                                testMan.transform = gameState.TransformData.GetMatrix();
+                                TestMan testMan = new TestMan(GameState.root, false, gameState.EntityData.transformData.EntityID);
+                                testMan.transform = gameState.EntityData.transformData.GetMatrix();
+                                break;
+                            case GameData.GameDataType.EntityStateChange:
+                                EntityStateData esd = gameState.EntityStateData;
+                                Entity e = GameState.entities[esd.EntityID];
+
+
+                                if (e is MobileEntity)
+                                {
+                                    esd.apply((MobileEntity)e);
+                                }
+                                else
+                                {
+                                    esd.apply(e);
+                                }
+
                                 break;
                             default:
                                 // throw new NotImplementedExption("Received unexpected gamestate");
