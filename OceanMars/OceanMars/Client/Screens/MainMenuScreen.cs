@@ -20,7 +20,7 @@ namespace OceanMars.Client.Screens
     /// <summary>
     /// The main menu screen is the first thing displayed when the game starts up.
     /// </summary>
-    class MainMenuScreen : MenuScreen
+    public class MainMenuScreen : MenuScreen
     {
         #region Initialization
 

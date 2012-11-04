@@ -12,7 +12,7 @@ namespace OceanMars.Client.Screens
     /// It draws a background image that remains fixed in place regardless
     /// of whatever transitions the screens on top of it may be doing.
     /// </summary>
-    class BackgroundScreen : GameScreen
+    public class BackgroundScreen : GameScreen
     {
         #region Fields
 

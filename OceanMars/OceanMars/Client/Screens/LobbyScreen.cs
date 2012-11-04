@@ -24,7 +24,7 @@ namespace OceanMars.Screens
     /// <summary>
     /// The main menu screen is the first thing displayed when the game starts up.
     /// </summary>
-    class LobbyScreen : MenuScreen
+    public class LobbyScreen : MenuScreen
     {
 
         // TODO: Pretend that id's are nicely handled all over the place until I actually handle them niceley later after sleep
