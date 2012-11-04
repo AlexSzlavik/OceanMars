@@ -50,14 +50,13 @@ namespace OceanMars.Screens
         {
             this.lc = lc;
 
-            lc.RegisterNewGameUpdater(this.startGame);
+            lc.RegisterNewGameUpdater(this.StartGame);
 
-            {
-                // Create the single invisible menu entry
-                MenuEntry startGameMenuEntry = new MenuEntry(string.Empty, true);
-                startGameMenuEntry.Selected += StartGameMenuEntrySelected;
-                MenuEntries.Add(startGameMenuEntry);
-            }
+            
+            // Create the single invisible menu entry
+            MenuEntry startGameMenuEntry = new MenuEntry(string.Empty, true);
+            startGameMenuEntry.Selected += StartGameMenuEntrySelected;
+            MenuEntries.Add(startGameMenuEntry);
 
             return;
         }
@@ -71,7 +70,6 @@ namespace OceanMars.Screens
         public override void LoadContent()
         {
             ContentManager content = ScreenManager.Game.Content;
-
             base.LoadContent();
             return;
         }
@@ -85,6 +83,7 @@ namespace OceanMars.Screens
         /// </summary>
         protected override void OnCancel()
         {
+            base.OnCancel();
             return;
         }
 
@@ -108,16 +107,16 @@ namespace OceanMars.Screens
         /// <summary>
         /// Run a regular update loop on the menu.
         /// </summary>
-        /// 
-
         public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
+            base.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
             return;
         }
 
-        private void startGame(GameClient gc)
+        private void StartGame(GameClient gc)
         {
-            ScreenManager.AddScreen(new GameplayScreen(gc));
+            LoadingScreen.Load(ScreenManager, false, new GameplayScreen(gc));
+            return;
         }
 
         /// <summary>
@@ -127,7 +126,7 @@ namespace OceanMars.Screens
         {
             GraphicsDevice graphics = ScreenManager.GraphicsDevice;
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
-
+            base.Draw(gameTime);
             return;
         }
 
