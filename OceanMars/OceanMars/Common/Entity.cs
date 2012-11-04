@@ -24,6 +24,11 @@ namespace OceanMars.Common
             //LAVA
         }
 
+        public GroundState lastGroundState
+        {
+            private set;
+            get;
+        }
         private GroundState groundBack;
         public GroundState groundState
         {
@@ -33,9 +38,18 @@ namespace OceanMars.Common
             }
             set
             {
-                if(value != groundBack) stateChanged = true;
-                groundBack = value;
+                if (value != groundBack)
+                {
+                    signalStateChange();
+                    groundBack = value;
+                }
             }
+        }
+
+        protected void signalStateChange()
+        {
+            stateChanged = true;
+            lastGroundState = groundBack;
         }
 
         public bool stateChanged = false;

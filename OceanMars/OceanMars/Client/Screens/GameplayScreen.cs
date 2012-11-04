@@ -71,6 +71,7 @@ namespace SkyCrane.Screens
             context.textureDict.Add("defaultlevel", content.Load<Texture2D>("Sprites/scenery"));
             context.textureDict.Add("whitesquare", content.Load<Texture2D>("Sprites/30x30whitesquare"));
             context.textureDict.Add("SonicWalking", content.Load<Texture2D>("Sprites/SonicWalking"));
+            context.textureDict.Add("SonicJumping", content.Load<Texture2D>("Sprites/SonicJumping"));
             context.textureDict.Add("blacksquare", content.Load<Texture2D>("Sprites/1x1blacksquare"));
             context.textureDict.Add("localcoordplayer", content.Load<Texture2D>("Sprites/localcoordplayer"));
 

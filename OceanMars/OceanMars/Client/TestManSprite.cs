@@ -57,6 +57,17 @@ namespace OceanMars.Client
                         }
                     }
                 }
+                else if (e.groundState == Entity.GroundState.AIR)
+                {
+                    if (e.facing == TestMan.FacingState.LEFT)
+                    {
+                        setAnimationSpriteStrip(36, 20, "SonicJumping", false, false, (e.groundState != e.lastGroundState));
+                    }
+                    else if (e.facing == TestMan.FacingState.RIGHT)
+                    {
+                        setAnimationSpriteStrip(36, 20, "SonicJumping", true, false, (e.groundState != e.lastGroundState));
+                    }
+                }
 
                 // This is a hack for handling the state, but should probably be reset on frame in the Entity instead of here
                 e.stateChanged = false;

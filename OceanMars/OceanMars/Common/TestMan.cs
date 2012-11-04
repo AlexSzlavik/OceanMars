@@ -24,7 +24,7 @@ namespace OceanMars.Common
             }
             set
             {
-                if (value != facingBack) stateChanged = true;
+                if (value != facingBack) signalStateChange();
                 facingBack = value;
             }
         }
@@ -44,7 +44,7 @@ namespace OceanMars.Common
             }
             set
             {
-                if (value != movingBack) stateChanged = true;
+                if (value != movingBack) signalStateChange();
                 movingBack = value;
             }
         }
