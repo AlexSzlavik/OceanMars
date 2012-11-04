@@ -101,6 +101,8 @@ namespace OceanMars.Common.NetCode
             groundState = e.groundState;
             facingState = e.facing;
             movingState = e.moving;
+
+            
         }
 
         /// <summary>
@@ -118,6 +120,8 @@ namespace OceanMars.Common.NetCode
             e.groundState = groundState;
             e.moving = movingState;
             e.facing = facingState;
+
+            System.Diagnostics.Debug.WriteLine("Wrote state (" + groundState + ", " + facingState + ", " + movingState + ")");
         }
 
 
