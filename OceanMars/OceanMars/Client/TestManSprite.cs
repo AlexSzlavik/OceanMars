@@ -59,13 +59,15 @@ namespace OceanMars.Client
                 }
                 else if (e.groundState == Entity.GroundState.AIR)
                 {
+                    Boolean justJumped = e.lastGroundState == Entity.GroundState.GROUND && e.groundState == Entity.GroundState.AIR;
+
                     if (e.facing == TestMan.FacingState.LEFT)
                     {
-                        setAnimationSpriteStrip(36, 20, "SonicJumping", false, false, (e.groundState != e.lastGroundState));
+                        setAnimationSpriteStrip(36, 20, "SonicJumping", false, false, justJumped);
                     }
                     else if (e.facing == TestMan.FacingState.RIGHT)
                     {
-                        setAnimationSpriteStrip(36, 20, "SonicJumping", true, false, (e.groundState != e.lastGroundState));
+                        setAnimationSpriteStrip(36, 20, "SonicJumping", true, false, justJumped);
                     }
                 }
 
