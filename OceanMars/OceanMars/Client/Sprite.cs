@@ -105,6 +105,9 @@ namespace OceanMars.Client
             if (reset)
                 currentFrame = 0;
 
+            currentFrame = Math.Min(currentFrame, animationFrames.Count - 1); // hack to avoid crashes when things aren't working
+
+
             initDrawable(chara, frameWidth, chara.Height, animationFrames, frameTime, Color.White, looping);
             if (frameTime != 0)
             {
