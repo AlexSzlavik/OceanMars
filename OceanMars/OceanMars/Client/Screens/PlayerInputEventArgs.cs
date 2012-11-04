@@ -18,7 +18,7 @@ namespace OceanMars.Client.Screens
     /// Custom event argument which includes the index of the player who
     /// triggered the event and toggle information. This is used by the MenuEntry.Selected event.
     /// </summary>
-    class PlayerInputEventArgs : EventArgs
+    public class PlayerInputEventArgs : EventArgs
     {
         /// <summary>
         /// Constructor.

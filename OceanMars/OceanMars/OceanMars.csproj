@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client\FinishLineEntitySprite.cs" />
+    <Compile Include="Client\Screens\ConsoleScreen.cs" />
     <Compile Include="Client\Screens\LobbyScreen.cs" />
     <Compile Include="Client\Screens\HostSettingsMenuScreen.cs" />
     <Compile Include="Client\Screens\MultiplayerMenuScreen.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Common\FinishLineEntity.cs" />
     <Compile Include="Common\LineEntity.cs" />
     <Compile Include="Common\MobileEntity.cs" />
+    <Compile Include="Common\Options.cs" />
     <Compile Include="Common\SpawnPointEntity.cs" />
     <Compile Include="Common\FreeEntity.cs" />
     <Compile Include="Common\DefaultLevel.cs" />
