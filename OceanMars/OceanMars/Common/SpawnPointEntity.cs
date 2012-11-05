@@ -10,9 +10,11 @@ namespace OceanMars.Common
     {
         public Vector2 spawn;
 
-        public SpawnPointEntity (Entity parent, Vector2 spawn) : base (spawn, parent)
+        public SpawnPointEntity (Entity parent, Vector2 spawn) : base (Vector2.Zero, parent)
         {
             this.spawn = spawn;
+
+            transform = Matrix.CreateTranslation(new Vector3(spawn.X, spawn.Y, 0)) * transform;
         }
     }
 }

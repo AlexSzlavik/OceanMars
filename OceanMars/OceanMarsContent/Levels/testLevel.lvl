@@ -3,159 +3,79 @@
   <ArrayOfVector2>
     <Vector2>
       <X>0</X>
-      <Y>0</Y>
+      <Y>-100</Y>
     </Vector2>
     <Vector2>
       <X>0</X>
-      <Y>0</Y>
+      <Y>-100</Y>
     </Vector2>
     <Vector2>
       <X>0</X>
-      <Y>0</Y>
+      <Y>-100</Y>
     </Vector2>
     <Vector2>
       <X>0</X>
-      <Y>0</Y>
+      <Y>-100</Y>
     </Vector2>
     <Vector2>
       <X>0</X>
-      <Y>0</Y>
+      <Y>-100</Y>
     </Vector2>
     <Vector2>
       <X>0</X>
-      <Y>0</Y>
+      <Y>-100</Y>
     </Vector2>
     <Vector2>
       <X>0</X>
-      <Y>0</Y>
+      <Y>-100</Y>
     </Vector2>
     <Vector2>
       <X>0</X>
-      <Y>0</Y>
+      <Y>-100</Y>
     </Vector2>
     <Vector2>
       <X>0</X>
-      <Y>0</Y>
+      <Y>-100</Y>
     </Vector2>
   </ArrayOfVector2>
   <ArrayOfVector2>
     <Vector2>
-      <X>200</X>
+      <X>10000</X>
       <Y>-10000</Y>
     </Vector2>
     <Vector2>
-      <X>200</X>
+      <X>10000</X>
       <Y>10000</Y>
     </Vector2>
   </ArrayOfVector2>
   <ArrayOfVector2>
     <Vector2>
-      <X>-1000</X>
+      <X>-50</X>
       <Y>1000</Y>
     </Vector2>
     <Vector2>
-      <X>-1000</X>
-      <Y>500</Y>
+      <X>-50</X>
+      <Y>0</Y>
     </Vector2>
   </ArrayOfVector2>
   <ArrayOfVector2>
     <Vector2>
-      <X>-1000</X>
-      <Y>500</Y>
+      <X>-50</X>
+      <Y>0</Y>
     </Vector2>
     <Vector2>
-      <X>-700</X>
-      <Y>-50</Y>
-    </Vector2>
-  </ArrayOfVector2>
-  <ArrayOfVector2>
-    <Vector2>
-      <X>-700</X>
-      <Y>-50</Y>
-    </Vector2>
-    <Vector2>
-      <X>500</X>
-      <Y>-50</Y>
+      <X>10050</X>
+      <Y>0</Y>
     </Vector2>
   </ArrayOfVector2>
   <ArrayOfVector2>
     <Vector2>
-      <X>500</X>
-      <Y>-50</Y>
+      <X>10050</X>
+      <Y>0</Y>
     </Vector2>
     <Vector2>
-      <X>1000</X>
-      <Y>100</Y>
-    </Vector2>
-  </ArrayOfVector2>
-  <ArrayOfVector2>
-    <Vector2>
-      <X>1000</X>
-      <Y>100</Y>
-    </Vector2>
-    <Vector2>
-      <X>1000</X>
+      <X>10050</X>
       <Y>1000</Y>
-    </Vector2>
-  </ArrayOfVector2>
-  <ArrayOfVector2>
-    <Vector2>
-      <X>-200</X>
-      <Y>200</Y>
-    </Vector2>
-    <Vector2>
-      <X>100</X>
-      <Y>200</Y>
-    </Vector2>
-  </ArrayOfVector2>
-  <ArrayOfVector2>
-    <Vector2>
-      <X>200</X>
-      <Y>400</Y>
-    </Vector2>
-    <Vector2>
-      <X>400</X>
-      <Y>400</Y>
-    </Vector2>
-  </ArrayOfVector2>
-  <ArrayOfVector2>
-    <Vector2>
-      <X>400</X>
-      <Y>400</Y>
-    </Vector2>
-    <Vector2>
-      <X>400</X>
-      <Y>600</Y>
-    </Vector2>
-  </ArrayOfVector2>
-  <ArrayOfVector2>
-    <Vector2>
-      <X>400</X>
-      <Y>600</Y>
-    </Vector2>
-    <Vector2>
-      <X>800</X>
-      <Y>600</Y>
-    </Vector2>
-  </ArrayOfVector2>
-  <ArrayOfVector2>
-    <Vector2>
-      <X>-700</X>
-      <Y>-50</Y>
-    </Vector2>
-    <Vector2>
-      <X>500</X>
-      <Y>-50</Y>
-    </Vector2>
-  </ArrayOfVector2>
-  <ArrayOfVector2>
-    <Vector2>
-      <X>-200</X>
-      <Y>-50</Y>
-    </Vector2>
-    <Vector2>
-      <X>200</X>
-      <Y>-20</Y>
     </Vector2>
   </ArrayOfVector2>
 
