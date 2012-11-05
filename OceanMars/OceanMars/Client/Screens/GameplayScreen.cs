@@ -72,6 +72,7 @@ namespace SkyCrane.Screens
             context.textureDict.Add("whitesquare", content.Load<Texture2D>("Sprites/30x30whitesquare"));
             context.textureDict.Add("SonicWalking", content.Load<Texture2D>("Sprites/SonicWalking"));
             context.textureDict.Add("SonicJumping", content.Load<Texture2D>("Sprites/SonicJumping"));
+            context.textureDict.Add("SonicWallJumping", content.Load<Texture2D>("Sprites/SonicWallJumping"));
             context.textureDict.Add("blacksquare", content.Load<Texture2D>("Sprites/1x1blacksquare"));
             context.textureDict.Add("redsquare", content.Load<Texture2D>("Sprites/1x1redsquare"));
             context.textureDict.Add("localcoordplayer", content.Load<Texture2D>("Sprites/localcoordplayer"));
@@ -140,7 +141,7 @@ namespace SkyCrane.Screens
 
                 context.avatar.acceleration = Vector2.Zero;
 
-                context.avatar.acceleration.Y = context.avatar.groundState == Entity.GroundState.WALL ? GRAVITY / 2.0f : GRAVITY;
+                context.avatar.acceleration.Y = context.avatar.onWall() ? GRAVITY / 2.0f : GRAVITY;
 
                 //stillHoldingJump makes sure that, once our character hits the ground, he doesn't jump
                 //again until we let go of the jump button and press it again
@@ -166,13 +167,13 @@ namespace SkyCrane.Screens
                     //if (firstRelease == true)
                     {
                         if (((context.avatar.groundState == Entity.GroundState.GROUND ||
-                              context.avatar.groundState == Entity.GroundState.WALL) &&
+                              context.avatar.onWall()) &&
                              !stillHoldingJump) ||
                             (context.avatar.groundState == Entity.GroundState.AIR &&
                              stillJumping &&
                              Math.Abs(context.avatar.velocity.Y) < context.avatar.maxVelocity))
                         {
-                            if (context.avatar.groundState == Entity.GroundState.WALL)
+                            if (context.avatar.onWall())
                                 movementAcceleration *= -5;
                             context.avatar.acceleration.Y -= context.avatar.jumpAcceleration;
                             context.avatar.groundState = Entity.GroundState.AIR;

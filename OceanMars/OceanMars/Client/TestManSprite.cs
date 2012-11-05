@@ -70,6 +70,14 @@ namespace OceanMars.Client
                         setAnimationSpriteStrip(36, 20, "SonicJumping", true, false, justJumped);
                     }
                 }
+                else if (e.groundState == Entity.GroundState.WALLSLIDE_LEFT)
+                {
+                    setAnimationSpriteStrip(36, 0, "SonicWallJumping", false);
+                }
+                else if (e.groundState == Entity.GroundState.WALLSLIDE_RIGHT)
+                {
+                    setAnimationSpriteStrip(36, 0, "SonicWallJumping", true);
+                }
 
                 // This is a hack for handling the state, but should probably be reset on frame in the Entity instead of here
                 e.stateChanged = false;

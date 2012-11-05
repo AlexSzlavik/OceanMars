@@ -19,9 +19,15 @@ namespace OceanMars.Common
         {
             GROUND,
             AIR,
-            WALL
+            WALLSLIDE_LEFT,
+            WALLSLIDE_RIGHT
             //WATER
             //LAVA
+        }
+
+        public bool onWall()
+        {
+            return groundState == Entity.GroundState.WALLSLIDE_LEFT || groundState == Entity.GroundState.WALLSLIDE_RIGHT;
         }
 
         public GroundState lastGroundState

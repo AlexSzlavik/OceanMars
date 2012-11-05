@@ -292,7 +292,14 @@ namespace OceanMars.Common
                     }
                     else if (groundState == Entity.GroundState.AIR)
                     {
-                        groundState = Entity.GroundState.WALL;
+                        if (truncatedVelocity.X < 0)
+                        {
+                            groundState = Entity.GroundState.WALLSLIDE_LEFT;
+                        }
+                        else
+                        {
+                            groundState = Entity.GroundState.WALLSLIDE_RIGHT;
+                        }
                     }
 
                     hasCollidedOnce = true;
